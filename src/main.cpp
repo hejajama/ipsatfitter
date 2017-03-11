@@ -30,6 +30,8 @@ int main()
     
     Data data;
     data.LoadData("data/hera_combined_sigmar.txt", false);
+    Data charmdata;
+    charmdata.LoadData("data/hera_combined_sigmar_cc.txt", true);
     
     MnUserParameters parameters;
     parameters.Add("B_G", 4.0);

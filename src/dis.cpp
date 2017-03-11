@@ -64,8 +64,10 @@ double DISFitter::operator()(const std::vector<double>& par) const
             bool onlycharm = datasets[dataset]->OnlyCharm();
             
             double sqrts = sqrt( Q2 / (x * y) );
+            
+            double charmx = x * (1.0 + 4.0*heavy_mass / Q2);
 
-            double theory_charm = ReducedCrossSection(Q2, x, sqrts, C,  heavy_mass, fitparams);
+            double theory_charm = ReducedCrossSection(Q2, charmx, sqrts, C,  heavy_mass, fitparams);
             double theory_light;
             if (onlycharm)
                 theory_light = 0;

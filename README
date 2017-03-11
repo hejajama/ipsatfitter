@@ -1,0 +1,6 @@
+Install:
+
+1. Install Minuit2 (CC=compiler CXX=compiler ./configure --prefix=/installation_directory; make; make install)  and modify Makefile to point to correct directory
+2. Compile Amir&Raju IPsat library (used at this point for testing purposes, to be removed): go to libColorDiple directory and type
+   make TEST_DIPOLE FC=gfortran
+3. Compile fitter: make 
