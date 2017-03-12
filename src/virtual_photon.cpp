@@ -31,15 +31,22 @@ VirtualPhoton::VirtualPhoton()
     e_f.push_back(2.0/3.0); e_f.push_back(-1.0/3.0); e_f.push_back(-1.0/3.0); e_f.push_back(2.0/3.0);
     m_f.push_back(0.01); m_f.push_back(0.01); m_f.push_back(0.01); m_f.push_back(1.4);
     
+#ifdef USE_INTERPOLATOR
+    interpolator_ready = false;
+#endif
+ 
 }
 
+VirtualPhoton::~VirtualPhoton()
+{
+}
 /*
  * Transversially polarized component of the overlap
  */
 
 
 
-const double VirtualPhoton::PsiSqr_T(double Qsqr, double r, double z)
+const double VirtualPhoton::PsiSqr_T(double Qsqr, double r, double z) const
 {
     double result=0;
     for (unsigned int f=0; f<e_f.size(); f++)     // Sum quark flavors
@@ -80,7 +87,7 @@ const double VirtualPhoton::PsiSqr_T(double Qsqr, double r, double z)
  * Longitudinally polarized component of the overlap
  */
 
-const double VirtualPhoton::PsiSqr_L(double Qsqr, double r, double z)
+const double VirtualPhoton::PsiSqr_L(double Qsqr, double r, double z) const
 {
     
     double result=0;
@@ -116,7 +123,7 @@ const double VirtualPhoton::PsiSqr_L(double Qsqr, double r, double z)
  * we need some helper structures
  */
 struct zinthelper{
-    VirtualPhoton *vm_p;
+    const VirtualPhoton *vm_p;
     double  Qsqr;
     double  r;
 };
@@ -135,8 +142,16 @@ double  zhelperfuncL(double z, void * p){
 							z);
 }
 
-const double VirtualPhoton::PsiSqr_T_intz(double Qsqr, double r)
+const double VirtualPhoton::PsiSqr_T_intz(double Qsqr, double r) const
 {
+#ifdef USE_INTERPOLATOR
+    if (interpolator_ready and Qsqr < interpolator_maxQ2 and Qsqr > interpolator_minQ2 and r < interpolator_maxr and r  > interpolator_minr)
+    {
+        double interpolated = transverse_zint_interpolator.Evaluate(log(Qsqr), log(r));
+        return interpolated;
+        
+    }
+#endif
     double result,abserr;
     struct zinthelper zintpar;
     zintpar.vm_p=this;
@@ -155,10 +170,11 @@ const double VirtualPhoton::PsiSqr_T_intz(double Qsqr, double r)
         << status << " (transverse, Qsqr=" << Qsqr << ", r=" << r 
         << "relerr=" << abserr/result << ") at " << LINEINFO << std::endl;}
   
+
     return result;
 }
 
-const double VirtualPhoton::PsiSqr_L_intz(double Qsqr, double r)
+const double VirtualPhoton::PsiSqr_L_intz(double Qsqr, double r) const
 {
     double result,abserr;
     struct zinthelper zintpar;
@@ -183,7 +199,7 @@ const double VirtualPhoton::PsiSqr_L_intz(double Qsqr, double r)
 
 
 
-double VirtualPhoton::Epsilon(double Qsqr, double z, int f)
+double VirtualPhoton::Epsilon(double Qsqr, double z, int f) const
 {
     return std::sqrt( z*(1.0-z)*Qsqr+SQR(m_f[f]) );
 }
@@ -246,6 +262,11 @@ void VirtualPhoton::SetQuark(Parton p, double mass)
 		default:
 			cerr << "Unknown parton " << p << " at " << LINEINFO << endl;
 	}
+    
+    // When quark content is changed, interpolator can not be ready!
+#ifdef USE_INTERPOLATOR
+    interpolator_ready = false;
+#endif
 
 }
 
@@ -263,4 +284,49 @@ std::ostream& operator<<(std::ostream& os, VirtualPhoton& ic)
         << ic.GetParamString() << " .";
         
 }
+
+#ifdef USE_INTERPOLATOR
+
+/*
+ * Initialize zint grid
+ */
+void VirtualPhoton::InitializeZintInterpolators()
+{
+    double minlnQ2 = log(0.1);
+    double maxlnQ2 = log(200);
+    double lnQ2step = 0.2;
+    double minlnr = log(1e-5);
+    double maxlnr = log(1e2);
+    double lnrstep = 0.2;
+    
+    vector<double> lnQ2vals; vector<double> lnrvals;
+    vector<double> zint_t; vector<double> zint_l;
+    for (double lnQ2=minlnQ2; lnQ2<=maxlnQ2; lnQ2+=lnQ2step) lnQ2vals.push_back(lnQ2);
+    for (double lnr=minlnr; lnr<=maxlnr; lnr+=lnrstep) lnrvals.push_back(lnr);
+    
+    // Fill datagrid, Q2=x, r=y
+    for (double lnr=minlnr; lnr<=maxlnr; lnr+=lnrstep)
+    {
+        for (double lnQ2=minlnQ2; lnQ2<=maxlnQ2; lnQ2+=lnQ2step)
+        {
+        
+            double r = exp(lnr);
+            double Q2 = exp(lnQ2);
+            zint_t.push_back(PsiSqr_T_intz(Q2,r));
+            zint_l.push_back(PsiSqr_L_intz(Q2,r));
+            
+        }
+    }
+    transverse_zint_interpolator.Initialize(lnQ2vals, lnrvals, zint_t);
+    longitudinal_zint_interpolator.Initialize(lnQ2vals, lnrvals, zint_l);
+    
+    interpolator_maxr = exp(lnrvals[lnrvals.size()-1]);
+    interpolator_minr = exp(lnrvals[0]);
+    interpolator_maxQ2 = exp(lnQ2vals[lnQ2vals.size()-1]);
+    interpolator_minQ2 = exp(lnQ2vals[0]);
+    
+    interpolator_ready = true;
+}
+
+#endif
 

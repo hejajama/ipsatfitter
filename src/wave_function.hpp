@@ -7,6 +7,7 @@
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  */
 
+// NOTE: Not used at this point in the IPsatfitter
 #include <string>
 #include <cmath>
 
@@ -31,10 +32,10 @@ typedef double REAL;
 class WaveFunction{
     public:
         WaveFunction();
-        virtual const REAL PsiSqr_T(REAL Qsqr, REAL r, REAL z) = 0;
-        virtual const REAL PsiSqr_L(REAL Qsqr, REAL r, REAL z) = 0;
-        virtual const REAL PsiSqr_T_intz(REAL Qsqr, REAL r) = 0;
-        virtual const REAL PsiSqr_L_intz(REAL Qsqr, REAL r) = 0;
+        virtual  REAL PsiSqr_T(REAL Qsqr, REAL r, REAL z) const = 0;
+        virtual  REAL PsiSqr_L(REAL Qsqr, REAL r, REAL z) const = 0;
+        virtual  REAL PsiSqr_T_intz(REAL Qsqr, REAL r) const = 0;
+        virtual  REAL PsiSqr_L_intz(REAL Qsqr, REAL r) const = 0;
         virtual std::string GetParamString()=0;
         REAL PsiSqr_tot(REAL Qsqr, REAL r, REAL z);
         REAL PsiSqr_tot_intz(REAL Qsqr, REAL r);

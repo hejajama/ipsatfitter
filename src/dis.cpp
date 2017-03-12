@@ -13,7 +13,7 @@ using namespace std;
 
 const double MINR = 1e-7;
 const double MAXR = 1e3;
-const double RINTACCURACY = 0.001;
+const double RINTACCURACY = 0.01;
 
 const int INTEGRATIONDEPTH = 50;
 
@@ -46,12 +46,25 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double light_mass = par[ parameters.Index("light_mass")];
     double heavy_mass = par[ parameters.Index("heavy_mass")];
     
+    // If quark masses do not change, then this is not necessary.
+    // However, now this possible duplication of work keeps the code
+    // thread-safe
+
+    VirtualPhoton wf_lightquark;
+    VirtualPhoton wf_heavyquark;
+    wf_lightquark.SetQuark(LIGHT, light_mass);
+    wf_heavyquark.SetQuark(C, heavy_mass);
+#ifdef USE_INTERPOLATOR
+    wf_lightquark.InitializeZintInterpolators();
+    wf_heavyquark.InitializeZintInterpolators();
+#endif
     
     FitParameters fitparams;
     fitparams.values = &par;
     fitparams.parameter = &parameters;
     int points=0;
     
+    // These loops are trivially parallerizable
     for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
     {
         for (int i=0; i<datasets[dataset]->NumOfPoints(); i++)
@@ -65,14 +78,14 @@ double DISFitter::operator()(const std::vector<double>& par) const
             
             double sqrts = sqrt( Q2 / (x * y) );
             
-            double charmx = x * (1.0 + 4.0*heavy_mass / Q2);
+            double charmx = x * (1.0 + 4.0*heavy_mass*heavy_mass / Q2);
 
-            double theory_charm = ReducedCrossSection(Q2, charmx, sqrts, C,  heavy_mass, fitparams);
+            double theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_heavyquark, fitparams);
             double theory_light;
             if (onlycharm)
                 theory_light = 0;
             else
-                theory_light = ReducedCrossSection(Q2, x, sqrts, LIGHT,  light_mass, fitparams);
+                theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
             
             double theory = theory_light + theory_charm;
             
@@ -108,7 +121,7 @@ struct Inthelper_totxs
     const IPsat* N;
     Polarization pol;    // L (longitudinal) or T (transverse)
     double Qsqr,xbj;
-    WaveFunction* wf;
+    const VirtualPhoton* wf;
     FitParameters fitparameters;
     int config;     // To support fluctuations
 };
@@ -131,19 +144,14 @@ double Inthelperf_totxs(double r, void* p)
 
 
 
- double DISFitter::ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol, const Parton p, const double mass, FitParameters fitparams) const
+ double DISFitter::ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol, const VirtualPhoton *wf, FitParameters fitparams) const
 {
     Inthelper_totxs par; par.N=&dipole;
+    par.wf=wf;
     par.pol=pol; par.Qsqr=Qsqr; par.xbj=xbj;
     par.fitparameters = fitparams;
     par.config = -1;    // no fluctuations
     
-    
-    VirtualPhoton wavef;
-    
-    wavef.SetQuark(p, mass);
-    
-    par.wf=&wavef;
     
     gsl_function fun; fun.function=Inthelperf_totxs;
     fun.params=&par;
@@ -171,11 +179,11 @@ double Inthelperf_totxs(double r, void* p)
 /*
  * Reduced cross section from gamma-p cross section
  */
- double DISFitter::ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, Parton p, const double mass, FitParameters fitparams) const
+ double DISFitter::ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, const VirtualPhoton *wf, FitParameters fitparams) const
 {
     double kin_y = Qsqr/(sqrts*sqrts*xbj);   // inelasticity, not rapidity
-    double xs_l = ProtonPhotonCrossSection(Qsqr, xbj, LONGITUDINAL, p, mass, fitparams);
-    double xs_t = ProtonPhotonCrossSection(Qsqr, xbj, TRANSVERSE, p, mass, fitparams);
+    double xs_l = ProtonPhotonCrossSection(Qsqr, xbj, LONGITUDINAL, wf, fitparams);
+    double xs_t = ProtonPhotonCrossSection(Qsqr, xbj, TRANSVERSE, wf, fitparams);
     double f2 = Qsqr/(4.0*SQR(M_PI)*ALPHA_e)*(xs_l+xs_t);
     double fl = Qsqr/(4.0*SQR(M_PI)*ALPHA_e)*xs_l;
     

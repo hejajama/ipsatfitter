@@ -1,12 +1,15 @@
 #include <iostream>
 #include <string>
 #include <gsl/gsl_errno.h>
+#include <vector>
 
 #include "wave_function.hpp"
 #include "virtual_photon.hpp"
 #include "ipsat.hpp"
 #include "dis.hpp"
 #include "data.hpp"
+#include "interpolation2d.hpp"
+#include <gsl/gsl_interp2d.h>
 
 #include <Minuit2/MnUserParameterState.h>
 #include <Minuit2/FunctionMinimum.h>
@@ -26,6 +29,7 @@ int main()
 {
     gsl_set_error_handler(&ErrHandler);
     
+        
     //DISFitter fitter;
     
     Data data;

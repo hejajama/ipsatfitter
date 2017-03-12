@@ -31,10 +31,10 @@ public:
     DISFitter(MnUserParameters parameters_);
 
     
-    // Total gamma-p cross section with given polarization and parton
-    double  ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol,const Parton p, const double mass, FitParameters fitparams) const;
+    // Total gamma-p cross section with given wave function (describing polarization and parton)
+    double  ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol,const VirtualPhoton* wf , FitParameters fitparams) const;
     
-    double  ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, const Parton p, const double mass, FitParameters fitparams) const;
+    double  ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, const VirtualPhoton* wf, FitParameters fitparams) const;
     
     void AddDataset(Data& d);
 private:
@@ -43,6 +43,7 @@ private:
     MnUserParameters parameters;
     
     vector<Data*> datasets;
+    
 
 };
 
