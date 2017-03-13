@@ -20,8 +20,8 @@ const int Nc=3;
 
 const double ZINTACCURACY=0.001;
 const int MAXITER_ZINT=500;
-const double MINZ=0.00001;  // Integration limits
-const double MAXZ=0.9999;
+const double MINZ=1e-8;  // Integration limits
+const double MAXZ=1.0-MINZ;
 
 VirtualPhoton::VirtualPhoton()
 {
@@ -294,10 +294,10 @@ void VirtualPhoton::InitializeZintInterpolators()
 {
     double minlnQ2 = log(0.1);
     double maxlnQ2 = log(200);
-    double lnQ2step = 0.2;
+    double lnQ2step = 0.1;
     double minlnr = log(1e-5);
     double maxlnr = log(1e2);
-    double lnrstep = 0.2;
+    double lnrstep = 0.1;
     
     vector<double> lnQ2vals; vector<double> lnrvals;
     vector<double> zint_t; vector<double> zint_l;

@@ -13,20 +13,11 @@ using namespace std;
 
 const double MINR = 1e-7;
 const double MAXR = 1e3;
-const double RINTACCURACY = 0.01;
+const double RINTACCURACY = 0.001;
 
 const int INTEGRATIONDEPTH = 50;
 
-/*
- *
- * List of parameter strings:
- * light_mass       light quark mass in GeV
- * heavy_mass       heavy quark mass in GeV
- *
- * B_G              proton size
- *
- * lqcd             Lambda_QCD in GeV
- */
+
 
 
 /*
@@ -67,6 +58,9 @@ double DISFitter::operator()(const std::vector<double>& par) const
     // These loops are trivially parallerizable
     for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
     {
+#ifdef PARALLEL_CHISQR
+    #pragma omp parallel for
+#endif
         for (int i=0; i<datasets[dataset]->NumOfPoints(); i++)
         {
             double x = datasets[dataset]->xbj(i);
@@ -97,6 +91,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "Calculated chi^2/N = " << chisqr/points << " with parameters " << PrintVector(par) << endl;
+    
+    exit(1);
     return chisqr;
 }
 

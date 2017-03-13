@@ -15,9 +15,9 @@
 using namespace std;
 
 const double MINB = 1e-7;
-const double MAXB = 1e2;
-const double BINTACCURACY = 0.01;
-const int BINTEGRATIONDEPTH = 20;
+const double MAXB = 2e2;
+const double BINTACCURACY = 0.001;
+const int BINTEGRATIONDEPTH = 24;
 
 using namespace std;
 
@@ -27,7 +27,7 @@ extern "C" {
     double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
 
-int IPSAT12_PAR = 1;    // m_c=1.27 GeV
+int IPSAT12_PAR = 2;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
 
 
 /*

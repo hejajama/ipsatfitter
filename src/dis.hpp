@@ -17,6 +17,20 @@
 #include "ipsat.hpp"
 #include "data.hpp"
 
+// Parallerize chi^2 calculation
+//#define PARALLEL_CHISQR
+
+/*
+ *
+ * List of parameter strings:
+ * light_mass       light quark mass in GeV
+ * heavy_mass       heavy quark mass in GeV
+ *
+ * B_G              proton size
+ *
+ * lqcd             Lambda_QCD in GeV
+ */
+
 using namespace ROOT::Minuit2;
 using namespace std;
 

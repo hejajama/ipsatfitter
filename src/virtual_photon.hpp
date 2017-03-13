@@ -16,6 +16,10 @@
 #include <vector>
 
 // Interpolate zintegrals
+// This is a flag, as in some older GSL installations the necessary 2D interpolation
+// functions are not available, in that case one can just comment out this
+// Also, removing this allows one to easily check if interpolation works
+// (results should not change)
 //#define USE_INTERPOLATOR
 
 /**

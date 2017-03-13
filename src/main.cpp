@@ -32,6 +32,8 @@ int main()
         
     //DISFitter fitter;
     
+    
+    
     Data data;
     data.LoadData("data/hera_combined_sigmar.txt", false);
     Data charmdata;
@@ -39,13 +41,18 @@ int main()
     
     MnUserParameters parameters;
     parameters.Add("B_G", 4.0);
-    parameters.Add("heavy_mass", 1.1, 0.1);
+    parameters.Add("heavy_mass", 1.4, 0.1);
     parameters.Add("light_mass", 0.01);
     parameters.Add("mu_0",sqrt(1.51) );
     parameters.Add("lqcd",0.156);
     
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
+    fitter.AddDataset(charmdata);
+    
+    
+    
+    
     
     MnMigrad migrad(fitter, parameters);
     
@@ -54,6 +61,35 @@ int main()
     FunctionMinimum min = migrad();
     // output
     std::cout<<"minimum: "<<min<<std::endl;
+    
+    
+    
+    // Test code to calculate F_2, just to compare with HERA data and test that
+    // everything works
+    /*
+     double q2=10;
+     FitParameters param;
+     param.parameter = &parameters;
+     vector<double> vals; vals.push_back(4); vals.push_back(1.4); vals.push_back(0.05); vals.push_back(sqrt(1.51)); vals.push_back(0.156);
+     param.values = &vals;
+     
+     VirtualPhoton light;
+     light.SetQuark(LIGHT, 0.01);
+     double x=5e-3;
+     //ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol,const VirtualPhoton* wf , FitParameters fitparams) const
+     double light_l = fitter.ProtonPhotonCrossSection(q2, x, LONGITUDINAL, &light, param );
+     double light_t = fitter.ProtonPhotonCrossSection(q2, x, TRANSVERSE, &light, param );
+     cout << "Light " << 10.0/(4.0*SQR(M_PI)*ALPHA_e)*(light_t + light_l) << endl;
+     
+     VirtualPhoton charm; charm.SetQuark(C, 1.4);
+     x = x*(1.0+4.0*1.4*1.4/10.0);
+     double c_l = fitter.ProtonPhotonCrossSection(10, x, LONGITUDINAL, &charm, param );
+     double c_t = fitter.ProtonPhotonCrossSection(10, x, TRANSVERSE, &charm, param );
+     cout << "Charm " << 10.0/(4.0*SQR(M_PI)*ALPHA_e)*(c_t + c_l) << endl;
+     cout << "Total F2 " <<10.0/(4.0*SQR(M_PI)*ALPHA_e)*(light_t + light_l + c_t + c_l) << " exp 0.633 pm 0.0105" << endl;
+     
+     exit(1);
+     */
     
     return 0;
 }

@@ -29,6 +29,11 @@ public:
     const double ReducedCrossSection(int n);
     const double ReducedCrossSectionError(int n);
     
+    void SetMinQsqr(double q2) { minQ2 = q2; }
+    void SetMaxQsqr(double q2) { maxQ2 = q2; }
+    void SetMinX(double x) { minx = x; }
+    void SetMaxX(double x) { maxx = x; }
+    
     const bool OnlyCharm() { return onlycharm; }
     
 private:
