@@ -8,9 +8,8 @@
  * Difference to AmlitudeLib: By default charm is included, and light quark masses are set to ~0
  */
 
-
 #include "wave_function.hpp"
-#include "interpolation2d.hpp"
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -21,6 +20,13 @@
 // Also, removing this allows one to easily check if interpolation works
 // (results should not change)
 //#define USE_INTERPOLATOR
+
+
+#ifdef USE_INTERPOLATOR
+    #include "interpolation2d.hpp"
+#endif
+
+
 
 /**
  * \class VirtualPhoton virtual_photon.hpp amplitudelib/virtual_photon.hpp

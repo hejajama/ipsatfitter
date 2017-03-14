@@ -88,5 +88,6 @@ Data::Data()
     minx=1e-99;
     maxx=0.01;
     minQ2=0.75;
-    maxQ2=50;
+    maxQ2=650;
+    weight = 1.0;
 }

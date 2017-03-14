@@ -8,8 +8,7 @@
 #include "ipsat.hpp"
 #include "dis.hpp"
 #include "data.hpp"
-#include "interpolation2d.hpp"
-#include <gsl/gsl_interp2d.h>
+
 
 #include <Minuit2/MnUserParameterState.h>
 #include <Minuit2/FunctionMinimum.h>
@@ -41,8 +40,8 @@ int main()
     
     MnUserParameters parameters;
     parameters.Add("B_G", 4.0);
-    parameters.Add("heavy_mass", 1.4, 0.1);
-    parameters.Add("light_mass", 0.01);
+    parameters.Add("heavy_mass", 1.27, 0.1);
+    parameters.Add("light_mass", 0.03);
     parameters.Add("mu_0",sqrt(1.51) );
     parameters.Add("lqcd",0.156);
     

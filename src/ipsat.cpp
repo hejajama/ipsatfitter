@@ -16,8 +16,8 @@ using namespace std;
 
 const double MINB = 1e-7;
 const double MAXB = 2e2;
-const double BINTACCURACY = 0.001;
-const int BINTEGRATIONDEPTH = 24;
+const double BINTACCURACY = 0.005;
+const int BINTEGRATIONDEPTH = 54;
 
 using namespace std;
 
@@ -27,7 +27,7 @@ extern "C" {
     double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
 
-int IPSAT12_PAR = 2;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
+int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
 
 
 /*
@@ -79,10 +79,17 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     par.ipsat = this;
     fun.params=&par;
     
+    double acc = BINTACCURACY;
+    if (r < 1e-5)
+        acc*=10; // At very small dipoles this is numerically dificult, but also
+        // contribution is very small, so let's not demand too much from GSL
+    
     double result,abserr;
     gsl_integration_workspace* ws = gsl_integration_workspace_alloc(BINTEGRATIONDEPTH);
-    int status = gsl_integration_qag(&fun, MINB, MAXB, 0, BINTACCURACY,
+    int status = gsl_integration_qag(&fun, MINB, MAXB, 0, acc,
                                      BINTEGRATIONDEPTH, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+    if (status)
+        cerr << "bintegral failed in IPsat::DipoleAmplitude_bit with r=" << r <<", result " << result << " relerror " << abserr/result << endl;
     gsl_integration_workspace_free(ws);
 
     return 2.0*M_PI*result; //2pi from angular integral

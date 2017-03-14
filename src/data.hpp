@@ -33,11 +33,15 @@ public:
     void SetMaxQsqr(double q2) { maxQ2 = q2; }
     void SetMinX(double x) { minx = x; }
     void SetMaxX(double x) { maxx = x; }
+    void SetWeight(double w) { weight = w; }
+    double Weight() const { return weight; }
     
     const bool OnlyCharm() { return onlycharm; }
     
 private:
     bool onlycharm;
+    
+    double weight;  // Individual weight given to this dataset, default=1
     
     double minx, maxx, minQ2, maxQ2;
     

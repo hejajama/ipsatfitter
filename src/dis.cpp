@@ -11,9 +11,9 @@
 
 using namespace std;
 
-const double MINR = 1e-7;
+const double MINR = 1e-6;
 const double MAXR = 1e3;
-const double RINTACCURACY = 0.001;
+const double RINTACCURACY = 0.005;
 
 const int INTEGRATIONDEPTH = 50;
 
@@ -73,6 +73,9 @@ double DISFitter::operator()(const std::vector<double>& par) const
             double sqrts = sqrt( Q2 / (x * y) );
             
             double charmx = x * (1.0 + 4.0*heavy_mass*heavy_mass / Q2);
+            
+            if (charmx > 0.01)
+                continue;
 
             double theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_heavyquark, fitparams);
             double theory_light;
@@ -83,16 +86,16 @@ double DISFitter::operator()(const std::vector<double>& par) const
             
             double theory = theory_light + theory_charm;
             
-            chisqr += SQR( (theory - sigmar) / sigmar_err );
-            points++;
+            chisqr += datasets[dataset]->Weight()*SQR( (theory - sigmar) / sigmar_err );
+            points = points + datasets[dataset]->Weight();
             
             
         }
     }
     
-    cout << "Calculated chi^2/N = " << chisqr/points << " with parameters " << PrintVector(par) << endl;
+    cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters " << PrintVector(par) << endl;
     
-    exit(1);
+    //exit(1);
     return chisqr;
 }
 
@@ -122,11 +125,14 @@ struct Inthelper_totxs
     int config;     // To support fluctuations
 };
 
-double Inthelperf_totxs(double r, void* p)
+double Inthelperf_totxs(double lnr, void* p)
 {
+    double r = exp(lnr);
     Inthelper_totxs* par = (Inthelper_totxs*)p;
     
     double result = r*par->N->DipoleAmplitude_bint(r,par->xbj, par->fitparameters, par->config);
+    
+    result *= r;    // Jacobian, as we integrate ln r
     
     if (par->pol==LONGITUDINAL)    // Longitudinal
         result *= par->wf->PsiSqr_L_intz(par->Qsqr, r);
@@ -156,7 +162,7 @@ double Inthelperf_totxs(double r, void* p)
     
     double result,abserr;
     gsl_integration_workspace* ws = gsl_integration_workspace_alloc(INTEGRATIONDEPTH);
-    int status = gsl_integration_qag(&fun, MINR, MAXR, 0, RINTACCURACY,
+    int status = gsl_integration_qag(&fun, log(MINR), log(MAXR), 0, RINTACCURACY,
                                      INTEGRATIONDEPTH, GSL_INTEG_GAUSS51, ws, &result, &abserr);
     gsl_integration_workspace_free(ws);
     //int status = gsl_integration_qng(&fun, MinR(), MaxR(),
