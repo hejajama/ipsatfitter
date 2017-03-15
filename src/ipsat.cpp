@@ -105,8 +105,6 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         double musqr = mu_0*mu_0 + C / SQR(r);
         double a = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) / (2.0 * M_PI * B);
         
-        if (isnan(a) or isinf(a))
-            goto out;
         
         
         gsl_sf_result sinres;
@@ -125,9 +123,13 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
                 analres = 2.0*M_PI*B * ( M_EULER - cosres.val + log(a) + sinres.val);
                 return analres;
             }
+            else
+                return 0;
         }
         else
         {
+            return 0;
+            // Overflow, very large r most likely. Fall back to numerical integral.
             //cerr << "Error with argument " << a << " r " << r << endl;
         }
 
@@ -139,7 +141,6 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         
     }
     
-out:
     
     // b integral numerically
     

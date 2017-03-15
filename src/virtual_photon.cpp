@@ -49,34 +49,47 @@ VirtualPhoton::~VirtualPhoton()
 const double VirtualPhoton::PsiSqr_T(double Qsqr, double r, double z) const
 {
     double result=0;
+    
+    // Optimize unnecessary K_0 evaluations if masses are the same
+    double saved_mass = -1;
+    double saved_K0 = -1;
+    double saved_K1 = -1;
     for (unsigned int f=0; f<e_f.size(); f++)     // Sum quark flavors
     {
+        
         double epstmp=Epsilon(Qsqr,z,f);
         
         gsl_sf_result result_k1;
         gsl_sf_result result_k0;
         double bessel_k1; double bessel_k0;
-        if (gsl_sf_bessel_K1_e(epstmp*r, &result_k1) == GSL_EUNDRFLW)
-        {
-            //cout << "Underflow at " << epstmp*r << endl;
-            bessel_k1 = 0;
-        }
-        else
-            bessel_k1 = result_k1.val;
         
-        if (gsl_sf_bessel_K0_e(epstmp*r, &result_k0) == GSL_EUNDRFLW)
+        if ( abs(m_f[f] - saved_mass) < 0.001 ) // Same mass as on the previous round
         {
-            //cout << "Underflow at " << epstmp*r << endl;
-            bessel_k0 = 0;
+            bessel_k0 = saved_K0;
+            bessel_k1 = saved_K1;
         }
         else
-            bessel_k0 = result_k0.val;
+        {
+            if (gsl_sf_bessel_K1_e(epstmp*r, &result_k1) == GSL_EUNDRFLW)
+                bessel_k1 = 0;
+            else
+                bessel_k1 = result_k1.val;
+            
+            if (gsl_sf_bessel_K0_e(epstmp*r, &result_k0) == GSL_EUNDRFLW)
+                bessel_k0 = 0;
+            else
+                bessel_k0 = result_k0.val;
+        }
         
         result += SQR(e_f[f])*(
             (SQR(z)+SQR(1.0-z))*SQR(epstmp)
                     *SQR(bessel_k1)
                 + SQR(m_f[f]*bessel_k0)
             );
+        
+        saved_K0 = bessel_k0;
+        saved_K1 = bessel_k1;
+        saved_mass = m_f[f];
     }
     result *= Nc/(2.0*SQR(M_PI))*ALPHA_e;
 
@@ -89,24 +102,33 @@ const double VirtualPhoton::PsiSqr_T(double Qsqr, double r, double z) const
 
 const double VirtualPhoton::PsiSqr_L(double Qsqr, double r, double z) const
 {
+    // Avoid unnecessary special function evaluation
+    double saved_mass = -1;
+    double saved_K0 = -1;
     
     double result=0;
     for (unsigned int f=0; f<e_f.size(); f++)     // Sum quark flavors
     {
-        double epstmp=Epsilon(Qsqr,z,f);
-        gsl_sf_result result_k0;
         double bessel_k0;
-        
-        if (gsl_sf_bessel_K0_e(epstmp*r, &result_k0) == GSL_EUNDRFLW)
-        {
-            //cout << "Underflow at " << epstmp*r << endl;
-            bessel_k0 = 0;
-        }
+        if ( abs(m_f[f] - saved_mass) < 0.0001)
+            bessel_k0 = saved_K0;
         else
-            bessel_k0 = result_k0.val;
+        {
+            double epstmp=Epsilon(Qsqr,z,f);
+            gsl_sf_result result_k0;
+            
+            
+            if (gsl_sf_bessel_K0_e(epstmp*r, &result_k0) == GSL_EUNDRFLW)
+                bessel_k0 = 0;
+            else
+                bessel_k0 = result_k0.val;
+        }
 
         
         result += SQR(e_f[f])* SQR( bessel_k0 );
+        
+        saved_mass = m_f[f];
+        saved_K0 = bessel_k0;
     }
     result *= 2.0*Nc/SQR(M_PI)*ALPHA_e*Qsqr*SQR(z)*SQR(1.0-z);
 
