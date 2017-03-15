@@ -24,10 +24,12 @@ using namespace std;
 
 
 // IPsat 2012 - to test (extrat xg from this)
+/*
 extern "C" {
     double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
 int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
+*/
 
 // LO DGLAP solver
 //SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
@@ -50,7 +52,6 @@ extern "C"
  */
 double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parameters,  int config) const
 {
-     return dipole_amplitude_(&x,&r,&b,&IPSAT12_PAR)/2.0;
     
     
     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));

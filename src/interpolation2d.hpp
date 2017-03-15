@@ -7,8 +7,6 @@
 #ifndef _INTERPOLATION2D_H
 #define _INTERPOLATION2D_H
 
-
-
 #include <gsl/gsl_bspline.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_spline.h>

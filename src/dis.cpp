@@ -3,6 +3,7 @@
 #include "dis.hpp"
 #include "ipsat.hpp"
 #include "data.hpp"
+#include "virtual_photon.hpp"
 #include <vector>
 #include <iostream>
 #include <gsl/gsl_integration.h>
@@ -73,7 +74,13 @@ double DISFitter::operator()(const std::vector<double>& par) const
     fitparams.parameter = &parameters;
     int points=0;
     
+    int totalpoints = 0;
+    for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
+        totalpoints += datasets[dataset]->NumOfPoints();
+    
     // These loops are trivially parallerizable
+    // We only parallerize the inner loop where we have about
+    // 250 points (total sigmar) and 50 points (charm)
     for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
     {
 #ifdef PARALLEL_CHISQR
@@ -109,11 +116,15 @@ double DISFitter::operator()(const std::vector<double>& par) const
 
             chisqr += datasets[dataset]->Weight()*SQR( (theory - sigmar) / sigmar_err );
             points = points + datasets[dataset]->Weight();
-#pragma omp critical
+
+/* #pragma omp critical
             {
-            //cout << x << " " << Q2 << " theory " << theory << " exp " << sigmar << " +/- " << sigmar_err << endl;
-            }
+                cout << x << " " << Q2 << " theory " << theory << " exp " << sigmar << " +/- " << sigmar_err << endl;
+            if (points % 50 == 0)
+                cout << "Done approximately " << points << " / " << totalpoints << endl;
             
+            }
+    */
             
             
         }

@@ -38,6 +38,7 @@ int main()
     data.SetMaxQsqr(50);
     Data charmdata;
     charmdata.LoadData("data/hera_combined_sigmar_cc.txt", true);
+    charmdata.SetMaxQsqr(50);
     
     MnUserParameters parameters;
     parameters.Add("B_G", 4.0);
