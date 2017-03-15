@@ -21,7 +21,8 @@
 // DISFitter is designed to be thread safe. Note that also
 // VirtualPhoton.PsiSqr_intz and IPsat dipole amplitude evaluations must be
 // too.
-// When we use Amir's code for testing, this may not be the case.
+// Note that MINUIT also runs in parallel (# of threads depends on the number of
+// parameters 
 #define PARALLEL_CHISQR
 
 /*

@@ -93,7 +93,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
             double Q2 = datasets[dataset]->Qsqr(i);
             double sigmar = datasets[dataset]->ReducedCrossSection(i);
             double sigmar_err = datasets[dataset]->ReducedCrossSectionError(i);
-            bool onlycharm = datasets[dataset]->OnlyCharm();
+            bool onlycharm = datasets[dataset]->OnlyCharm(i);
             
             double sqrts = sqrt( Q2 / (x * y) );
             

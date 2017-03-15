@@ -22,12 +22,13 @@ class Data
 public:
     Data();
     int LoadData(string filename, double only_charm);
-    const int NumOfPoints();
-    const double Qsqr(unsigned int n);
-    const double xbj(unsigned int n);
-    const double y(unsigned int n);
-    const double ReducedCrossSection(int n);
-    const double ReducedCrossSectionError(int n);
+    int NumOfPoints() const;
+    double Qsqr(unsigned int n) const;
+    double xbj(unsigned int n) const;
+    double y(unsigned int n) const;
+    double ReducedCrossSection(unsigned int n) const;
+    double ReducedCrossSectionError(unsigned int n) const;
+    bool OnlyCharm(unsigned int n) const;
     
     void SetMinQsqr(double q2) { minQ2 = q2; }
     void SetMaxQsqr(double q2) { maxQ2 = q2; }
@@ -36,10 +37,9 @@ public:
     void SetWeight(double w) { weight = w; }
     double Weight() const { return weight; }
     
-    const bool OnlyCharm() { return onlycharm; }
+    
     
 private:
-    bool onlycharm;
     
     double weight;  // Individual weight given to this dataset, default=1
     
@@ -50,6 +50,7 @@ private:
     vector<double> yvals;
     vector<double> sigmarvals;
     vector<double> errors;
+    vector<bool> only_charm;
     
 };
 

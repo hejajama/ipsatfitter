@@ -34,11 +34,10 @@ int main()
     
     
     Data data;
-    data.LoadData("data/hera_combined_sigmar.txt", false);
     data.SetMaxQsqr(50);
-    Data charmdata;
-    charmdata.LoadData("data/hera_combined_sigmar_cc.txt", true);
-    charmdata.SetMaxQsqr(50);
+    data.LoadData("data/hera_combined_sigmar.txt", false);
+    data.LoadData("data/hera_combined_sigmar_cc.txt", true);
+
     
     MnUserParameters parameters;
     parameters.Add("B_G", 4.0);
@@ -58,7 +57,6 @@ int main()
     
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
-    fitter.AddDataset(charmdata);
     
     
     

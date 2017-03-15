@@ -7,7 +7,7 @@
  * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2010
  */
 
-// NOTE: Not used at this point in the IPsatfitter
+// NOTE: Not used at this point in the IPsatfitter, except to define Partons/Polarizations/constants
 #include <string>
 #include <cmath>
 

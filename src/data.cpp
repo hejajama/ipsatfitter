@@ -14,6 +14,7 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <cstdlib>
 
 using namespace std;
 
@@ -26,9 +27,8 @@ double StrToReal(std::string str)
 }
 
 // Load data from given file, return 0 if no errors
-int Data::LoadData(string filename, double only_charm)
+int Data::LoadData(string filename, double onlycharm)
 {
-    onlycharm = only_charm;
     
     ifstream file(filename.c_str());
     if (!file.is_open())
@@ -36,6 +36,8 @@ int Data::LoadData(string filename, double only_charm)
         cerr << "ERROR! Coudn't read file " << file << endl;
         return -1;
     }
+    
+    int points=0;
     
     while(!file.eof() )
     {
@@ -48,40 +50,53 @@ int Data::LoadData(string filename, double only_charm)
         l >> qsqr; l>>x; l>>y; l>>sigmar; l>>err;
         
         if (StrToReal(x)>maxx or StrToReal(x)<minx or StrToReal(qsqr)<minQ2 or StrToReal(qsqr)>maxQ2) continue;
+        points++;
         Qsqrvals.push_back(StrToReal(qsqr)); xbjvals.push_back(StrToReal(x));
         yvals.push_back(StrToReal(y));
         sigmarvals.push_back(StrToReal(sigmar)); errors.push_back(StrToReal(err));
+        only_charm.push_back(onlycharm);
     }
     
-    cout << "# Loaded " << sigmarvals.size() << " datapoints from " << filename << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2" << endl;
+    cout << "# Loaded " << points << " datapoints from " << filename << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, no we have in total " << sigmarvals.size() << " points " << endl;
     
     return 0;
 }
-const int Data::NumOfPoints()
+int Data::NumOfPoints() const
 {
     return sigmarvals.size();
 }
                    
-const double Data::Qsqr(unsigned int n)
+double Data::Qsqr(unsigned int n) const
 {
+    if (n >= NumOfPoints())
+    {
+        cerr << "Index " << n << " out of range!" << endl;
+        exit(1);
+    }
     return Qsqrvals[n];
 }
-const double Data::xbj(unsigned int n)
+ double Data::xbj(unsigned int n) const
 {
     return xbjvals[n];
 }
-const double Data::y(unsigned int n)
+ double Data::y(unsigned int n) const
 {
     return yvals[n];
 }
-const double Data::ReducedCrossSection(int n)
+ double Data::ReducedCrossSection(unsigned int n) const
 {
     return sigmarvals[n];
 }
-const double Data::ReducedCrossSectionError(int n)
+double Data::ReducedCrossSectionError(unsigned int n) const
 {
     return errors[n];
 }
+
+bool Data::OnlyCharm(unsigned int n) const
+{
+    return only_charm[n];
+}
+
 
 Data::Data()
 {
