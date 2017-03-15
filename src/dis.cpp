@@ -84,7 +84,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
     {
 #ifdef PARALLEL_CHISQR
-    #pragma omp parallel for reduction(+:chisqr) reduction(+:points)
+    #pragma omp parallel for schedule(dynamic) reduction(+:chisqr) reduction(+:points)
 #endif
         for (int i=0; i<datasets[dataset]->NumOfPoints(); i++)
         {
@@ -132,7 +132,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters " << PrintVector(par) << endl;
     
-    exit(1);
+    //exit(1);
     return chisqr;
 }
 

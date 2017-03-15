@@ -57,7 +57,7 @@ int Data::LoadData(string filename, double onlycharm)
         only_charm.push_back(onlycharm);
     }
     
-    cout << "# Loaded " << points << " datapoints from " << filename << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, no we have in total " << sigmarvals.size() << " points " << endl;
+    cout << "# Loaded " << points << " datapoints from " << filename << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, now we have in total " << sigmarvals.size() << " points " << endl;
     
     return 0;
 }
