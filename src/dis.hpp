@@ -22,7 +22,7 @@
 // VirtualPhoton.PsiSqr_intz and IPsat dipole amplitude evaluations must be
 // too.
 // When we use Amir's code for testing, this may not be the case.
-//#define PARALLEL_CHISQR
+#define PARALLEL_CHISQR
 
 /*
  *

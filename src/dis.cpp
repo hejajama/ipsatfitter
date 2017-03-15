@@ -12,12 +12,21 @@
 using namespace std;
 
 const double MINR = 1e-6;
-const double MAXR = 1e3;
+const double MAXR = 50;
 const double RINTACCURACY = 0.005;
 
 const int INTEGRATIONDEPTH = 50;
 
 
+// LO DGLAP solver
+//SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
+// xg = x*gluon
+extern "C"
+{
+    double lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag  );
+    double alphas_(double mu);
+    void init_(); // Init Mellin momenta
+};
 
 
 /*
@@ -36,6 +45,15 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     double light_mass = par[ parameters.Index("light_mass")];
     double heavy_mass = par[ parameters.Index("heavy_mass")];
+    double lambdag = par[ parameters.Index("lambda_g")];
+    double Ag = par[ parameters.Index("A_g")];
+    
+    // Init dglap
+    init_();
+    // evaluate xg once to call necessary initialization
+    double x=0.01; double q2=10; double gluon=0; int coupling=0;
+    lo_evol_(&x,&q2,&gluon,&coupling,&Ag,&lambdag);
+    //cout << "as * xg = " << gluon << endl;
     
     // If quark masses do not change, then this is not necessary.
     // However, now this possible duplication of work keeps the code
@@ -59,7 +77,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
     {
 #ifdef PARALLEL_CHISQR
-    #pragma omp parallel for
+    #pragma omp parallel for reduction(+:chisqr) reduction(+:points)
 #endif
         for (int i=0; i<datasets[dataset]->NumOfPoints(); i++)
         {
@@ -86,8 +104,16 @@ double DISFitter::operator()(const std::vector<double>& par) const
             
             double theory = theory_light + theory_charm;
             
+            
+            
+
             chisqr += datasets[dataset]->Weight()*SQR( (theory - sigmar) / sigmar_err );
             points = points + datasets[dataset]->Weight();
+#pragma omp critical
+            {
+            //cout << x << " " << Q2 << " theory " << theory << " exp " << sigmar << " +/- " << sigmar_err << endl;
+            }
+            
             
             
         }
@@ -95,7 +121,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters " << PrintVector(par) << endl;
     
-    //exit(1);
+    exit(1);
     return chisqr;
 }
 

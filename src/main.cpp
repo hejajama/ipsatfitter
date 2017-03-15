@@ -35,15 +35,25 @@ int main()
     
     Data data;
     data.LoadData("data/hera_combined_sigmar.txt", false);
+    data.SetMaxQsqr(50);
     Data charmdata;
     charmdata.LoadData("data/hera_combined_sigmar_cc.txt", true);
     
     MnUserParameters parameters;
     parameters.Add("B_G", 4.0);
-    parameters.Add("heavy_mass", 1.27, 0.1);
-    parameters.Add("light_mass", 0.03);
-    parameters.Add("mu_0",sqrt(1.51) );
-    parameters.Add("lqcd",0.156);
+    parameters.Add("heavy_mass", 1.27);
+    parameters.Add("light_mass", 0.05);
+    parameters.Add("mu_0",sqrt(1.51), 0.5 );
+    parameters.Add("lambda_g", 0.05, 0.1);
+    parameters.Add("A_g", 2.37, 0.1);
+    
+    //parameters.Add("lqcd",0.156);
+    
+    //parameters.SetLowerLimit("light_mass", 0);
+    //parameters.SetLowerLimit("heavy_mass", 0);
+    parameters.SetLowerLimit("A_g", 0);
+    parameters.SetLowerLimit("lambda_g", 0);
+    parameters.SetUpperLimit("mu_0", 100);
     
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
@@ -106,7 +116,8 @@ void ErrHandler(const char * reason,
     // 11 = maximum number of subdivisions reached   
     // 15: underflows
     
-    if (gsl_errno == 15) return; // Ugly hack, comes from the edges of the z integral in virtual_photon.cpp
+    if (gsl_errno == 15 or gsl_errno == 16) return; // Ugly hack, comes from the edges of the z integral in virtual_photon.cpp
+    // Overflows come from IPsat::bint when it is done analytically
     
     errors++;
     std::cerr << file << ":"<< line <<": Error " << errors << ": " <<reason

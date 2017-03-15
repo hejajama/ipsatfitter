@@ -10,6 +10,7 @@
 #include "wave_function.hpp"
 
 #include <gsl/gsl_integration.h>
+#include <gsl/gsl_sf_expint.h>
 #include <Minuit2/MnUserParameterState.h>
 
 using namespace std;
@@ -26,8 +27,19 @@ using namespace std;
 extern "C" {
     double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
-
 int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
+
+// LO DGLAP solver
+//SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
+// Modified by H.M. such that
+// gluon = alphas(x,Q^2) * gluon!!!
+extern "C"
+{
+    double lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag  );
+    //double alphas_(double mu);
+    //void init_(); // Init Mellin momenta
+    //void initalphas_(int *order, double *FR2, double *mur, double *ASMUR, double *MC, double *MB, double *MT);
+};
 
 
 /*
@@ -38,10 +50,12 @@ int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
  */
 double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parameters,  int config) const
 {
+     return dipole_amplitude_(&x,&r,&b,&IPSAT12_PAR)/2.0;
+    
+    
     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
     double C = 4;
     
-    return dipole_amplitude_(&x,&r,&b,&IPSAT12_PAR)/2.0;
     double musqr = mu_0*mu_0 + C / SQR(r);
     
     double exponent = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) * Tp(b, parameters, config);
@@ -49,6 +63,7 @@ double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parame
         return 1.0 - exp(-exponent);
     else
         return exponent;
+    
     
 }
 
@@ -72,6 +87,62 @@ double inthelperf_bint(double b, void* p)
 
 double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters, int  config) const
 {
+    double analres=0;
+    
+    if (config == -1 and saturation )
+    {
+        // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
+        // b integral analytically, as
+        // \int d^2 b (1-Exp[ -a * exp(-b^2/(2B) ] )
+        // = 2\pi B (gamma_E - CoshIntegral[a] + Log[a] + SinhIntegral[a]
+        // GSL can evaluate CoshIntegral and SinhIntgral, so this is most likely the
+        // most effective way to calculate b integral
+        //
+        // Note that in this notation a = pi^2 r^2 / (2NC) alphas * xg / (2 pi B_p)
+        double B = parameters.values->at( parameters.parameter->Index("B_G"));
+        double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
+        double C = 4;
+        double musqr = mu_0*mu_0 + C / SQR(r);
+        double a = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) / (2.0 * M_PI * B);
+        
+        if (isnan(a) or isinf(a))
+            goto out;
+        
+        
+        gsl_sf_result sinres;
+        gsl_sf_result cosres;
+        int sinint = gsl_sf_Shi_e(a, &sinres);
+        
+        if (!sinint)
+        {
+            // No overflows
+            int cosint = gsl_sf_Chi_e(a, &cosres);
+            
+            if (!cosint)
+            {
+                // No overflows, use analytical result, otherwise we fall back to numerics
+                // in the region where the contribution anyway is small
+                analres = 2.0*M_PI*B * ( M_EULER - cosres.val + log(a) + sinres.val);
+                return analres;
+            }
+        }
+        else
+        {
+            //cerr << "Error with argument " << a << " r " << r << endl;
+        }
+
+        
+        
+        
+        
+        
+        
+    }
+    
+out:
+    
+    // b integral numerically
+    
     gsl_function fun; fun.function=inthelperf_bint;
     inthelper_bint par;
     par.r=r; par.x=x; par.config=config;
@@ -91,7 +162,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     if (status)
         cerr << "bintegral failed in IPsat::DipoleAmplitude_bit with r=" << r <<", result " << result << " relerror " << abserr/result << endl;
     gsl_integration_workspace_free(ws);
-
+    
     return 2.0*M_PI*result; //2pi from angular integral
 }
 
@@ -105,10 +176,20 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
     // For testing: initial condition
     //return A_g * std::pow(x, -lambda_g) * pow((1.0 - x), 5.6);
     
-    // Extrat xg from fit
+    double lambdag =parameters.values->at( parameters.parameter->Index("lambda_g"));
+    double Ag =parameters.values->at( parameters.parameter->Index("A_g"));
+    
+    double gluon=0;
+    int coupling = 0;
+    lo_evol_(&x, &musqr, &gluon, &coupling, &Ag, &lambdag);
+    
+    return  gluon;
+    
+    // Extract xg from Amirs fit
     // mu2 = mu_0^2 + C/r^2
     // r^2 = C/(mu^2 - mu_0^2)
-    double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
+    /*
+     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
     double r=sqrt( C/ ( musqr - mu_0*mu_0));
     double b=0;
     
@@ -121,6 +202,7 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
     c /= SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * tp;
     
     return c;
+     */
     
     
 }
@@ -148,6 +230,27 @@ double IPsat::Tp(double b, FitParameters parameters, int config) const
  */
 double IPsat::Alphas(double musqr, FitParameters parameters) const
 {
+    // Currently, xg returns actually alphas*xg, because I modified the
+    // Fortran code...
+    
+    return 1.0;
+    
+    /*
+    double as=0;
+    double FR2 = 1.;                // ratio of mu_f^2 to mu_r^2c
+    double MUR = 1.;                // input mu_r in GecV
+    double ASMUR = 0.68183;         // input value of alpha_s at mu_rc
+    double MC = 1.27;                // charm quark mass
+    double MB = 4.75;               // bottom quark mass
+    double MT = 175;               // top quark mass
+    int order=0;
+    initalphas_(&order, &FR2, &MUR, &ASMUR, &MC, &MB, &MT);
+    
+     as=alphas_(sqrt(musqr));
+    
+    //cout << "As(mu=" << sqrt(musqr) << ") = " << as << endl;
+    return as;
+    /*
     // Todo: flavor scheme?
     double NF=4;
     double b0 = 11.0 - 2.0/3.0 * NF;
@@ -161,7 +264,7 @@ double IPsat::Alphas(double musqr, FitParameters parameters) const
     if (as > maxalphas)
         return maxalphas;
     return as;
-    
+    */
 }
 
 /*
@@ -172,7 +275,7 @@ IPsat::IPsat()
     minx=1e-9;
     maxx=0.02;
     minQ2=1;
-    maxQ2=1e9;
+    maxQ2=1e99;
     saturation = true;
     maxalphas = 0.5;
     
