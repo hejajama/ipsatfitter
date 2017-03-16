@@ -42,16 +42,20 @@ int main()
     MnUserParameters parameters;
     parameters.Add("B_G", 4.0);
     parameters.Add("heavy_mass", 1.27);
-    parameters.Add("light_mass", 0.05);
-    parameters.Add("mu_0",1.1, 0.1 );
-    parameters.Add("lambda_g", 0.05, 0.1);
-    parameters.Add("A_g", 2.37, 0.1);
+    parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
+    parameters.Add("mu_0", sqrt(1.51), 0.1 );  // From Amir&Raju
+    parameters.Add("lambda_g", 0.13, 0.1);  // Some reasonable parameters to start
+    parameters.Add("A_g", 2.3, 0.1);
     
-    //parameters.SetLowerLimit("light_mass", 0);
-    //parameters.SetLowerLimit("heavy_mass", 0);
     parameters.SetLowerLimit("A_g", 0);
     parameters.SetLowerLimit("lambda_g", 0);
     parameters.SetLowerLimit("mu_0", 1);
+    
+    cout << "=== Initial parameters ===" << endl;
+    
+    cout << parameters << endl;
+    
+    cout << "=== Starting fit ===" << endl;
     
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
@@ -69,34 +73,6 @@ int main()
     std::cout<<"minimum: "<<min<<std::endl;
     
     
-    
-    // Test code to calculate F_2, just to compare with HERA data and test that
-    // everything works
-    /*
-     double q2=10;
-     FitParameters param;
-     param.parameter = &parameters;
-     vector<double> vals; vals.push_back(4); vals.push_back(1.4); vals.push_back(0.05); vals.push_back(sqrt(1.51)); vals.push_back(0.156);
-     param.values = &vals;
-     
-     VirtualPhoton light;
-     light.SetQuark(LIGHT, 0.01);
-     double x=5e-3;
-     //ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol,const VirtualPhoton* wf , FitParameters fitparams) const
-     double light_l = fitter.ProtonPhotonCrossSection(q2, x, LONGITUDINAL, &light, param );
-     double light_t = fitter.ProtonPhotonCrossSection(q2, x, TRANSVERSE, &light, param );
-     cout << "Light " << 10.0/(4.0*SQR(M_PI)*ALPHA_e)*(light_t + light_l) << endl;
-     
-     VirtualPhoton charm; charm.SetQuark(C, 1.4);
-     x = x*(1.0+4.0*1.4*1.4/10.0);
-     double c_l = fitter.ProtonPhotonCrossSection(10, x, LONGITUDINAL, &charm, param );
-     double c_t = fitter.ProtonPhotonCrossSection(10, x, TRANSVERSE, &charm, param );
-     cout << "Charm " << 10.0/(4.0*SQR(M_PI)*ALPHA_e)*(c_t + c_l) << endl;
-     cout << "Total F2 " <<10.0/(4.0*SQR(M_PI)*ALPHA_e)*(light_t + light_l + c_t + c_l) << " exp 0.633 pm 0.0105" << endl;
-     
-     exit(1);
-     */
-    
     return 0;
 }
 
@@ -113,8 +89,10 @@ void ErrHandler(const char * reason,
     // 11 = maximum number of subdivisions reached   
     // 15: underflows
     
-    if (gsl_errno == 15 or gsl_errno == 16) return; // Ugly hack, comes from the edges of the z integral in virtual_photon.cpp
+    if (gsl_errno == 15 or gsl_errno == 16) return;
+    // Ugly hack, comes from the edges of the z integral in virtual_photon.cpp
     // Overflows come from IPsat::bint when it is done analytically
+    // Hope is that these errors are handled correctly everywhere
     
     errors++;
     std::cerr << file << ":"<< line <<": Error " << errors << ": " <<reason

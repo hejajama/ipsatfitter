@@ -15,6 +15,7 @@ using namespace ROOT::Minuit2;
  * Designed to be easily extended to support multiple parameters
  */
 
+// Struct to pass list of current parameters and Minuit parameter info object
 struct FitParameters
 {
     const vector<double> *values;

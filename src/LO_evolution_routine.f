@@ -71,7 +71,7 @@ C       end
 **
 ** Any modification on the alpha_s parameters must be done here
 **
-** Modified by H.M.: This returns alphas(Q^2)*xg*x,Q^2)
+** Modified by H.M.: This returns alphas(Q^2)*xg(x,Q^2)
 *******************************************************************
 
        SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
@@ -125,7 +125,8 @@ C       end
        FUN = FUN + WN(I1) * FZ
   1    CONTINUE
        PA = FUN * EX
-       
+
+c NOTE: Here I have added *alphas!
        gluon=pa * ALPHAS(dSQRT(Q2))
 
        RETURN                           

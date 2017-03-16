@@ -1,5 +1,9 @@
+IPsat fitter to combined HERA data using MINUIT
+
 Install:
 
+0. Download MINUIT2 from http://seal.web.cern.ch/seal/snapshot/work-packages/mathlibs/minuit/ -> Download
+   I have used Minut2-5.34.14 from
 1. Install Minuit2 (CC=compiler CXX=compiler ./configure --prefix=/installation_directory; make; make install)
 2. Modify Makefile so that C++ and Fortran compiler paths and Minuit paths are correct
 3. Compile fitter: make
@@ -22,25 +26,27 @@ Ask MINUIT to minimize and do hard work.
 
 Some remarks of the code
 
-DISFitter (dis.cpp/hpp) is the actual class calculating photon-proton cross sections and
+* All dimensionful quantities are expressed in units of GeV^n
+
+* DISFitter (dis.cpp/hpp) is the actual class calculating photon-proton cross sections and
 reduced cross sections, and eventually, chi^2. Integration over dipole size r is performed
 there. Accuracy of this integral is controlled by constants at the beginning of file
 dis.cpp
 
-IPsat dipole amplitude is described in ipsat.cpp
+* IPsat dipole amplitude is described in ipsat.cpp
 I have tried to design it such that one can later on add support for fluctuating proton
 structure.
 
-DGLAP code is in the fortran files alphaS.f and LO_evolution_routine.f
+* DGLAP code is in the fortran files alphaS.f and LO_evolution_routine.f
 Note that I have made a change: LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
 actually now returns alphas(Q^2) * LO_evol
 This way it remains easy to keep definition of alphas consistent in the Fortran and
 C++ (IPsat class) parts
 
-If DGLAP solver is thread safe, chi^2 can be computed in parallel. Parallerization
+* If DGLAP solver is thread safe, chi^2 can be computed in parallel. Parallerization
 is enabled by #define PARALLEL_CHISQR in dis.hpp
 
-Photon wave function is defined in virtual_photon.{cpp,hpp}.
+* Photon wave function is defined in virtual_photon.{cpp,hpp}.
 In virtual_photon.hpp one can define #define USE_INTERPOLATOR,
 which makes the code to calculate 2D grid of the wave function integrated
 over z, and then to interpolate in that grid when calculating the cross sections.

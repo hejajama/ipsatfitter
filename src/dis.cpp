@@ -14,6 +14,7 @@ using namespace std;
 
 const double MINR = 1e-6;
 const double MAXR = 50;
+// Hera data is very accurate, so eventually one needs to use better accuracy
 const double RINTACCURACY = 0.005;
 
 const int INTEGRATIONDEPTH = 50;
@@ -25,9 +26,11 @@ const int INTEGRATIONDEPTH = 50;
 extern "C"
 {
     double lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag  );
-    double alphas_(double mu);
+    //double alphas_(double mu);
     void init_(); // Init Mellin momenta
 };
+
+string PrintVector(vector<double> v);
 
 
 /*
@@ -35,10 +38,8 @@ extern "C"
  * Go trough all datasets
  */
 
-string PrintVector(vector<double> v) {
-    stringstream ss; for (int i=0; i <v.size(); i++) ss << v[i] << ", ";
-    return ss.str();
-}
+
+
 
 double DISFitter::operator()(const std::vector<double>& par) const
 {
@@ -130,7 +131,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
         }
     }
     
-    cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters " << PrintVector(par) << endl;
+    cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
     
     //exit(1);
     return chisqr;
@@ -244,5 +245,17 @@ DISFitter::DISFitter(MnUserParameters parameters_)
     parameters = parameters_;
     
     
+}
+
+string PrintVector(vector<double> v)
+{
+    stringstream ss;
+    for (int i=0; i <v.size(); i++)
+    {
+        ss << v[i];
+        if (i < v.size()-1)
+            ss <<", ";
+    }
+    return ss.str();
 }
 
