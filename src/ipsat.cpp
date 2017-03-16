@@ -276,7 +276,7 @@ IPsat::IPsat()
 {
     minx=1e-9;
     maxx=0.02;
-    minQ2=1;
+    minQ2=0;
     maxQ2=1e99;
     saturation = true;
     maxalphas = 0.5;

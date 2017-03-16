@@ -43,17 +43,15 @@ int main()
     parameters.Add("B_G", 4.0);
     parameters.Add("heavy_mass", 1.27);
     parameters.Add("light_mass", 0.05);
-    parameters.Add("mu_0",sqrt(1.51), 0.5 );
+    parameters.Add("mu_0",1.1, 0.1 );
     parameters.Add("lambda_g", 0.05, 0.1);
     parameters.Add("A_g", 2.37, 0.1);
-    
-    //parameters.Add("lqcd",0.156);
     
     //parameters.SetLowerLimit("light_mass", 0);
     //parameters.SetLowerLimit("heavy_mass", 0);
     parameters.SetLowerLimit("A_g", 0);
     parameters.SetLowerLimit("lambda_g", 0);
-    parameters.SetUpperLimit("mu_0", 100);
+    parameters.SetLowerLimit("mu_0", 1);
     
     DISFitter fitter(parameters);
     fitter.AddDataset(data);

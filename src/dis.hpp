@@ -31,9 +31,12 @@
  * light_mass       light quark mass in GeV
  * heavy_mass       heavy quark mass in GeV
  *
- * B_G              proton size
+ * B_G              proton size in GeV^(-2)
  *
- * lqcd             Lambda_QCD in GeV
+ * lambda_g         x^(-lambda_g) term in the gluon distribution at the initial condition
+ * A_g              Normalization of the gluon distribution in DGLAP solver
+ * mu_0             Parametrizes scale, mu^2 = mu_0^2 + 4/r^2, in GeV
+ * 
  */
 
 using namespace ROOT::Minuit2;
