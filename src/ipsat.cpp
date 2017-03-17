@@ -32,15 +32,12 @@ int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
 */
 
 // LO DGLAP solver
-//SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
 // Modified by H.M. such that
-// gluon = alphas(x,Q^2) * gluon!!!
+// gluon = alphas(x,Q^2) * gluon!
 extern "C"
 {
-    double lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag  );
-    //double alphas_(double mu);
+    void lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag  );
     //void init_(); // Init Mellin momenta
-    //void initalphas_(int *order, double *FR2, double *mur, double *ASMUR, double *MC, double *MB, double *MT);
 };
 
 
@@ -188,25 +185,6 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
     
     return  gluon;
     
-    // Extract xg from Amirs fit
-    // mu2 = mu_0^2 + C/r^2
-    // r^2 = C/(mu^2 - mu_0^2)
-    /*
-     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
-    double r=sqrt( C/ ( musqr - mu_0*mu_0));
-    double b=0;
-    
-    double n =1 - dipole_amplitude_(&x, &r, &b, &IPSAT12_PAR)/2.0;
-    if (n<=0) return 0;
-    double tp = 1.0/(2.0*M_PI*4.0)*std::exp(- b*b / (2.0*4.0));
-    
-    
-    double c = -log(n);
-    c /= SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * tp;
-    
-    return c;
-     */
-    
     
 }
 
@@ -238,36 +216,6 @@ double IPsat::Alphas(double musqr, FitParameters parameters) const
     
     return 1.0;
     
-    /*
-    double as=0;
-    double FR2 = 1.;                // ratio of mu_f^2 to mu_r^2c
-    double MUR = 1.;                // input mu_r in GecV
-    double ASMUR = 0.68183;         // input value of alpha_s at mu_rc
-    double MC = 1.27;                // charm quark mass
-    double MB = 4.75;               // bottom quark mass
-    double MT = 175;               // top quark mass
-    int order=0;
-    initalphas_(&order, &FR2, &MUR, &ASMUR, &MC, &MB, &MT);
-    
-     as=alphas_(sqrt(musqr));
-    
-    //cout << "As(mu=" << sqrt(musqr) << ") = " << as << endl;
-    return as;
-    /*
-    // Todo: flavor scheme?
-    double NF=4;
-    double b0 = 11.0 - 2.0/3.0 * NF;
-    
-    double lqcd = parameters.values->at( parameters.parameter->Index("lqcd"));
-    
-    if (musqr / (lqcd*lqcd) < 0)
-        return maxalphas;
-    
-    double as = 4.0*M_PI / (b0 * log(musqr / (lqcd*lqcd)));
-    if (as > maxalphas)
-        return maxalphas;
-    return as;
-    */
 }
 
 /*

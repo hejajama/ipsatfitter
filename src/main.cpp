@@ -44,8 +44,8 @@ int main()
     parameters.Add("heavy_mass", 1.27);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
     parameters.Add("mu_0", sqrt(1.51) );  // From Amir&Raju
-    parameters.Add("lambda_g", 0.06, 0.52247);  // Some reasonable parameters to start
-    parameters.Add("A_g", 2.3, 7.78904);
+    parameters.Add("lambda_g", 0.06, 0.5);  // Some reasonable parameters to start
+    parameters.Add("A_g", 2.3, 0.5);
     
     parameters.SetLowerLimit("A_g", 0);
     parameters.SetLowerLimit("lambda_g", 0); // Defined to be positive
