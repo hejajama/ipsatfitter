@@ -15,7 +15,7 @@ using namespace std;
 const double MINR = 1e-6;
 const double MAXR = 50;
 // Hera data is very accurate, so eventually one needs to use better accuracy
-const double RINTACCURACY = 0.005;
+const double RINTACCURACY = 0.001;
 
 const int INTEGRATIONDEPTH = 50;
 
@@ -118,14 +118,9 @@ double DISFitter::operator()(const std::vector<double>& par) const
             chisqr += datasets[dataset]->Weight()*SQR( (theory - sigmar) / sigmar_err );
             points = points + datasets[dataset]->Weight();
 
-/* #pragma omp critical
-            {
-                cout << x << " " << Q2 << " theory " << theory << " exp " << sigmar << " +/- " << sigmar_err << endl;
-            if (points % 50 == 0)
-                cout << "Done approximately " << points << " / " << totalpoints << endl;
-            
-            }
-    */
+            // Output for plotting
+            //cout << x << " " << Q2 << " " << y << " " << sigmar << " " <<  " " << sigmar_err << " " << theory_light << " " << theory_charm << " 0" << endl;
+
             
             
         }
@@ -203,8 +198,6 @@ double Inthelperf_totxs(double lnr, void* p)
     int status = gsl_integration_qag(&fun, log(MINR), log(MAXR), 0, RINTACCURACY,
                                      INTEGRATIONDEPTH, GSL_INTEG_GAUSS51, ws, &result, &abserr);
     gsl_integration_workspace_free(ws);
-    //int status = gsl_integration_qng(&fun, MinR(), MaxR(),
-    //0, 0.001,  &result, &abserr, &eval);
     
     if(status){ std::cerr<< "r integral in ProtonPhotonCrossSection failed with code "
         << status << " (Qsqr=" << Qsqr << ", xbj=" << xbj << " result " << result

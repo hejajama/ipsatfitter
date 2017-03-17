@@ -17,7 +17,7 @@ using namespace std;
 
 const double MINB = 1e-7;
 const double MAXB = 2e2;
-const double BINTACCURACY = 0.005;
+const double BINTACCURACY = 0.001;
 const int BINTEGRATIONDEPTH = 54;
 
 using namespace std;
@@ -52,7 +52,8 @@ extern "C"
  */
 double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parameters,  int config) const
 {
-    
+    // Use Amir's dipole
+    //return dipole_amplitude_(&x, &r, &b, &IPSAT12_PAR)/2.0;
     
     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
     double C = 4;
@@ -90,7 +91,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
 {
     double analres=0;
     
-    if (config == -1 and saturation )
+    if (config == -1 and saturation)
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
         // b integral analytically, as
