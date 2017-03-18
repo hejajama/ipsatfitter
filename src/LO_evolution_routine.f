@@ -175,15 +175,16 @@ c       GLN = 0.0012216*(CBETA(XN-0.83657-one,2.3882+one)
 c     1          -38.997*CBETA(XN-0.83657-0.5,2.3882+one)+
 c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
 
-       SIN = 1.4335*(CBETA(XN+0.45232-one,3.0409+one)
-     1       -2.3737*CBETA(XN+0.45232-0.5,  3.0409+one)+
-     2        8.9924*CBETA(XN+0.45232,      3.0409+one))+
-     3       5.0903*(CBETA(XN+0.71978-one,5.1244+one)
-     4       -4.3654*CBETA(XN+0.71978-0.5,5.1244+one)+
-     5        7.4730*CBETA(XN+0.71978,    5.1244+one))+
-     6      0.59964*(CBETA(XN-0.16276-one,8.8801+one)
-     7       -2.9012*CBETA(XN-0.16276-0.5,8.8801+one)+
-     8        16.865*CBETA(XN-0.16276,    8.8801+one))
+       SIN = 0
+c1.4335*(CBETA(XN+0.45232-one,3.0409+one)
+c     1       -2.3737*CBETA(XN+0.45232-0.5,  3.0409+one)+
+c     2        8.9924*CBETA(XN+0.45232,      3.0409+one))+
+c     3       5.0903*(CBETA(XN+0.71978-one,5.1244+one)
+c     4       -4.3654*CBETA(XN+0.71978-0.5,5.1244+one)+
+c     5        7.4730*CBETA(XN+0.71978,    5.1244+one))+
+c     6      0.59964*(CBETA(XN-0.16276-one,8.8801+one)
+c     7       -2.9012*CBETA(XN-0.16276-0.5,8.8801+one)+
+c     8        16.865*CBETA(XN-0.16276,    8.8801+one))
  
 
        if (ALPQ .GE. ALPC ) THEN ! EVOLUTION BELOW THE CHARM THRESHOLD :
@@ -201,8 +202,9 @@ c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
        SG = SIN
        GL = GLN
       
-       SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       SIN = 0
+cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
@@ -222,8 +224,9 @@ c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
        SG = SIN
        GL = GLN
 
-       SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       SIN = 0
+cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
@@ -242,8 +245,9 @@ c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
        SG = SIN
        GL = GLN
       
-       SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       SIN = 0
+cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
@@ -263,8 +267,9 @@ c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
        SG = SIN
        GL = GLN
       
-       SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       SIN = 0
+cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
@@ -283,8 +288,9 @@ c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
        SG = SIN
        GL = GLN
       
-       SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       SIN = 0
+cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
@@ -303,8 +309,9 @@ c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
        SG = SIN
        GL = GLN
       
-       SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       SIN = 0
+cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)

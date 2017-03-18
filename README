@@ -5,6 +5,8 @@ Install:
 0. Download MINUIT2 from http://seal.web.cern.ch/seal/snapshot/work-packages/mathlibs/minuit/ -> Download
    I have used Minut2-5.34.14 from
 1. Install Minuit2 (CC=compiler CXX=compiler ./configure --prefix=/installation_directory; make; make install)
+    Example config:
+    CC=/opt/local/bin/gcc-mp-5 CXX=/opt/local/bin/g++-mp-5 ./configure --preix=/Users/heikkimantysaari/code/minuit2/ --disable-openmp
 2. Modify Makefile so that C++ and Fortran compiler paths and Minuit paths are correct
 3. Compile fitter: make
 
@@ -12,6 +14,7 @@ Parallerization note: if may be a good idea to compile MINUIT with --disable-ope
 
     When Chi^2 calculation is parallerized, we can calculate in parallel all (x,Q^2) points and
     could run up to ~50 CPUs quite efficiently!
+
 
 Workflow:
 Read datafiles using the Data class, there is a flag to specify if that is

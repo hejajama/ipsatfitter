@@ -113,7 +113,11 @@ double DISFitter::operator()(const std::vector<double>& par) const
             double theory = theory_light + theory_charm;
             
             
-            
+            if (isnan(theory) or isinf(theory))
+            {
+                cerr << "Warning: theory resutl " << theory << " with parameters " << PrintVector(par) << endl;
+                theory = 99999999;
+            }
 
             chisqr += datasets[dataset]->Weight()*SQR( (theory - sigmar) / sigmar_err );
             points = points + datasets[dataset]->Weight();
