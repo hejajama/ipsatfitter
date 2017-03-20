@@ -22,8 +22,6 @@ const double RINTACCURACY = 0.0001;
 const int INTEGRATIONDEPTH = 50;
 
 
-// LO DGLAP solver
-//SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
 // xg = x*gluon
 extern "C"
 {
@@ -52,7 +50,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double chisqr = 0;
     
     double light_mass = par[ parameters.Index("light_mass")];
-    double heavy_mass = par[ parameters.Index("heavy_mass")];
+    double heavy_mass = par[ parameters.Index("charm_mass")];
     double lambdag = par[ parameters.Index("lambda_g")];
     double Ag = par[ parameters.Index("A_g")];
     
@@ -63,10 +61,16 @@ double DISFitter::operator()(const std::vector<double>& par) const
     // Init dglap
     init_();
     
-    // Alphas
+    // Init alphas
+    // Now we take mu_0 as the initial scale of xg
+    // InitAlphasMur initializes Alphas() at the initial scale mu_0
+    // such that we keep alphas(M_z) = 0.1184
+    // Not thread safe!
+#pragma omp critical
+{
     double asmur = InitAlphasMur(&fitparams);
-    
     fitparams.alphas_mur =asmur;
+}
     
     
     // Initialize wave functions with current quark masses
@@ -303,8 +307,8 @@ double alphas_helper(double asmur, void* p)
     int iord=0;
     double fr2 = 1.0;
     double mur =par->values->at( par->parameter->Index("mu_0"));
-    double mc = par->values->at( par->parameter->Index("heavy_mass"));
-    double mb = 4.75;
+    double mc = par->values->at( par->parameter->Index("charm_mass"));
+    double mb = par->values->at( par->parameter->Index("bottom_mass"));
     double mt = 175;
     initalphas_(&iord, &fr2, &mur, &asmur, &mc, &mb, &mt);
     double mz=91.187;

@@ -74,15 +74,15 @@ C       end
 ** Modified by H.M.: This returns alphas(Q^2)*xg(x,Q^2)
 *******************************************************************
 
-       SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag, mu0,
-     1 asmur_)
+       SUBROUTINE LO_evol(X, Q2, gluon, coupling, mc_, mb_,
+     1 Ag, lambdag, mu0, asmur_)
        
        implicit none
        
        DOUBLE PRECISION ALPHAS,C,EX,PA,WN(136),FR2,mur,ASMUR,MC,MB,MT,
      1 q2,fz,fun,x,ax,alpq,gluon,alps,alpc,alpb,alpt
        DOUBLE PRECISION mu0,Ag,lambdag
-       DOUBLE PRECISION asmur_
+       DOUBLE PRECISION asmur_, mc_, mb_
        double COMPLEX CC,XNM,CEX,N(136),FN(136)
        INTEGER NMAX, I1, M , coupling
        COMMON / CONTin  / C, CC                              
@@ -99,8 +99,8 @@ C       end
 c       ASMUR = 0.68183d0         ! input value of alpha_s at mu_r
 c       ASMUR = 0.329              ! Corresponds to MUR=1.228
        ASMUR = asmur_
-	   MC = 1.27D0                ! charm quark mass
-	   MB = 4.75D0               ! bottom quark mass
+	   MC = mc_                ! charm quark mass
+	   MB = mb_               ! bottom quark mass
        MT = 175d10               ! top quark mass
 
 

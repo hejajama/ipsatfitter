@@ -29,7 +29,8 @@
  *
  * List of parameter strings:
  * light_mass       light quark mass in GeV
- * heavy_mass       heavy quark mass in GeV
+ * charm_mass       charm quark mass in GeV
+ * bottom_mass      b quark mass in GEV
  *
  * B_G              proton size in GeV^(-2)
  *
