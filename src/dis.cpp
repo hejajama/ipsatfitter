@@ -49,6 +49,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
 {
     double chisqr = 0;
     
+    cout << "Computing " << PrintVector(par) << endl;
+    
     double light_mass = par[ parameters.Index("light_mass")];
     double heavy_mass = par[ parameters.Index("charm_mass")];
     double lambdag = par[ parameters.Index("lambda_g")];
@@ -251,6 +253,7 @@ void DISFitter::AddDataset(Data& d)
 DISFitter::DISFitter(MnUserParameters parameters_)
 {
     parameters = parameters_;
+    dipole.SetSaturation(false);
     
     
 }
@@ -294,6 +297,12 @@ double InitAlphasMur(FitParameters *par)
         
     }
     while (status == GSL_CONTINUE && iter < maxiter);
+    
+    gsl_root_fsolver_free(s);
+    
+    if (iter >= maxiter)
+        cerr << "Initializing alphas with parameters " << PrintVector(*par->values) << " did not succeed";
+    
     
     return asmur;
 

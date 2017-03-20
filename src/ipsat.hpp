@@ -57,6 +57,9 @@ public:
     // Evaluate DGLAP evovled xg(x, mu^2), will call an external DGLAP solver
     double xg(double x, double musqr, FitParameters parameters) const;
     
+    bool GetSaturation() const { return saturation; }
+    void SetSaturation(bool s) { saturation = s; }
+    
     
     
 private:

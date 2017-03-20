@@ -55,7 +55,7 @@ double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parame
     //return dipole_amplitude_(&x, &r, &b, &IPSAT12_PAR)/2.0;
     
     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
-    double C = 4;
+    double C = parameters.values->at( parameters.parameter->Index("C"));
     
     double musqr = mu_0*mu_0 + C / SQR(r);
     
@@ -89,7 +89,7 @@ double inthelperf_bint(double b, void* p)
 double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters, int  config) const
 {
     double analres=0;
-    
+    double B = parameters.values->at( parameters.parameter->Index("B_G"));
     if (config == -1 and saturation )
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
@@ -100,9 +100,9 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         // most effective way to calculate b integral
         //
         // Note that in this notation a = pi^2 r^2 / (2NC) alphas * xg / (2 pi B_p)
-        double B = parameters.values->at( parameters.parameter->Index("B_G"));
+        
         double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
-        double C = 4;
+        double C = parameters.values->at( parameters.parameter->Index("C"));
         double musqr = mu_0*mu_0 + C / SQR(r);
         double a = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) / (2.0 * M_PI * B);
         
@@ -133,13 +133,13 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
             // Overflow, very large r most likely. Fall back to numerical integral.
             //cerr << "Error with argument " << a << " r " << r << endl;
         }
-
         
-        
-        
-        
-        
-        
+    }
+    else if (config == -1 and !saturation)
+    {
+        // b integral analytically, now this is trivial as \int d^2 T_b = 1
+        // so actually the result is 2\pi B N(r, b=0)
+        return 2.0 * M_PI * B * DipoleAmplitude(r, 0, x, parameters, -1);
     }
     
     

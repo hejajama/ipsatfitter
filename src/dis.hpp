@@ -60,6 +60,8 @@ public:
     double  ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, const VirtualPhoton* wf, FitParameters fitparams) const;
     
     void AddDataset(Data& d);
+    
+    void SetSaturation(bool s) { dipole.SetSaturation(s); }
 private:
     IPsat dipole;
 

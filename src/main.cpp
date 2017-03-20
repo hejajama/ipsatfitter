@@ -46,16 +46,18 @@ int main()
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
     parameters.Add("charm_mass", 1.27);
     parameters.Add("bottom_mass", 4.75);
+    parameters.Add("C", 4.0);
     
     
     // Start using some reasonable parameters
-    parameters.Add("mu_0", 1.2393, 0.2 );
-    parameters.Add("lambda_g", 0.07526, 0.02);
-    parameters.Add("A_g", 2.396, 0.4);
+    parameters.Add("mu_0", 1.31819, 0.2 );
+    parameters.Add("lambda_g", 0.0878254, 0.02);
+    parameters.Add("A_g", 2.33832, 0.4);
     
     // Set limits
     parameters.SetLowerLimit("A_g", 0);
     parameters.SetLowerLimit("mu_0", 1); // In priciple can go to anything >0 (right?)
+    parameters.SetUpperLimit("mu_0", 1.43); // For some reason alphas code does not work with larger mu_0
     
     //parameters.SetPrecision(0.001);
     
@@ -68,6 +70,7 @@ int main()
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
     
+    fitter.SetSaturation(true);
     
     
     // MnMinimize: use MIGRAD, if it fails, fall back to SIMPLEX
