@@ -96,8 +96,6 @@ C       end
 c       ASMUR = 0.68183d0         ! input value of alpha_s at mu_rc
        ASMUR = 0.329              ! Corresponds to MUR=1.228
 	   MC = 1.27D0                ! charm quark mass
-c       MB = 99999D0
-c       MT = 99999D0
 	   MB = 4.75D0               ! bottom quark mass
        MT = 175d10               ! top quark mass
 

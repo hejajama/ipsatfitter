@@ -17,11 +17,17 @@
 #include "wave_function.hpp"
 using namespace std;
 
+enum DataType
+{
+    TOTAL,      // total reduced cross section
+    CHARM       // only charm contribution
+};
+
 class Data
 {
 public:
     Data();
-    int LoadData(string filename, double only_charm);
+    int LoadData(string filename, DataType type);
     int NumOfPoints() const;
     double Qsqr(unsigned int n) const;
     double xbj(unsigned int n) const;

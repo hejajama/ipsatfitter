@@ -29,15 +29,14 @@ int main()
 {
     gsl_set_error_handler(&ErrHandler);
     
-        
-    //DISFitter fitter;
-    
     
     
     Data data;
     data.SetMaxQsqr(50);
-    data.LoadData("./data/hera_combined_sigmar.txt", false);
-    //data.LoadData("data/hera_combined_sigmar_cc.txt", true);
+    
+    // Add datafiles, if 2nd parameter=true, then this is only charmdata
+    data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
+    data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM); // charm data
 
     
     MnUserParameters parameters;
@@ -54,10 +53,8 @@ int main()
     parameters.Add("A_g", 2.308, 1);
     
     parameters.SetLowerLimit("A_g", 0);
-    //parameters.SetLowerLimit("lambda_g", 0); // Defined to be positive
-    //parameters.SetLowerLimit("mu_0", 1);
     
-    //parameters.SetPrecision(0.001);
+    //parameters.SetPrecision(0.0001);
     
     cout << "=== Initial parameters ===" << endl;
     

@@ -15,7 +15,7 @@ using namespace std;
 const double MINR = 1e-6;
 const double MAXR = 50;
 // Hera data is very accurate, so eventually one needs to use better accuracy
-const double RINTACCURACY = 0.001;
+const double RINTACCURACY = 0.0001;
 
 const int INTEGRATIONDEPTH = 50;
 
@@ -52,15 +52,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     // Init dglap
     init_();
-    // evaluate xg once to call necessary initialization
-    double x=0.01; double q2=10; double gluon=0; int coupling=0;
-    lo_evol_(&x,&q2,&gluon,&coupling,&Ag,&lambdag);
-    //cout << "as * xg = " << gluon << endl;
     
-    // If quark masses do not change, then this is not necessary.
-    // However, now this possible duplication of work keeps the code
-    // thread-safe
-
+    // Initialize wave functions with current quark masses
     VirtualPhoton wf_lightquark;
     VirtualPhoton wf_heavyquark;
     wf_lightquark.SetQuark(LIGHT, light_mass);
@@ -133,7 +126,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
     
-    return chisqr;
+    return chisqr/points;
 }
 
 

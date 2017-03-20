@@ -27,7 +27,7 @@ double StrToReal(std::string str)
 }
 
 // Load data from given file, return 0 if no errors
-int Data::LoadData(string filename, double onlycharm)
+int Data::LoadData(string filename, DataType type)
 {
     
     ifstream file(filename.c_str());
@@ -38,6 +38,10 @@ int Data::LoadData(string filename, double onlycharm)
     }
     
     int points=0;
+    
+    bool onlycharm = false;
+    if (type == CHARM )
+        onlycharm = true;
     
     while(!file.eof() )
     {
