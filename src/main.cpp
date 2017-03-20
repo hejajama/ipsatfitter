@@ -16,7 +16,7 @@
 #include <Minuit2/MnApplication.h>
 #include <Minuit2/MnPrint.h>
 #include <Minuit2/MnScan.h>
-
+#include <Minuit2/MnMinimize.h>
 
 using namespace std;
 using namespace ROOT::Minuit2;
@@ -36,7 +36,7 @@ int main()
     
     // Add datafiles, if 2nd parameter=true, then this is only charmdata
     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
-    data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM); // charm data
+    //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM); // charm data
 
     
     MnUserParameters parameters;
@@ -49,12 +49,12 @@ int main()
     // e.g. as(M_z) = 0.1184
     
     // Start using parameters by Amir&Raju
-    parameters.Add("lambda_g", 0.058, 0.01);
-    parameters.Add("A_g", 2.308, 1);
+    parameters.Add("lambda_g", 0.072, 0.01);
+    parameters.Add("A_g", 2.41, 0.4);
     
     parameters.SetLowerLimit("A_g", 0);
     
-    //parameters.SetPrecision(0.0001);
+    //parameters.SetPrecision(0.001);
     
     cout << "=== Initial parameters ===" << endl;
     
@@ -67,13 +67,14 @@ int main()
     
     
     
+    // MnMinimize: use MIGRAD, if it fails, fall back to SIMPLEX
+    MnMinimize fit(fitter, parameters);
+    //MnMigrad fit(fitter, parameters);
+    //MnScan fit(fitter, parameters);
     
-    
-    MnMigrad migrad(fitter, parameters);
-    //MnScan migrad(fitter, parameters);
     
     // minimize
-    FunctionMinimum min = migrad();
+    FunctionMinimum min = fit();
     // output
     std::cout<<"minimum: "<<min<<std::endl;
     

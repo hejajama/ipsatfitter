@@ -109,7 +109,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
             
             if (isnan(theory) or isinf(theory))
             {
-                cerr << "Warning: theory resutl " << theory << " with parameters " << PrintVector(par) << endl;
+                cerr << "Warning: theory result " << theory << " with parameters " << PrintVector(par) << endl;
                 theory = 99999999;
             }
 
@@ -125,7 +125,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-    
+    //exit(1);
     return chisqr/points;
 }
 

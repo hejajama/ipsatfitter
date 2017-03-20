@@ -91,9 +91,9 @@ C       end
 * THIS IS NEEDED FOR CALLING ALPHA_S, M_CHARM (MC) TO BE MODIFIED IF REQUIRED
 * ALPHA_S VALUE AT THE INITIAL SCALE FROM LO MSTW2008
 
-	   FR2 = 1.D0                ! ratio of mu_f^2 to mu_r^2c
+	   FR2 = 1.D0                ! ratio of mu_f^2 to mu_r^2
 	   MUR = 1.228D0                ! input mu_r in GeV
-c       ASMUR = 0.68183d0         ! input value of alpha_s at mu_rc
+c       ASMUR = 0.68183d0         ! input value of alpha_s at mu_r
        ASMUR = 0.329              ! Corresponds to MUR=1.228
 	   MC = 1.27D0                ! charm quark mass
 	   MB = 4.75D0               ! bottom quark mass
