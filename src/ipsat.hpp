@@ -20,6 +20,7 @@ struct FitParameters
 {
     const vector<double> *values;
     const MnUserParameters *parameter;
+    double alphas_mur;  // alphas at initial scale, solved by DISFitter
 };
 
 // Note: In general this is designed to support event-by-event fluctuatoins
@@ -71,6 +72,7 @@ private:
     bool saturation;
     
     double maxalphas;
+    
     
 };
 

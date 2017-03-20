@@ -36,7 +36,7 @@ int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
 // gluon = alphas(x,Q^2) * gluon!
 extern "C"
 {
-    void lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag  );
+    void lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag, double* mu0 , double *asmur );
     //void init_(); // Init Mellin momenta
 };
 
@@ -178,10 +178,11 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
     
     double lambdag =parameters.values->at( parameters.parameter->Index("lambda_g"));
     double Ag =parameters.values->at( parameters.parameter->Index("A_g"));
+    double mu0 =parameters.values->at( parameters.parameter->Index("mu_0"));
     
     double gluon=0;
     int coupling = 0;
-    lo_evol_(&x, &musqr, &gluon, &coupling, &Ag, &lambdag);
+    lo_evol_(&x, &musqr, &gluon, &coupling, &Ag, &lambdag, &mu0, &parameters.alphas_mur);
     
     return  gluon;
     

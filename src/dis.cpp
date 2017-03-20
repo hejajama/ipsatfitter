@@ -7,6 +7,8 @@
 #include <vector>
 #include <iostream>
 #include <gsl/gsl_integration.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_roots.h>
 #include <Minuit2/MnUserParameterState.h>
 #include <sstream>
 
@@ -25,13 +27,17 @@ const int INTEGRATIONDEPTH = 50;
 // xg = x*gluon
 extern "C"
 {
-    double lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag  );
-    //double alphas_(double mu);
+    //double lo_evol_(double *x, double* Q2, double *gluon, int* coupling, double* Ag, double* lambdag  );
+    double alphas_(double *mu);
+    void initalphas_(int *iord, double *fr2, double *mur, double* asmur, double *mc, double *mb, double* mt);
     void init_(); // Init Mellin momenta
 };
 
 string PrintVector(vector<double> v);
+double alphas_helper(double asmur, void* p);
 
+// Initialize alphas with given masses such that as(M_z) = experimental value
+double InitAlphasMur(FitParameters *par);
 
 /*
  * Calculate chi^2
@@ -50,8 +56,18 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double lambdag = par[ parameters.Index("lambda_g")];
     double Ag = par[ parameters.Index("A_g")];
     
+    FitParameters fitparams;
+    fitparams.values = &par;
+    fitparams.parameter = &parameters;
+    
     // Init dglap
     init_();
+    
+    // Alphas
+    double asmur = InitAlphasMur(&fitparams);
+    
+    fitparams.alphas_mur =asmur;
+    
     
     // Initialize wave functions with current quark masses
     VirtualPhoton wf_lightquark;
@@ -63,9 +79,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     wf_heavyquark.InitializeZintInterpolators();
 #endif
     
-    FitParameters fitparams;
-    fitparams.values = &par;
-    fitparams.parameter = &parameters;
+    
     int points=0;
     
     
@@ -249,3 +263,50 @@ string PrintVector(vector<double> v)
     return ss.str();
 }
 
+
+double InitAlphasMur(FitParameters *par)
+{
+    // Init Alpha_s
+    // Find alphas_mur
+    gsl_function f; f.function = &alphas_helper;
+    f.params = par;
+    
+    const gsl_root_fsolver_type *T = gsl_root_fsolver_brent;
+    gsl_root_fsolver *s = gsl_root_fsolver_alloc (T);
+    double min = 0.1; double max = 1;
+    gsl_root_fsolver_set (s, &f, min, max);
+    
+    
+    int iter=0; int maxiter = 100;
+    double asmur = 0.4; int status;
+    do
+    {
+        iter++;
+        gsl_root_fsolver_iterate (s);
+        asmur = gsl_root_fsolver_root (s);
+        min = gsl_root_fsolver_x_lower (s);
+        max = gsl_root_fsolver_x_upper (s);
+        status = gsl_root_test_interval (min, max,   0, 0.001);
+        
+    }
+    while (status == GSL_CONTINUE && iter < maxiter);
+    
+    return asmur;
+
+}
+// Helper function to solve asmur s.t. alphas(M_z)=0.11884
+double alphas_helper(double asmur, void* p)
+{
+    //cout << asmur << endl;
+    // Init alphas
+    FitParameters *par = (FitParameters*)p;
+    int iord=0;
+    double fr2 = 1.0;
+    double mur =par->values->at( par->parameter->Index("mu_0"));
+    double mc = par->values->at( par->parameter->Index("heavy_mass"));
+    double mb = 4.75;
+    double mt = 175;
+    initalphas_(&iord, &fr2, &mur, &asmur, &mc, &mb, &mt);
+    double mz=91.187;
+    return alphas_(&mz) - 0.1184;
+}

@@ -17,6 +17,7 @@
 #include <Minuit2/MnPrint.h>
 #include <Minuit2/MnScan.h>
 #include <Minuit2/MnMinimize.h>
+#include <Minuit2/MnSimplex.h>
 
 using namespace std;
 using namespace ROOT::Minuit2;
@@ -43,16 +44,17 @@ int main()
     parameters.Add("B_G", 4.0);
     parameters.Add("heavy_mass", 1.27);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("mu_0", sqrt(1.51) );  // From Amir&Raju
+    parameters.Add("mu_0", sqrt(1.51), 0.2 );  // From Amir&Raju
     // mu_0 can't be free currently, as it is hardcoded in DGLAP evolution
     // When mu_0 is changed, one should also change alpha_s s.t. one still keeps
     // e.g. as(M_z) = 0.1184
     
     // Start using parameters by Amir&Raju
-    parameters.Add("lambda_g", 0.072, 0.01);
-    parameters.Add("A_g", 2.41, 0.4);
+    parameters.Add("lambda_g", 0.058, 0.01);
+    parameters.Add("A_g", 2.3, 0.4);
     
     parameters.SetLowerLimit("A_g", 0);
+    parameters.SetLowerLimit("mu_0", 1);
     
     //parameters.SetPrecision(0.001);
     
@@ -68,6 +70,7 @@ int main()
     
     
     // MnMinimize: use MIGRAD, if it fails, fall back to SIMPLEX
+    //MnSimplex fit(fitter,parameters);
     MnMinimize fit(fitter, parameters);
     //MnMigrad fit(fitter, parameters);
     //MnScan fit(fitter, parameters);

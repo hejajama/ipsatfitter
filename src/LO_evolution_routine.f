@@ -74,12 +74,15 @@ C       end
 ** Modified by H.M.: This returns alphas(Q^2)*xg(x,Q^2)
 *******************************************************************
 
-       SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
+       SUBROUTINE LO_evol(X, Q2, gluon, coupling, Ag, lambdag, mu0,
+     1 asmur_)
        
        implicit none
        
        DOUBLE PRECISION ALPHAS,C,EX,PA,WN(136),FR2,mur,ASMUR,MC,MB,MT,
-     1 q2,fz,fun,x,ax,alpq,gluon,alps,alpc,alpb,alpt,Ag,lambdag
+     1 q2,fz,fun,x,ax,alpq,gluon,alps,alpc,alpb,alpt
+       DOUBLE PRECISION mu0,Ag,lambdag
+       DOUBLE PRECISION asmur_
        double COMPLEX CC,XNM,CEX,N(136),FN(136)
        INTEGER NMAX, I1, M , coupling
        COMMON / CONTin  / C, CC                              
@@ -92,14 +95,17 @@ C       end
 * ALPHA_S VALUE AT THE INITIAL SCALE FROM LO MSTW2008
 
 	   FR2 = 1.D0                ! ratio of mu_f^2 to mu_r^2
-	   MUR = 1.228D0                ! input mu_r in GeV
+	   MUR = mu0                ! input mu_r in GeV
 c       ASMUR = 0.68183d0         ! input value of alpha_s at mu_r
-       ASMUR = 0.329              ! Corresponds to MUR=1.228
+c       ASMUR = 0.329              ! Corresponds to MUR=1.228
+       ASMUR = asmur_
 	   MC = 1.27D0                ! charm quark mass
 	   MB = 4.75D0               ! bottom quark mass
        MT = 175d10               ! top quark mass
 
-	   CALL INITALPHAS(0, FR2, mur, ASMUR, MC, MB, MT)
+
+c       INITALPHAS is now called by the fit code when it finds asmur
+c       CALL INITALPHAS(0, FR2, mur, ASMUR, MC, MB, MT)
 
        ALPS = ALPHAS(mur)/(4.*3.141592654d0)
        ALPC = ALPHAS(mc)/(4.*3.141592654d0)
