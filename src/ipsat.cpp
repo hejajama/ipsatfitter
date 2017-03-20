@@ -88,7 +88,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
 {
     double analres=0;
     
-    if (config == -1 and saturation)
+    if (config == -1 and saturation )
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
         // b integral analytically, as

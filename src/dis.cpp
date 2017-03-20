@@ -75,6 +75,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     fitparams.parameter = &parameters;
     int points=0;
     
+    
     int totalpoints = 0;
     for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
         totalpoints += datasets[dataset]->NumOfPoints();
@@ -132,7 +133,6 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
     
-    //exit(1);
     return chisqr;
 }
 
@@ -205,7 +205,7 @@ double Inthelperf_totxs(double lnr, void* p)
     
     if(status){ std::cerr<< "r integral in ProtonPhotonCrossSection failed with code "
         << status << " (Qsqr=" << Qsqr << ", xbj=" << xbj << " result " << result
-        << " relerr=" << abserr/result << ") at " << LINEINFO << std::endl;
+        << " relerr=" << abserr/result << "), parameters " << PrintVector(*fitparams.values) <<" at " << LINEINFO << std::endl;
     }
     
     return 2.0*2.0*M_PI*result; //2\pi from \theta integral (angular integral over the dipole orientation)

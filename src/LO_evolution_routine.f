@@ -92,11 +92,14 @@ C       end
 * ALPHA_S VALUE AT THE INITIAL SCALE FROM LO MSTW2008
 
 	   FR2 = 1.D0                ! ratio of mu_f^2 to mu_r^2c
-	   MUR = 1.D0                ! input mu_r in GecV
- 	   ASMUR = 0.68183d0         ! input value of alpha_s at mu_rc
+	   MUR = 1.228D0                ! input mu_r in GeV
+c       ASMUR = 0.68183d0         ! input value of alpha_s at mu_rc
+       ASMUR = 0.329              ! Corresponds to MUR=1.228
 	   MC = 1.27D0                ! charm quark mass
+c       MB = 99999D0
+c       MT = 99999D0
 	   MB = 4.75D0               ! bottom quark mass
-	   MT = 175d10               ! top quark mass
+       MT = 175d10               ! top quark mass
 
 	   CALL INITALPHAS(0, FR2, mur, ASMUR, MC, MB, MT)
 
@@ -127,7 +130,7 @@ C       end
        PA = FUN * EX
 
 c NOTE: Here I have added *alphas!
-       gluon=pa * ALPHAS(dSQRT(Q2))
+       gluon=pa* ALPHAS(dSQRT(Q2))
 
        RETURN                           
        END
