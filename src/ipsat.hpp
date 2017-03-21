@@ -60,6 +60,9 @@ public:
     bool GetSaturation() const { return saturation; }
     void SetSaturation(bool s) { saturation = s; }
     
+    bool GetSinglet() const { return enable_singlet; }
+    void SetSinglet(bool s) { enable_singlet = s; }
+    
     
     
 private:
@@ -73,6 +76,7 @@ private:
     // Flag to turn on/off saturation
     // If false, dipole amplitude ~ r^2
     bool saturation;
+    bool enable_singlet;
     
     double maxalphas;
     

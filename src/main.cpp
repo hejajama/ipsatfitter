@@ -50,12 +50,16 @@ int main()
     
     
     // Start using some reasonable parameters
-    parameters.Add("mu_0", 1.31819, 0.2 );
-    parameters.Add("lambda_g", 0.0878254, 0.02);
-    parameters.Add("A_g", 2.33832, 0.4);
+    parameters.Add("mu_0", 1.31777737406, 0.2 );
+    parameters.Add("lambda_g", 0.08784599160072, 0.02);
+    parameters.Add("A_g", 2.336985636887, 0.4);
+    parameters.Add("lambda_s", 0.16, 0.1);
+    parameters.Add("A_s", 0.5, 0.2);
+    
     
     // Set limits
     parameters.SetLowerLimit("A_g", 0);
+    parameters.SetLowerLimit("A_s", 0);
     parameters.SetLowerLimit("mu_0", 1); // In priciple can go to anything >0 (right?)
     parameters.SetUpperLimit("mu_0", 1.43); // For some reason alphas code does not work with larger mu_0
     
@@ -71,6 +75,7 @@ int main()
     fitter.AddDataset(data);
     
     fitter.SetSaturation(true);
+    fitter.SetSinglet(true);
     
     
     // MnMinimize: use MIGRAD, if it fails, fall back to SIMPLEX

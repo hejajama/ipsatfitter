@@ -75,13 +75,13 @@ C       end
 *******************************************************************
 
        SUBROUTINE LO_evol(X, Q2, gluon, coupling, mc_, mb_,
-     1 Ag, lambdag, mu0, asmur_)
+     1 mu0, asmur_, Ag, lambdag, As, lambdas )
        
        implicit none
        
        DOUBLE PRECISION ALPHAS,C,EX,PA,WN(136),FR2,mur,ASMUR,MC,MB,MT,
      1 q2,fz,fun,x,ax,alpq,gluon,alps,alpc,alpb,alpt
-       DOUBLE PRECISION mu0,Ag,lambdag
+       DOUBLE PRECISION mu0,Ag,lambdag, As, lambdas
        DOUBLE PRECISION asmur_, mc_, mb_
        double COMPLEX CC,XNM,CEX,N(136),FN(136)
        INTEGER NMAX, I1, M , coupling
@@ -122,7 +122,7 @@ c       CALL INITALPHAS(0, FR2, mur, ASMUR, MC, MB, MT)
                                              
 *...CALCULATION OF THE GLUON DENSITY AND OUTPUT :
 
-       CALL RENO (FN, N, ALPQ, NMAX, coupling, Ag, lambdag)
+       CALL RENO (FN, N, ALPQ, NMAX, coupling, Ag, lambdag, As, lambdas)
 
        FUN = 0.D0
        DO 1 I1 = 1, NMAX
@@ -147,7 +147,8 @@ c NOTE: Here I have added *alphas!
 *
 * Currently this takes the simplest possible fit form:
 * xg = A_g x^(-lambdag) (1-x)^(5.6), following Amir&Raju
-       SUBROUTINE RENO (FN, N, ALPQ, NMAX, coupling, Ag, lambdag)
+       SUBROUTINE RENO (FN, N, ALPQ, NMAX, coupling, Ag, lambdag,
+     1  As, lambdas)
 
        implicit none
        double complex ns8n,ns3n,gln,gl,sin,sg,svn,dsn,ssn,csn,bsn,tsn,
@@ -157,6 +158,7 @@ c NOTE: Here I have added *alphas!
      4 two,zero
        Double precision XL,XL1,S,ALP,ALPS,ALPC,ALPB,ALPQ,alpt,
      1 B,b0,b1,alpq1,eqs3,q2,x,FR2,mur,ASMUR,MC,MB,MT,Ag,lambdag
+       Double precision As, lambdas
        INTEGER F,K1,KK1,NMAX,coupling
        common/ varalph/ FR2, mur, ASMUR, MC, MB, MT         
        COMMON / ANOMS  / ANS, AM, AP, AL, BE, AB, AC
@@ -183,16 +185,9 @@ c     1          -38.997*CBETA(XN-0.83657-0.5,2.3882+one)+
 c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
 
        SIN = 0
-c1.4335*(CBETA(XN+0.45232-one,3.0409+one)
-c     1       -2.3737*CBETA(XN+0.45232-0.5,  3.0409+one)+
-c     2        8.9924*CBETA(XN+0.45232,      3.0409+one))+
-c     3       5.0903*(CBETA(XN+0.71978-one,5.1244+one)
-c     4       -4.3654*CBETA(XN+0.71978-0.5,5.1244+one)+
-c     5        7.4730*CBETA(XN+0.71978,    5.1244+one))+
-c     6      0.59964*(CBETA(XN-0.16276-one,8.8801+one)
-c     7       -2.9012*CBETA(XN-0.16276-0.5,8.8801+one)+
-c     8        16.865*CBETA(XN-0.16276,    8.8801+one))
- 
+       IF (coupling == 1)  THEN
+            SIN = As*CBETA(XN - lambdas - one, one)
+       END IF
 
        if (ALPQ .GE. ALPC ) THEN ! EVOLUTION BELOW THE CHARM THRESHOLD :
 
@@ -210,8 +205,10 @@ c     8        16.865*CBETA(XN-0.16276,    8.8801+one))
        GL = GLN
       
        SIN = 0
-cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       IF (coupling == 1) THEN
+           SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       END IF 
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
@@ -232,9 +229,10 @@ c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
        GL = GLN
 
        SIN = 0
-cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
-
+       IF (coupling == 1) THEN
+          SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       END IF
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
 
@@ -253,9 +251,10 @@ c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
        GL = GLN
       
        SIN = 0
-cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
-
+       IF (coupling == 1) THEN
+           SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       END IF
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
 
@@ -275,8 +274,10 @@ c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
        GL = GLN
       
        SIN = 0
-cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       IF (coupling == 1) THEN
+          SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       END IF
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
@@ -296,8 +297,10 @@ c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
        GL = GLN
       
        SIN = 0
-cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       IF (COUPLING == 1) THEN
+           SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       END IF
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)
@@ -317,8 +320,10 @@ c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
        GL = GLN
       
        SIN = 0
-cEM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
-c     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       IF (coupling == 1) THEN
+           SIN = EM * ( AL(K1,F) * SG + BE(K1,F) * GL * coupling)
+     1     + EP * ( AC(K1,F) * SG - BE(K1,F) * GL * coupling)
+       END IF
 
        GLN = EM * ( AB(K1,F) * SG * coupling + AC(K1,F) * GL)
      1     + EP *( -AB(K1,F) * SG * coupling + AL(K1,F) * GL)

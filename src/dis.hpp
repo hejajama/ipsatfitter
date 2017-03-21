@@ -62,6 +62,7 @@ public:
     void AddDataset(Data& d);
     
     void SetSaturation(bool s) { dipole.SetSaturation(s); }
+    void SetSinglet(bool s) { dipole.SetSinglet(s); }
 private:
     IPsat dipole;
 

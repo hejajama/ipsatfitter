@@ -37,8 +37,9 @@ int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
 extern "C"
 {
     void lo_evol_(double *x, double* Q2, double *gluon, int* coupling,
-                  double *mc, double *mb, double* Ag, double* lambdag,
-                  double* mu0 , double *asmur );
+                  double *mc, double *mb, double* mu0 , double *asmur,
+                  double* Ag, double* lambdag, double *As, double* lambdas
+                   );
     //void init_(); // Init Mellin momenta
 };
 
@@ -180,14 +181,20 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
     
     double lambdag =parameters.values->at( parameters.parameter->Index("lambda_g"));
     double Ag =parameters.values->at( parameters.parameter->Index("A_g"));
+    double lambdas =parameters.values->at( parameters.parameter->Index("lambda_s"));
+    double As =parameters.values->at( parameters.parameter->Index("A_s"));
     double mu0 =parameters.values->at( parameters.parameter->Index("mu_0"));
     double mc = parameters.values->at( parameters.parameter->Index("charm_mass"));
     double mb = parameters.values->at( parameters.parameter->Index("bottom_mass"));
     
-    double gluon=0;
+    double gluon = 0;
+    
     int coupling = 0;
+    if (GetSinglet())
+        coupling = 1;
     lo_evol_(&x, &musqr, &gluon, &coupling, &mc, &mb,
-             &Ag, &lambdag, &mu0, &parameters.alphas_mur);
+             &mu0, &parameters.alphas_mur,
+             &Ag, &lambdag, &As, &lambdas );
     
     return  gluon;
     
@@ -234,6 +241,7 @@ IPsat::IPsat()
     minQ2=0;
     maxQ2=1e99;
     saturation = true;
+    enable_singlet = false;
     maxalphas = 0.5;
     
     

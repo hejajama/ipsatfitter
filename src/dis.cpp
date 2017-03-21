@@ -49,8 +49,6 @@ double DISFitter::operator()(const std::vector<double>& par) const
 {
     double chisqr = 0;
     
-    cout << "Computing " << PrintVector(par) << endl;
-    
     double light_mass = par[ parameters.Index("light_mass")];
     double heavy_mass = par[ parameters.Index("charm_mass")];
     double lambdag = par[ parameters.Index("lambda_g")];
@@ -59,6 +57,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     FitParameters fitparams;
     fitparams.values = &par;
     fitparams.parameter = &parameters;
+    
     
     // Init dglap
     init_();
@@ -145,7 +144,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-    //exit(1);
+   
     return chisqr/points;
 }
 
