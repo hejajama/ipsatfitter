@@ -10,6 +10,7 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_roots.h>
 #include <Minuit2/MnUserParameterState.h>
+#include <iomanip>
 #include <sstream>
 
 using namespace std;
@@ -50,7 +51,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double chisqr = 0;
     
     double light_mass = par[ parameters.Index("light_mass")];
-    double heavy_mass = par[ parameters.Index("charm_mass")];
+    double charm_mass = par[ parameters.Index("charm_mass")];
+    double bottom_mass = par[ parameters.Index("bottom_mass")];
     double lambdag = par[ parameters.Index("lambda_g")];
     double Ag = par[ parameters.Index("A_g")];
     
@@ -59,8 +61,6 @@ double DISFitter::operator()(const std::vector<double>& par) const
     fitparams.parameter = &parameters;
     
     
-    // Init dglap
-    init_();
     
     // Init alphas
     // Now we take mu_0 as the initial scale of xg
@@ -76,12 +76,15 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     // Initialize wave functions with current quark masses
     VirtualPhoton wf_lightquark;
-    VirtualPhoton wf_heavyquark;
+    VirtualPhoton wf_charm;
+    VirtualPhoton wf_bottom;
     wf_lightquark.SetQuark(LIGHT, light_mass);
-    wf_heavyquark.SetQuark(C, heavy_mass);
+    wf_charm.SetQuark(C, charm_mass);
+    wf_bottom.SetQuark(B, bottom_mass);
 #ifdef USE_INTERPOLATOR
     wf_lightquark.InitializeZintInterpolators();
-    wf_heavyquark.InitializeZintInterpolators();
+    wf_charm.InitializeZintInterpolators();
+    wf_bottom.InitializeZintInterpolators();
 #endif
     
     
@@ -111,19 +114,26 @@ double DISFitter::operator()(const std::vector<double>& par) const
             
             double sqrts = sqrt( Q2 / (x * y) );
             
-            double charmx = x * (1.0 + 4.0*heavy_mass*heavy_mass / Q2);
+            double charmx = x * (1.0 + 4.0*charm_mass*charm_mass / Q2);
             
+            // Include only datapoints where charm contribution can be calculated
             if (charmx > 0.01)
                 continue;
 
-            double theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_heavyquark, fitparams);
-            double theory_light;
-            if (onlycharm)
-                theory_light = 0;
-            else
+            double theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
+            double theory_light=0, theory_bottom=0;
+            if (!onlycharm) // All quarks
+            {
                 theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
-            
-            double theory = theory_light + theory_charm;
+                
+                // Include bottom conribution if kinematically allowed
+                double bottomx = x * (1.0 + 4.0*bottom_mass*bottom_mass/Q2);
+                if (bottomx < 0.1) //0.01: chi2 1.399  0.1: 1.409, no b: 1.27
+                    theory_bottom = ReducedCrossSection(Q2, bottomx, sqrts, &wf_bottom, fitparams);
+                
+                
+            }
+            double theory = theory_light + theory_charm + theory_bottom;
             
             
             if (isnan(theory) or isinf(theory))
@@ -136,7 +146,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
             points = points + datasets[dataset]->Weight();
 
             // Output for plotting
-            //cout << x << " " << Q2 << " " << y << " " << sigmar << " " <<  " " << sigmar_err << " " << theory_light << " " << theory_charm << " 0" << endl;
+            
+            //cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
 
             
             
@@ -241,6 +252,26 @@ double Inthelperf_totxs(double lnr, void* p)
 
 
 
+/*
+ * F2
+ */
+double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
+{
+    InitAlphasMur(&fitparams);
+    VirtualPhoton photon;
+    double ml = fitparams.values->at( fitparams.parameter->Index("light_mass"));
+    double mc = fitparams.values->at( fitparams.parameter->Index("charm_mass"));
+    photon.SetQuark(LIGHT, ml );
+    double xs_light_l =ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
+    double xs_light_t =ProtonPhotonCrossSection(Q2, xbj, TRANSVERSE, &photon, fitparams);
+    
+    photon.SetQuark(C, mc);
+    double xs_charm_l =ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
+    double xs_charm_t =ProtonPhotonCrossSection(Q2, xbj, TRANSVERSE, &photon, fitparams);
+
+    return Q2 / (4.0*M_PI*ALPHA_e) * (xs_light_l + xs_light_t + xs_charm_l + xs_charm_t);
+}
+
 
 
 void DISFitter::AddDataset(Data& d)
@@ -253,6 +284,9 @@ DISFitter::DISFitter(MnUserParameters parameters_)
 {
     parameters = parameters_;
     dipole.SetSaturation(false);
+    
+    // Init dglap
+    init_();
     
     
 }
@@ -279,7 +313,7 @@ double InitAlphasMur(FitParameters *par)
     
     const gsl_root_fsolver_type *T = gsl_root_fsolver_brent;
     gsl_root_fsolver *s = gsl_root_fsolver_alloc (T);
-    double min = 0.1; double max = 1;
+    double min = 0.1; double max = 0.5;
     gsl_root_fsolver_set (s, &f, min, max);
     
     
@@ -301,7 +335,7 @@ double InitAlphasMur(FitParameters *par)
     
     if (iter >= maxiter)
         cerr << "Initializing alphas with parameters " << PrintVector(*par->values) << " did not succeed";
-    
+    //cout << "--- initialized alphas at " << par->values->at( par->parameter->Index("mu_0")) << " GeV to " << asmur << endl;
     
     return asmur;
 
@@ -309,7 +343,7 @@ double InitAlphasMur(FitParameters *par)
 // Helper function to solve asmur s.t. alphas(M_z)=0.11884
 double alphas_helper(double asmur, void* p)
 {
-    //cout << asmur << endl;
+    //cout << "Trying " << asmur << endl;
     // Init alphas
     FitParameters *par = (FitParameters*)p;
     int iord=0;

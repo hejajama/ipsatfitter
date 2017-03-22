@@ -91,6 +91,7 @@ class VirtualPhoton  {
          */
         void SetQuark(Parton p, double mass=-1);
     
+    
 #ifdef USE_INTERPOLATOR
         /**
          * Initialize zint interpolations, note that these depent on used quark flavors and masses!

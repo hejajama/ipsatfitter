@@ -292,6 +292,7 @@ void VirtualPhoton::SetQuark(Parton p, double mass)
 
 }
 
+
 std::string VirtualPhoton::GetParamString()
 {
     std::stringstream str;

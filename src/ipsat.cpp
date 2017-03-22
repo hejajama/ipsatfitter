@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include "ipsat.hpp"
 #include "wave_function.hpp"
 
@@ -237,14 +238,27 @@ double IPsat::Alphas(double musqr, FitParameters parameters) const
 IPsat::IPsat()
 {
     minx=1e-9;
-    maxx=0.02;
+    maxx=0.1;
     minQ2=0;
     maxQ2=1e99;
     saturation = true;
     enable_singlet = false;
     maxalphas = 0.5;
+}
+
+std::ostream& operator<<(std::ostream& os, IPsat& ipsat)
+{
     
-    
-    
+    if (ipsat.GetSaturation())
+        os << "IPsat";
+    else
+        os << "IPnonsat";
+
+    os << ", singlet contribution: ";
+    if (ipsat.GetSinglet())
+        os << "enabled";
+    else
+        os << "disabled";
+    return os;
     
 }

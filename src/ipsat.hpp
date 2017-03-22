@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 #include <Minuit2/MnUserParameters.h>
 
 #include "wave_function.hpp"
@@ -82,6 +83,8 @@ private:
     
     
 };
+
+std::ostream& operator<<(std::ostream& os, IPsat& ipsat);
 
 
 #endif
