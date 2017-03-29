@@ -60,6 +60,7 @@ public:
     double  ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, const VirtualPhoton* wf, FitParameters fitparams) const;
     
     double F2(double Q2, double x, FitParameters fitparams) const;
+    double FL(double Q2, double x, FitParameters fitparams) const;
     
     void AddDataset(Data& d);
     

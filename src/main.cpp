@@ -33,43 +33,82 @@ int main()
     
     
     Data data;
+    data.SetMinQsqr(0.75);
     data.SetMaxQsqr(50);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
-    //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM); // charm data
+    data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM); // charm data
 
     
     MnUserParameters parameters;
     // Constants
     parameters.Add("B_G", 4.0);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.27);
+    parameters.Add("charm_mass", 1.27); // 1.27
     parameters.Add("bottom_mass", 4.75);
     parameters.Add("C", 4.0);
     
     
     // Start using some reasonable parameters
     
-    // Singlet fit
+    // IPsat with singlet Singlet fit
     /*
-    parameters.Add("mu_0", 1.44628, 0.2 );
-    parameters.Add("lambda_g", 0.1111, 0.02);
-    parameters.Add("A_g", 2.16795, 0.4);
-    parameters.Add("lambda_s", -0.26047, 0.1);
-    parameters.Add("A_s", 0.0961, 0.2);
+    parameters.Add("mu_0", 1.538, 0.2 );
+    parameters.Add("lambda_g", 0.1129, 0.02);
+    parameters.Add("A_g", 2.233, 0.4);
+    parameters.Add("lambda_s", 0);
+    parameters.Add("A_s", 0);
     */
     
-    // IPsat
-    // Gives chi^2/N~1.46 in range 0.75-50
-    parameters.Add("mu_0", 1.31777, 0.1);
-    parameters.Add("lambda_g", 0.0878, 0.05);
-    parameters.Add("A_g", 2.3369, 0.1);
+    // IPsat, mc=1.27
+    
+    parameters.Add("mu_0", 1.352, 0.1);
+    parameters.Add("lambda_g", 0.0921, 0.05);
+    parameters.Add("A_g", 2.309, 0.1);
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
     
     
+    // IPsat without singlet, free charm mass, fitted to all data
+    /*
+    parameters.Add("mu_0", 1.338937588098, 0.2 );
+    parameters.Add("lambda_g", 0.09548245405113, 0.02);
+    parameters.Add("A_g", 2.308901027904, 0.4);
+    parameters.Add("lambda_s", 0);
+    parameters.Add("A_s", 0);
+    */
+    
+    // IPsat fitted to charm data
+    /*
+    parameters.Add("mu_0", 0.8381738043555, 0.2 );
+    parameters.Add("lambda_g", 0.06520164038353, 0.02);
+    parameters.Add("A_g", 2.002630013683, 0.4);
+    parameters.Add("lambda_s", 0);
+    parameters.Add("A_s", 0);
+     */
+    
+    
+    // IPnonsat w/o singlet
+    /*
+    parameters.Add("mu_0", 0.706, 0.1);
+    parameters.Add("lambda_g", -0.199, 0.05);
+    parameters.Add("A_g", 4.105, 0.1);
+    parameters.Add("lambda_s", 0);
+    parameters.Add("A_s", 0);
+    */
+    
+    // IPnonsat with singlet
+    /*
+    parameters.Add("mu_0", 0.7223, 0.1);
+    parameters.Add("lambda_g", -0.1759, 0.05);
+    parameters.Add("A_g", 3.781, 0.1);
+    parameters.Add("lambda_s", 0);
+    parameters.Add("A_s", 0);
+    */
+    
     // Set limits
+    
     parameters.SetLowerLimit("A_g", 0);
     parameters.SetLowerLimit("A_s", 0);
     parameters.SetLowerLimit("mu_0", 0.4); // In priciple can go to anything >0 (right?)
@@ -89,10 +128,11 @@ int main()
     /*
     for (double q2=2; q2<10000; q2*=1.2)
     {
-        cout << q2 << " " << fitter.F2(q2, 0.01, p) << endl;
-    }*/
-    
-    //parameters.SetPrecision(0.001);
+        cout << q2 << " " << fitter.F2(q2, 0.01, p) << " " << fitter.FL(q2, 0.01, p) << endl;
+    }
+    exit(1);
+    */
+     //parameters.SetPrecision(0.001);
     
     cout << "=== Initial parameters ===" << endl;
     

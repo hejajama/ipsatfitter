@@ -154,8 +154,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
         }
     }
     
-    cout << "Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-   
+    cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
+    //exit(1);
     return chisqr/points;
 }
 
@@ -261,16 +261,56 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
     VirtualPhoton photon;
     double ml = fitparams.values->at( fitparams.parameter->Index("light_mass"));
     double mc = fitparams.values->at( fitparams.parameter->Index("charm_mass"));
+    double mb = fitparams.values->at( fitparams.parameter->Index("bottom_mass"));
     photon.SetQuark(LIGHT, ml );
     double xs_light_l =ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
     double xs_light_t =ProtonPhotonCrossSection(Q2, xbj, TRANSVERSE, &photon, fitparams);
     
+    double xc = xbj * (1.0 + 4.0*mc*mc/Q2);
+    
     photon.SetQuark(C, mc);
-    double xs_charm_l =ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
-    double xs_charm_t =ProtonPhotonCrossSection(Q2, xbj, TRANSVERSE, &photon, fitparams);
+    double xs_charm_l =ProtonPhotonCrossSection(Q2, xc, LONGITUDINAL, &photon, fitparams);
+    double xs_charm_t =ProtonPhotonCrossSection(Q2, xc, TRANSVERSE, &photon, fitparams);
+    
+    double xb = xbj*(1.0 + 4.0*mb*mb/Q2);
+    double xs_bottom_l=0;
+    double xs_bottom_t = 0;
+    if (xb < 0.1)
+    {
+        photon.SetQuark(B, mb);
+        double xs_bottom_l =ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
+        double xs_bottom_t =ProtonPhotonCrossSection(Q2, xb, TRANSVERSE, &photon, fitparams);
+    }
 
-    return Q2 / (4.0*M_PI*ALPHA_e) * (xs_light_l + xs_light_t + xs_charm_l + xs_charm_t);
+    return Q2 / (4.0*M_PI*ALPHA_e) * (xs_light_l + xs_light_t + xs_charm_l + xs_charm_t + xs_bottom_t + xs_bottom_l);
 }
+
+double DISFitter::FL(double Q2, double xbj, FitParameters fitparams ) const
+{
+    InitAlphasMur(&fitparams);
+    VirtualPhoton photon;
+    double ml = fitparams.values->at( fitparams.parameter->Index("light_mass"));
+    double mc = fitparams.values->at( fitparams.parameter->Index("charm_mass"));
+    double mb = fitparams.values->at( fitparams.parameter->Index("bottom_mass"));
+    photon.SetQuark(LIGHT, ml );
+    double xs_light_l =ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
+    
+    double xc = xbj * (1.0 + 4.0*mc*mc/Q2);
+    
+    photon.SetQuark(C, mc);
+    double xs_charm_l =ProtonPhotonCrossSection(Q2, xc, LONGITUDINAL, &photon, fitparams);
+    
+    double xb = xbj*(1.0 + 4.0*mb*mb/Q2);
+    double xs_bottom_l=0;
+    if (xb < 0.1)
+    {
+        photon.SetQuark(B, mb);
+        double xs_bottom_l =ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
+    }
+    
+    return Q2 / (4.0*M_PI*ALPHA_e) * (xs_light_l + xs_charm_l + xs_bottom_l);
+}
+
 
 
 
