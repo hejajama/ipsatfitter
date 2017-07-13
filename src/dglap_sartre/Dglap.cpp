@@ -345,15 +345,13 @@ tab_dist *Lag_dist(int N,double (*qns)(double),double (*qs)(double),double (*g)(
     // g:   pointer to the gluon PDF
     tab_dist *tt = new tab_dist(1+N, N, 1.0);
     
-    cout << "Calculating Laguerre coefficients of the initial PDFs..." << flush;
-    
+    #pragma omp parallel for
     for (int i=0;i<=N;i++){
         (tt->qns)[i]=Lag_coeff(i,qns);
         (tt->qs)[i]=Lag_coeff(i,qs);
         (tt->g)[i]=Lag_coeff(i,g);
     }
     
-    cout << "done" << endl;
     
     return tt;
 }

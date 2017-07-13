@@ -82,13 +82,11 @@ tab_Pij::tab_Pij(int sz, int n, int nm)
     psgg1= new double[sz];
     nf = n;
     nmax = nm;
-    cout << "Memory allocated to tab_Pij, size " << sz << endl << flush;
     
 }
 
 tab_Pij::~tab_Pij()
 {
-    cout << "Deleting tab_Pij" << endl << flush;
     delete [] pns0;
     delete [] pns1;
     delete [] psqq0;
@@ -513,7 +511,6 @@ double b2gi(double zp,void *params)
 
 double Pns0(int n,double Nf)
 {
-    cout << "Pns0(" << n << ", " << Nf << ")" << endl << flush;
     int Nlag=n;
     double zpmax=100.0;
     double zp0=0.0;
@@ -790,7 +787,6 @@ tab_Pij *create_Lag_Pij_table(double Nf, int N)
     // Calculate the Laguerre coefficients
     //
     for (int i=0; i<=N; i++) {
-        cout << "Fill " << i << " Pns0 " << Pns0(i,Nf) << endl << flush;;
         (tt->pns0)[i]=Pns0(i,Nf);
         (tt->pns1)[i]=Pns1(i,Nf);   
         (tt->psqq0)[i]=Psqq0(i,Nf); 
@@ -802,7 +798,6 @@ tab_Pij *create_Lag_Pij_table(double Nf, int N)
         (tt->psgg0)[i]=Psgg0(i,Nf); 
         (tt->psgg1)[i]=Psgg1(i,Nf);
     }
-    cout << "done" << endl;
  
     return tt;
 }

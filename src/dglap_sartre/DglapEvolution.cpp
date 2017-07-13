@@ -25,6 +25,7 @@
 //#include "TableGeneratorSettings.h"
 //#include "DipoleModelParameters.h"
 #include <iostream>
+#include <cstdlib>
 #include <cmath>
 
 using namespace std;  
@@ -101,21 +102,28 @@ double g0(double x)
 
 
   
+grid_dist *dist;
+bool distgrid_initialized = false;
 double DglapEvolution::G(double x, double Q2)  const
 {
     if (Q2 > mS or Q2 < dglap_initial_condition.mMu02)
-        return 0;
-    return 0;
-    /*
-    // static grid_dist *dist;
+    {
+	    return 0;
+	}
+    
     value_dist val = PDF_interpolated(x, Q2, dist);  
     double result = val.g;  // x*G  
+
+	if (val.g==0)
+			cerr << "xg=0 at x=" << x << "Q2=" << Q2 << endl;
+
+
     result /= x;            // G  
       
     // mDerivative = val.dg;   // keep  - can't keep, as this should be thread safe!
     
     return result;   
-     */
+    
 }
 
 
@@ -123,13 +131,11 @@ double DglapEvolution::G(double x, double Q2)  const
 // DglapEvolution::G becomes thread safe (hopefully), and can be made const method
 int DglapEvolution::Init(double Ag, double lambdag, double mu02) const
 {
-    /*if (dist != NULL)
-    {
-        cout << "Dist is not null, free it..." << endl;
-        delete dist;
-        cerr << "done\n";
-    }*/
-    int N=100;         // maximum Laguerre order
+	if (distgrid_initialized == true)
+	{
+		delete dist;
+	}
+    int N=40;         // maximum Laguerre order
     double q2i=mu02;  // initial value of Q^2
     double q2f=mS;     // max/final value of Q^2
     
@@ -137,7 +143,7 @@ int DglapEvolution::Init(double Ag, double lambdag, double mu02) const
     dglap_initial_condition.mLambdaG = lambdag;
     dglap_initial_condition.mMu02 = mu02;
     
-    static grid_dist *dist;
+    //static grid_dist *dist;
     
     int Nc=3;
     tab_Pij *tt_pij;
@@ -150,7 +156,6 @@ int DglapEvolution::Init(double Ag, double lambdag, double mu02) const
         
     tt_pij=create_Lag_Pij_table(Nc,N);
     
-    cout << "Lag_Pij_table done " << endl;
     
     dist0=Lag_dist(N,qns0,qs0,g0);
     
@@ -167,7 +172,7 @@ int DglapEvolution::Init(double Ag, double lambdag, double mu02) const
     delete tt_pij;
     delete dist0;
     delete tt_evol;
-    
+   
     return 0;
 
 }

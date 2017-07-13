@@ -110,8 +110,8 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         double C = parameters.values->at( parameters.parameter->Index("C"));
         double musqr = mu_0*mu_0 + C / SQR(r);
         double a = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) / (2.0 * M_PI * B);
-        
-        
+       if (a==0) // Basically so small r that xg =0 as we are outside the dglap evolution grid
+			   return 0; 
         
         gsl_sf_result sinres;
         gsl_sf_result cosres;
@@ -206,7 +206,7 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
     }
     else if (dglapsolver == SARTRE)
     {
-        gluon = sartre_dglap.G(x, musqr);
+        gluon = x*sartre_dglap.G(x, musqr);
     }
     
     return  gluon;
