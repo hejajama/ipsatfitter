@@ -34,7 +34,7 @@ int main()
     
     Data data;
     data.SetMinQsqr(0.75);
-    data.SetMaxQsqr(50);
+    data.SetMaxQsqr(500);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
@@ -45,14 +45,28 @@ int main()
     // Constants
     parameters.Add("B_G", 4.0);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.27); // 1.27
+    parameters.Add("charm_mass", 1.400); // 1.27
     parameters.Add("bottom_mass", 4.75);
     parameters.Add("C", 4.0);
     
     
     // Start using some reasonable parameters
     
-    // IPsat with singlet Singlet fit
+    // IPsat, mc fitted to 1.381
+    /* parameters.Add("mu_0", 1.339, 0.2 );
+    parameters.Add("lambda_g", 0.0955, 0.02);
+    parameters.Add("A_g", 2.309, 0.4);
+    parameters.Add("lambda_s", 0);
+    parameters.Add("A_s", 0);
+    */
+
+	// Amir
+    parameters.Add("mu_0", sqrt(1.428), 0.01);
+    parameters.Add("A_g", 2.373, 0.1);
+    parameters.Add("lambda_g", 0.052, 0.01);
+	parameters.Add("lambda_s", 0);
+	parameters.Add("A_s", 0);
+    // IPsat with singlet
     /*
     parameters.Add("mu_0", 1.538, 0.2 );
     parameters.Add("lambda_g", 0.1129, 0.02);
@@ -62,13 +76,13 @@ int main()
     */
     
     // IPsat, mc=1.27
-    
+    /*
     parameters.Add("mu_0", 1.352, 0.1);
     parameters.Add("lambda_g", 0.0921, 0.05);
     parameters.Add("A_g", 2.309, 0.1);
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
-    
+    */
     
     // IPsat without singlet, free charm mass, fitted to all data
     /*
@@ -120,23 +134,29 @@ int main()
     fitter.SetSaturation(true);
     fitter.SetSinglet(false);
     
+    fitter.SetDGLAPSolver(SARTRE);
+    
     FitParameters p;
     p.parameter = &parameters;
     vector<double> parvec = parameters.Params();
     p.values = &parvec;
-    
-    /*
-    for (double q2=2; q2<10000; q2*=1.2)
+   
+	/*
+    for (double q2=1; q2<10000; q2*=1.2)
     {
-        cout << q2 << " " << fitter.F2(q2, 0.01, p) << " " << fitter.FL(q2, 0.01, p) << endl;
+        cout << q2 << " " << fitter.F2(q2, 5e-3, p) << " " << fitter.FL(q2, 5e-3, p) << endl;
     }
     exit(1);
     */
+    
      //parameters.SetPrecision(0.001);
     
     cout << "=== Initial parameters ===" << endl;
     
     cout << parameters << endl;
+    cout << "DGLAP solver: ";
+    if (fitter.GetDGLAPSolver() == PIA) cout << "PIA" << endl;
+    else if (fitter.GetDGLAPSolver() == SARTRE) cout << "SARTRE" << endl;
     
     
     cout << "=== Dipole amplitude ===" << endl;

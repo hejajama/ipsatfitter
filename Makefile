@@ -7,7 +7,7 @@ FC = /opt/local/bin/gfortran-mp-5
 MINUITINC = ../inc
 MINUITLIBDIR = ../lib/
 
-CXXFLAGS = `/opt/local/bin/gsl-config --cflags` -O2 -fopenmp -I$(MINUITINC)
+CXXFLAGS = `/opt/local/bin/gsl-config --cflags` -g -fopenmp -I$(MINUITINC)
 FFLAGS = -O2
 LDFLAGS = `/opt/local/bin/gsl-config --libs` -lgfortran
 

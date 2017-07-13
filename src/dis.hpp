@@ -68,10 +68,15 @@ public:
     void SetSinglet(bool s) { dipole.SetSinglet(s); }
     
     IPsat &GetDipole() { return dipole; }
+    
+    DGLAP_Solver GetDGLAPSolver() { return dglapsolver; }
+    void SetDGLAPSolver(DGLAP_Solver s) { dglapsolver = s; dipole.SetDGLAPSolver(s); }
 private:
     IPsat dipole;
 
     MnUserParameters parameters;
+    
+    DGLAP_Solver dglapsolver;
     
     vector<Data*> datasets;
     

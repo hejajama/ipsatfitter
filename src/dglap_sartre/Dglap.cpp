@@ -40,6 +40,8 @@
 
 using namespace std;
 
+#define nullptr 0
+
 //
 //  Constants:
 //  Nc=3 is fixed once for all, Nf remains free

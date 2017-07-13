@@ -55,6 +55,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double bottom_mass = par[ parameters.Index("bottom_mass")];
     double lambdag = par[ parameters.Index("lambda_g")];
     double Ag = par[ parameters.Index("A_g")];
+    double mu0 =par[parameters.Index("mu_0")];
     
     FitParameters fitparams;
     fitparams.values = &par;
@@ -69,8 +70,15 @@ double DISFitter::operator()(const std::vector<double>& par) const
     // Not thread safe!
 #pragma omp critical
 {
-    double asmur = InitAlphasMur(&fitparams);
-    fitparams.alphas_mur =asmur;
+    if (dglapsolver == PIA)
+    {
+        double asmur = InitAlphasMur(&fitparams);
+        fitparams.alphas_mur =asmur;
+    }
+    else if (dglapsolver == SARTRE)
+    {
+        dipole.InitializeDGLAP(fitparams);
+    }
 }
     
     
@@ -282,7 +290,7 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
         double xs_bottom_t =ProtonPhotonCrossSection(Q2, xb, TRANSVERSE, &photon, fitparams);
     }
 
-    return Q2 / (4.0*M_PI*ALPHA_e) * (xs_light_l + xs_light_t + xs_charm_l + xs_charm_t + xs_bottom_t + xs_bottom_l);
+    return Q2 / (4.0*M_PI*M_PI*ALPHA_e) * (xs_light_l + xs_light_t + xs_charm_l + xs_charm_t + xs_bottom_t + xs_bottom_l);
 }
 
 double DISFitter::FL(double Q2, double xbj, FitParameters fitparams ) const
@@ -308,7 +316,7 @@ double DISFitter::FL(double Q2, double xbj, FitParameters fitparams ) const
         double xs_bottom_l =ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
     }
     
-    return Q2 / (4.0*M_PI*ALPHA_e) * (xs_light_l + xs_charm_l + xs_bottom_l);
+    return Q2 / (4.0*M_PI*M_PI*ALPHA_e) * (xs_light_l + xs_charm_l + xs_bottom_l);
 }
 
 
@@ -326,6 +334,8 @@ DISFitter::DISFitter(MnUserParameters parameters_)
     dipole.SetSaturation(false);
     
     // Init dglap
+    dglapsolver = PIA;
+    dipole.SetDGLAPSolver(PIA);
     init_();
     
     

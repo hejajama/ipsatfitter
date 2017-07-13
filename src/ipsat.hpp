@@ -6,10 +6,17 @@
 #include <iostream>
 #include <Minuit2/MnUserParameters.h>
 
+#include "dglap_sartre/DglapEvolution.h"
 #include "wave_function.hpp"
 
 using namespace std;
 using namespace ROOT::Minuit2;
+
+enum DGLAP_Solver
+{
+    SARTRE,     // Sartre version
+    PIA         // Pia's LO_evolution_routine.f
+};
 
 /*
  * IPsat class that supports external DGLAP evolved xg(x,mu^2)
@@ -31,6 +38,8 @@ struct FitParameters
 // averaged profile (notice that F_2 is linear in dipole amplitude, so
 // average can be calculated at that level, but the situation is different
 // for diffractive observables!
+
+
 
 class IPsat
 {
@@ -64,6 +73,9 @@ public:
     bool GetSinglet() const { return enable_singlet; }
     void SetSinglet(bool s) { enable_singlet = s; }
     
+    void SetDGLAPSolver(DGLAP_Solver s) {  dglapsolver = s; }
+    
+    void InitializeDGLAP(FitParameters par) const;
     
     
 private:
@@ -80,6 +92,9 @@ private:
     bool enable_singlet;
     
     double maxalphas;
+    
+    DGLAP_Solver dglapsolver;
+    
     
     
 };

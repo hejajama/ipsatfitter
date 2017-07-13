@@ -22,30 +22,37 @@
 //==============================================================================
 #ifndef DglapEvolution_h
 #define DglapEvolution_h
+#include "Dglap.h"
 
 class DglapEvolution {
 public:
     static DglapEvolution& instance();
     ~DglapEvolution();
     
-    double  G(double x, double Q2);
-    static  double qns0(double);
-    static  double qs0(double);
-    static  double g0(double);
+    double  G(double x, double Q2) const;
+    int Init(double Ag, double lambdag, double mu02) const;
+    //double qns0(double) const;
+    //double qs0(double) const;
+    //static double g0(double) ;
     void    setS(double);
 
-    double  dxGdxOfLastCall() const;  
-
-private:
+    double  dxGdxOfLastCall() const;
+    
     DglapEvolution();
     
 private:
     double mS;
-    static double mAg;
-    static double mLambdaG;
-    static double mMu02;
     static double mDerivative;
     static DglapEvolution* mInstance;
 };
+
+// Make these global variables, so that DglapEvolution methods can be made const and work with MINUIT
+struct DglapIC
+{
+    double mAg;
+    double mLambdaG;
+    double mMu02;
+};
+
  
 #endif

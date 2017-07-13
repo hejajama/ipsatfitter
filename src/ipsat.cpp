@@ -10,6 +10,8 @@
 #include "ipsat.hpp"
 #include "wave_function.hpp"
 
+#include "dglap_sartre/Dglap.h"
+
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_expint.h>
 #include <Minuit2/MnUserParameterState.h>
@@ -23,6 +25,7 @@ const int BINTEGRATIONDEPTH = 54;
 
 using namespace std;
 
+DglapEvolution sartre_dglap;
 
 // IPsat 2012 - to test (extrat xg from this)
 /*
@@ -193,9 +196,18 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
     int coupling = 0;
     if (GetSinglet())
         coupling = 1;
-    lo_evol_(&x, &musqr, &gluon, &coupling, &mc, &mb,
+    
+    if (dglapsolver == PIA)
+    {
+        lo_evol_(&x, &musqr, &gluon, &coupling, &mc, &mb,
              &mu0, &parameters.alphas_mur,
              &Ag, &lambdag, &As, &lambdas );
+        return gluon;
+    }
+    else if (dglapsolver == SARTRE)
+    {
+        gluon = sartre_dglap.G(x, musqr);
+    }
     
     return  gluon;
     
@@ -225,11 +237,34 @@ double IPsat::Tp(double b, FitParameters parameters, int config) const
  */
 double IPsat::Alphas(double musqr, FitParameters parameters) const
 {
-    // Currently, xg returns actually alphas*xg, because I modified the
-    // Fortran code...
+    if (dglapsolver == PIA)
+    {
+        // Currently, xg returns actually alphas*xg, because I modified the
+        // Fortran code...
+        
+        return 1.0;
+    }
+    else if (dglapsolver == SARTRE)
+    {
+        return alpha_s_LO(musqr, 3); // Nf=3
+    }
     
-    return 1.0;
-    
+}
+
+/*
+ * Init SARTRE DGLAP solver
+ */
+void IPsat::InitializeDGLAP(FitParameters par) const
+{
+    if (dglapsolver == SARTRE)
+    {
+        double lambdag =par.parameter->Value("lambda_g");
+        double Ag =par.parameter->Value("A_g");
+        double mu0 =par.parameter->Value("mu_0");
+
+        
+        sartre_dglap.Init(Ag, lambdag, mu0*mu0);
+    }
 }
 
 /*
@@ -244,7 +279,11 @@ IPsat::IPsat()
     saturation = true;
     enable_singlet = false;
     maxalphas = 0.5;
+    
+    dglapsolver = PIA;
 }
+
+
 
 std::ostream& operator<<(std::ostream& os, IPsat& ipsat)
 {

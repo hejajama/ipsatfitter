@@ -22,31 +22,45 @@
 //==============================================================================
 #include "Dglap.h"
 #include "DglapEvolution.h"
-#include "TableGeneratorSettings.h"  
-#include "DipoleModelParameters.h"
+//#include "TableGeneratorSettings.h"
+//#include "DipoleModelParameters.h"
 #include <iostream>
 #include <cmath>
 
 using namespace std;  
 
 DglapEvolution* DglapEvolution::mInstance = 0;  
-double DglapEvolution::mAg = 0;  
-double DglapEvolution::mLambdaG = 0;  
-double DglapEvolution::mMu02 = 0; 
+
+DglapIC dglap_initial_condition;
+
+
 double DglapEvolution::mDerivative = 0;
+
+// An ugly hack: this is actually modified in Init() const method, but ensuring thread safety
+// manually.
+//grid_dist *dist;
   
-DglapEvolution::DglapEvolution()   
+DglapEvolution::DglapEvolution()
 {  
-    DipoleModelParameters parameters(TableGeneratorSettings::instance());
+    //DipoleModelParameters parameters(TableGeneratorSettings::instance());
 
     //
     //  For speed purposes the key parameters are held as data member.
     //  Here we assign the proper ones depending on the model and the
     //  parameters set choosen.
     //
+    /*
     mAg = parameters.Ag();
     mLambdaG = parameters.lambdaG();
     mMu02 = parameters.mu02();
+     */
+    //dist = NULL;
+    dglap_initial_condition.mAg = 0;
+    dglap_initial_condition.mLambdaG = 0;
+    dglap_initial_condition.mMu02 = 0;
+    
+    mS = 1e6;
+    
 }
   
 DglapEvolution& DglapEvolution::instance()  
@@ -62,77 +76,105 @@ DglapEvolution::~DglapEvolution()
     if( mInstance ) {  
         delete mInstance;  
         mInstance = 0;  
-    }  
-}  
+    }
+}
   
 void DglapEvolution::setS(double val)  
 {  
     mS=val;  
 }  
   
-double DglapEvolution::qns0(double)   
+double qns0(double)
 {  
     return 0.0; // no light quarks  
 }  
   
-double DglapEvolution::qs0(double)  
+double qs0(double)  
 {  
     return 0.0; // no strange quarks  
 }  
   
-double DglapEvolution::g0(double x)  
+double g0(double x)
 {  
-    return mAg*pow(x,-mLambdaG)*pow((1-x),5.6);  //  
-}  
-  
-double DglapEvolution::G(double x, double Q2)  
-{  
-    //  
-    //  To speed up thing during all these integrations  
-    //  we keep the last value. Helps a bit.  
-    //  
-    static bool init = true;  
-      
-    int N=100;         // maximum Laguerre order  
-    double q2i=mMu02;  // initial value of Q^2  
-    double q2f=mS;     // max/final value of Q^2   
-      
-    int Nc=3;  
-    tab_Pij *tt_pij;  
-    tab_dist *dist0;  
-    evol_pair pair;  
-    tab_evol *tt_evol;  
-    static grid_dist *dist;      
-      
-    if (init) {  
-        cout << "DglapEvolution::G(): initializing DGLAP evolution engine" << endl;  
-        
-        tt_pij=create_Lag_Pij_table(Nc,N);
+    return dglap_initial_condition.mAg*pow(x,-dglap_initial_condition.mLambdaG)*pow((1-x),5.6);  //
+}
 
-        dist0=Lag_dist(N,qns0,qs0,g0);
-        dist0->q2=q2i;   
-        
-        set_LO();
-        set_NO_QUARKS();  
-        compute_GLUON_DERIVATIVE(); // computes  val.dg = d(xG)/dx  
-          
-        pair=DGLAP_evol(dist0,q2f,4000,tt_pij);
-        tt_evol=pair.pdf;  
-        dist=PDF_grid_calc(2000,1.0e-8,tt_evol);  
- 
-        init = false;
-    }  
-      
+
+  
+double DglapEvolution::G(double x, double Q2)  const
+{
+    if (Q2 > mS or Q2 < dglap_initial_condition.mMu02)
+        return 0;
+    return 0;
+    /*
+    // static grid_dist *dist;
     value_dist val = PDF_interpolated(x, Q2, dist);  
     double result = val.g;  // x*G  
     result /= x;            // G  
       
-    mDerivative = val.dg;   // keep
+    // mDerivative = val.dg;   // keep  - can't keep, as this should be thread safe!
     
     return result;   
-}  
+     */
+}
+
+
+// H.M. 201707: move initialization to a separated method, so
+// DglapEvolution::G becomes thread safe (hopefully), and can be made const method
+int DglapEvolution::Init(double Ag, double lambdag, double mu02) const
+{
+    /*if (dist != NULL)
+    {
+        cout << "Dist is not null, free it..." << endl;
+        delete dist;
+        cerr << "done\n";
+    }*/
+    int N=100;         // maximum Laguerre order
+    double q2i=mu02;  // initial value of Q^2
+    double q2f=mS;     // max/final value of Q^2
+    
+    dglap_initial_condition.mAg = Ag;
+    dglap_initial_condition.mLambdaG = lambdag;
+    dglap_initial_condition.mMu02 = mu02;
+    
+    static grid_dist *dist;
+    
+    int Nc=3;
+    tab_Pij *tt_pij;
+    tab_dist *dist0;
+    evol_pair pair;
+    tab_evol *tt_evol;
+    
+
+    cout << "DglapEvolution::G(): initializing DGLAP evolution engine" << endl;
+        
+    tt_pij=create_Lag_Pij_table(Nc,N);
+    
+    cout << "Lag_Pij_table done " << endl;
+    
+    dist0=Lag_dist(N,qns0,qs0,g0);
+    
+    dist0->q2=q2i;
+    
+    set_LO();
+    set_NO_QUARKS();
+    compute_GLUON_DERIVATIVE(); // computes  val.dg = d(xG)/dx
+    
+    pair=DGLAP_evol(dist0,q2f,4000,tt_pij);
+    tt_evol=pair.pdf;
+    dist=PDF_grid_calc(2000,1.0e-8,tt_evol);
+    
+    delete tt_pij;
+    delete dist0;
+    delete tt_evol;
+    
+    return 0;
+
+}
 
 double DglapEvolution::dxGdxOfLastCall() const 
 {
-    return mDerivative;
+    cerr << "DglapEvolution::dxGdxOfLastCall() is not working, thanks to thread-safe-changes by Heikki!" << endl;
+    return 0;
+    //return mDerivative;
 }
