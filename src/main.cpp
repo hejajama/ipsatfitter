@@ -34,7 +34,7 @@ int main()
     
     Data data;
     data.SetMinQsqr(0.75);
-    data.SetMaxQsqr(500);
+    data.SetMaxQsqr(650);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
@@ -45,7 +45,7 @@ int main()
     // Constants
     parameters.Add("B_G", 4.0);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.400); // 1.27
+    parameters.Add("charm_mass", 1.270); // 1.27
     parameters.Add("bottom_mass", 4.75);
     parameters.Add("C", 4.0);
     
@@ -61,9 +61,13 @@ int main()
     */
 
 	// Amir
-    parameters.Add("mu_0", sqrt(1.428), 0.01);
+	parameters.Add("mu_0", 1.188, 0.01);
     parameters.Add("A_g", 2.373, 0.1);
-    parameters.Add("lambda_g", 0.052, 0.01);
+    parameters.Add("lambda_g", 0.043, 0.01);
+
+    //parameters.Add("mu_0", sqrt(1.428), 0.01);
+    //parameters.Add("A_g", 2.373, 0.1);
+    //parameters.Add("lambda_g", 0.052, 0.01);
 	parameters.Add("lambda_s", 0);
 	parameters.Add("A_s", 0);
     // IPsat with singlet
@@ -134,7 +138,7 @@ int main()
     fitter.SetSaturation(true);
     fitter.SetSinglet(false);
     
-    fitter.SetDGLAPSolver(SARTRE);
+    fitter.SetDGLAPSolver(PIA);
     
     FitParameters p;
     p.parameter = &parameters;

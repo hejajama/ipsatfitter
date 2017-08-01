@@ -18,7 +18,7 @@ using namespace std;
 const double MINR = 1e-6;
 const double MAXR = 50;
 // Hera data is very accurate, so eventually one needs to use better accuracy
-const double RINTACCURACY = 0.0001;
+const double RINTACCURACY = 0.00001;
 
 const int INTEGRATIONDEPTH = 50;
 

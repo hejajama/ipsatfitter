@@ -60,7 +60,7 @@ DglapEvolution::DglapEvolution()
     dglap_initial_condition.mLambdaG = 0;
     dglap_initial_condition.mMu02 = 0;
     
-    mS = 1e6;
+    mS = 1e9;
     
 }
   
@@ -97,7 +97,7 @@ double qs0(double)
   
 double g0(double x)
 {  
-    return dglap_initial_condition.mAg*pow(x,-dglap_initial_condition.mLambdaG)*pow((1-x),5.6);  //
+    return dglap_initial_condition.mAg*pow(x,-dglap_initial_condition.mLambdaG)*pow((1.0-x),5.6);  //
 }
 
 
@@ -135,7 +135,7 @@ int DglapEvolution::Init(double Ag, double lambdag, double mu02) const
 	{
 		delete dist;
 	}
-    int N=40;         // maximum Laguerre order
+    int N=50;         // maximum Laguerre order
     double q2i=mu02;  // initial value of Q^2
     double q2f=mS;     // max/final value of Q^2
     
@@ -145,16 +145,16 @@ int DglapEvolution::Init(double Ag, double lambdag, double mu02) const
     
     //static grid_dist *dist;
     
-    int Nc=3;
+    int Nf=3;
     tab_Pij *tt_pij;
     tab_dist *dist0;
     evol_pair pair;
     tab_evol *tt_evol;
     
 
-    cout << "DglapEvolution::G(): initializing DGLAP evolution engine" << endl;
+//    cout << "DglapEvolution::G(): initializing DGLAP evolution engine" << endl;
         
-    tt_pij=create_Lag_Pij_table(Nc,N);
+    tt_pij=create_Lag_Pij_table(Nf,N);
     
     
     dist0=Lag_dist(N,qns0,qs0,g0);
