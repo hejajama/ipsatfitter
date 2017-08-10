@@ -10,7 +10,7 @@
 #include "ipsat.hpp"
 #include "wave_function.hpp"
 
-#include "dglap_sartre/Dglap.h"
+//#include "dglap_sartre/Dglap.h"
 
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_expint.h>
@@ -261,9 +261,10 @@ void IPsat::InitializeDGLAP(FitParameters par) const
         double lambdag =par.parameter->Value("lambda_g");
         double Ag =par.parameter->Value("A_g");
         double mu0 =par.parameter->Value("mu_0");
-
+        double mc =par.parameter->Value("charm_mass");
+        double mb =par.parameter->Value("bottom_mass");
         
-        sartre_dglap.Init(Ag, lambdag, mu0*mu0);
+        //sartre_dglap.Init(Ag, lambdag, mu0*mu0, mc, mb );
     }
 }
 

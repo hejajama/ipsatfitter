@@ -25,6 +25,8 @@
 // parameters 
 #define PARALLEL_CHISQR
 
+
+
 /*
  *
  * List of parameter strings:

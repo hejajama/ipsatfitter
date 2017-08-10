@@ -1,27 +1,13 @@
-//==============================================================================
-//  Laguerre.cpp
-//
-//  Copyright (C) 2016 Tobias Toll and Thomas Ullrich
-//
-//  This file is part of Sartre.
-//
-//  This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation.
-//  This program is distributed in the hope that it will be useful,
-//  but without any warranty; without even the implied warranty of
-//  merchantability or fitness for a particular purpose. See the
-//  GNU General Public License for more details.
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
-//  Author:  F. Gelis/T. Ullrich
-//  $Date$
-//  $Author$
-//==============================================================================
-#include <iostream>
-#include <cmath>
-#include <cstdlib>
+//Last modified on November 15th, 2002 -- F. Gelis
+
+// This file is a translation into C of the original FORTRAN code by
+// Laurent Schoeffel for the LO and NLO splitting functions. The only
+// difference is that the numerical integration is handled by routines
+// of the GNU Scientific Library.
+
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_odeiv.h>
@@ -31,112 +17,72 @@
 #include <gsl/gsl_complex_math.h>
 #include <gsl/gsl_sf_dilog.h>
 #include <gsl/gsl_integration.h>
-#include "Laguerre.h"
 
-using namespace std;
 
-#define nullptr 0
-
-//
-// Constants:
 // Nc=3 is fixed once for all, Nf remains free
-//
-// const double Nc = 3.0; // not used
-const double Cf = 1.333333333333333333333;
-const double Cg = 3.0;
-const double Tr = 0.5;
 
-const double epsilon = 1.0e-10; // Precision for the integrations
+#define Nc 3.0
+#define Cf 1.333333333333333333333
+#define Cg 3.0
+#define Tr 0.5
 
-//
-//  Constructors and destructors
-//
+double epsilon=1.0e-10; // Precision for the integrations
 
-tab_Pij::tab_Pij()
-{
-    pns0= nullptr;
-    pns1= nullptr;
-    psqq0= nullptr;
-    psqq1= nullptr;
-    psqg0= nullptr;
-    psqg1= nullptr;
-    psgq0= nullptr;
-    psgq1= nullptr;
-    psgg0= nullptr;
-    psgg1= nullptr;
-    nf = 0;
-    nmax = 0;
-}
 
-tab_Pij::tab_Pij(int sz, int n, int nm)
-{
-    pns0= new double[sz];
-    pns1= new double[sz];
-    psqq0= new double[sz];
-    psqq1= new double[sz];
-    psqg0= new double[sz];
-    psqg1= new double[sz];
-    psgq0= new double[sz];
-    psgq1= new double[sz];
-    psgg0= new double[sz];
-    psgg1= new double[sz];
-    nf = n;
-    nmax = nm;
-    
-}
+// An internal structure used to pass extra parameters to the
+// integration routines
 
-tab_Pij::~tab_Pij()
-{
-    delete [] pns0;
-    delete [] pns1;
-    delete [] psqq0;
-    delete [] psqq1;
-    delete [] psqg0;
-    delete [] psqg1;
-    delete [] psgq0;
-    delete [] psgq1;
-    delete [] psgg0;
-    delete [] psgg1;
-}
+typedef struct {
+    double nf;         // number of flavors
+    int nlag;          // Laguerre order
+} data_pair;
 
-tab_b2::tab_b2()
-{
-    nf = 0;
-    nmax = 0;
-    b2q = nullptr;
-    b2g = nullptr;
-    
-}
 
-tab_b2::tab_b2(int sz, int n, int nm)
-{
-    b2q = new double[sz];
-    b2g = new double[sz];
-    nf = n;
-    nmax = nm;
-}
+// A structure that holds the Laguerre coefficients of the splitting
+// functions
 
-tab_b2::~tab_b2()
-{
-    delete [] b2q;
-    delete [] b2g;
-}
+typedef struct {
+    double nf;         // number of flavors
+    double nmax; // maximum Laguerre order
+    // the following are all tables of type double[nmax+1]
+    // with indices going from 0 to nmax. Only the pointers
+    // to the first cell of the table are stored in the
+    // structure. All routines that return this type must
+    // take care to allocate memory for the tables.
+    double *pns0;      // LO non singlet
+    double *pns1;      // NLO non singlet
+    double *psqq0;     // LO singlet:  Pqq
+    double *psqq1;     // NLO singlet: Pqq
+    double *psqg0;     // LO singlet:  Pqg
+    double *psqg1;     // NLO singlet: Pqg
+    double *psgq0;     // LO singlet:  Pgq
+    double *psgq1;     // NLO singlet: Pgq
+    double *psgg0;     // LO singlet:  Pgg
+    double *psgg1;     // NLO singlet: Pgg
+} tab_Pij;
 
-//
+
+// The same for the Wilson coefficients
+
+typedef struct {
+    double nf;
+    double nmax;
+    double *b2q;
+    double *b2g;
+} tab_b2;
+
+
 // A function used in some intermediate calculations. We use the
 // implementation of the GNU scientific library
-//
-double spence(double x)
-{
+
+double spence(double x){
     return -gsl_sf_dilog(1.0-x);
 }
 
 
-//
 // A routine that performs numerical integrations between two bounds
-//
-double gaussk(double (*f)(double,void *),void *params,double a,double b,double eps)
-{
+
+double gaussk(double (*f)(double,void *),void *params,double a,double b,double eps){
     // f: function to integrate. It must take two arguments: the first
     // one is the integration variable, and the second one is a pointer
     // to some extra parameters (it can be a table of parameters, or a
@@ -146,7 +92,7 @@ double gaussk(double (*f)(double,void *),void *params,double a,double b,double e
     // b: the upper integration limit
     // eps: a parameter that controls the precision of the integration
     gsl_integration_workspace *wksp=gsl_integration_workspace_alloc(200);
-    double result, abserr;
+    double result,abserr;
     double epsabs=eps;
     double epsrel=eps;
     gsl_function F;
@@ -160,45 +106,44 @@ double gaussk(double (*f)(double,void *),void *params,double a,double b,double e
 }
 
 
-//
 // Laguerre polynomial of order n at point x
-//
-double Lag(int n, double x)
-{
-    double *lag0 = new double[n+2];
+
+double Lag(int n, double x){
+    double *lag0 = (double*)malloc((n+2)*sizeof(double)); // TU+TT
     int nn=n+1;
+    double dnn;
+    int i,ii;
+    double a1,a2;
     
     lag0[1]=1.0;
     lag0[2]=1.0-x;
+    dnn=((double)nn);
     
-    double dnn =  static_cast<double>(nn);
-    
-    double result = 0;
+    double result;
     
     if(dnn<2.5) {
         result = lag0[nn];
     }
     else {
-        for (int ii=3;ii<=nn;ii++){
-            int i=ii-1;
-            double a1=(static_cast<double>(2*i-1)-x)/i;
-            double a2=static_cast<double>(i-1)/i;
+        for (ii=3;ii<=nn;ii++){
+            i=ii-1;
+            a1=((double)(2*i-1)-x)/((double)(i));
+            a2=((double)(i-1))/((double)(i));
             lag0[ii]=a1*lag0[ii-1]-a2*lag0[ii-2];
         }
         result = lag0[nn];
     }
-    delete [] lag0;
+    free(lag0);
     
     return result;
 }
 
-//
+
 // The code for the splitting functions and Wilson coefficients. Taken
 // verbatim from Laurent Schoeffel's original code
-//
-double Pns0i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+
+double Pns0i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double zp0=0.0;
     double zk=exp(-zp);
@@ -210,9 +155,8 @@ double Pns0i(double zp,void *params)
     return pns01;
 }
 
-double Pns1i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Pns1i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double Nf=data->nf;
     double sign=-1.0;
@@ -248,9 +192,8 @@ double Pns1i(double zp,void *params)
     return pns11;
 }
 
-double Psqq0i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Psqq0i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double zp0=0.0;
     double zk=exp(-zp);
@@ -263,9 +206,8 @@ double Psqq0i(double zp,void *params)
     return psqq01;
 }
 
-double Psqq1i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Psqq1i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double Nf=data->nf;
     double sign=1.0;
@@ -308,9 +250,8 @@ double Psqq1i(double zp,void *params)
     return psqq11;
 }
 
-double Psqg0i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Psqg0i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double Nf=data->nf;
     //double zp0=0.0;
@@ -319,6 +260,7 @@ double Psqg0i(double zp,void *params)
     //double opz2=1.0+zk*zk;
     
     // The factor 2Nf from Laurent Schoeffel's paper is included here
+    
     double psqg01=2.0*Nf*Tr*(zk*zk+omz*omz)*zk*Lag(Nlag,zp);
     
     psqg01=psqg01*exp(-zp);
@@ -326,9 +268,8 @@ double Psqg0i(double zp,void *params)
     return psqg01;
 }
 
-double Psqg1i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Psqg1i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double Nf=data->nf;
     //double zp0=0.0;
@@ -360,9 +301,8 @@ double Psqg1i(double zp,void *params)
     return psqg11;
 }
 
-double Psgq0i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Psgq0i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     //double zp0=0.0;
     double zk=exp(-zp);
@@ -374,9 +314,8 @@ double Psgq0i(double zp,void *params)
     return psgq01;
 }
 
-double Psgq1i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Psgq1i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double Nf=data->nf;
     //double zp0=0.0;
@@ -407,14 +346,15 @@ double Psgq1i(double zp,void *params)
     return psgq11;
 }
 
-double Psgg0i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Psgg0i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double zp0=0.0;
     double zk=exp(-zp);
     double omz=1.0-zk;
     double psgg01;
+    
+    // fprintf(stderr,"Psgg0i: Nf= %.2f nlag= %d\n",Nf,Nlag);
     
     psgg01=2.0*Cg*((zk*Lag(Nlag,zp)*zk-Lag(Nlag,zp0))/omz \
                    +(omz/zk+zk*omz)*Lag(Nlag,zp)*zk);
@@ -423,9 +363,8 @@ double Psgg0i(double zp,void *params)
     return psgg01;
 }
 
-double PsggDLAi(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double PsggDLAi(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double zk=exp(-zp);
     double psggDLA;
@@ -436,9 +375,8 @@ double PsggDLAi(double zp,void *params)
 }
 
 
-double Psgg1i(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double Psgg1i(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double Nf=data->nf;
     double zp0=0.0;
@@ -475,9 +413,8 @@ double Psgg1i(double zp,void *params)
     return  psgg11;
 }
 
-double b2qi(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double b2qi(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double zp0=0.00;
     double zk=exp(-zp);
@@ -493,9 +430,8 @@ double b2qi(double zp,void *params)
     return  b2q1;
 }
 
-double b2gi(double zp,void *params)
-{
-    data_pair *data= reinterpret_cast<data_pair*>(params);
+double b2gi(double zp,void *params){
+    data_pair *data=(data_pair *)params;
     int Nlag=data->nlag;
     double zk=exp(-zp);
     double omz=1.0-zk;
@@ -509,8 +445,7 @@ double b2gi(double zp,void *params)
 }
 
 
-double Pns0(int n,double Nf)
-{
+double Pns0(int n,double Nf){
     int Nlag=n;
     double zpmax=100.0;
     double zp0=0.0;
@@ -532,8 +467,7 @@ double Pns0(int n,double Nf)
 }
 
 
-double Pns1(int n,double Nf)
-{
+double Pns1(int n,double Nf){
     int Nlag=n;
     double zpmax=100.0;
     double zp0=0.0;
@@ -557,8 +491,7 @@ double Pns1(int n,double Nf)
     return pns1;
 }
 
-double Psqq0(int n,double Nf)
-{
+double Psqq0(int n,double Nf){
     int Nlag=n;
     double zpmax=100.0;
     double zp0=0.0;
@@ -574,9 +507,7 @@ double Psqq0(int n,double Nf)
     
     return  psqq0;
 }
-
-double Psqq1(int n,double Nf)
-{
+double Psqq1(int n,double Nf){
     int Nlag=n;
     double zpmax=100.00;
     double zp0=0.00;
@@ -600,8 +531,7 @@ double Psqq1(int n,double Nf)
     return psqq1;
 }
 
-double Psqg0(int n,double Nf)
-{
+double Psqg0(int n,double Nf){
     int Nlag=n;
     double zpmax=100.00;
     double zp0=0.00;
@@ -619,8 +549,7 @@ double Psqg0(int n,double Nf)
     return psqg0;
 }
 
-double Psqg1(int n,double Nf)
-{
+double Psqg1(int n,double Nf){
     int Nlag=n;
     double zpmax=100.00;
     double zp0=0.00;
@@ -638,8 +567,7 @@ double Psqg1(int n,double Nf)
     return psqg1;
 }
 
-double Psgq0(int n,double Nf)
-{
+double Psgq0(int n,double Nf){
     int Nlag=n;
     double zpmax=100.00;
     double zp0=0.00;
@@ -657,8 +585,7 @@ double Psgq0(int n,double Nf)
     return psgq0;
 }
 
-double Psgq1(int n,double Nf)
-{
+double Psgq1(int n,double Nf){
     int Nlag=n;
     double zpmax=100.00;
     double zp0=0.00;
@@ -676,8 +603,7 @@ double Psgq1(int n,double Nf)
     return psgq1;
 }
 
-double Psgg0(int n,double Nf)
-{
+double Psgg0(int n,double Nf){
     int Nlag=n;
     double zpmax=100.0;
     double zp0=0.0;
@@ -695,8 +621,7 @@ double Psgg0(int n,double Nf)
     return psgg0;
 }
 
-double PsggDLA(int n,double Nf)
-{
+double PsggDLA(int n,double Nf){
     int Nlag=n;
     double zpmax=100.0;
     double zp0=0.0;
@@ -711,8 +636,7 @@ double PsggDLA(int n,double Nf)
     return psggDLA;
 }
 
-double Psgg1(int n,double Nf)
-{
+double Psgg1(int n,double Nf){
     int Nlag=n;
     double zpmax=100.00;
     double zp0=0.00;
@@ -735,8 +659,7 @@ double Psgg1(int n,double Nf)
     return psgg1;
 }
 
-double b2q(int n,double Nf)
-{
+double b2q(int n,double Nf){
     int Nlag=n;
     double zpmax=100.00;
     double zp0=0.00;
@@ -755,8 +678,7 @@ double b2q(int n,double Nf)
     return b2q;
 }
 
-double b2g(int n,double Nf)
-{
+double b2g(int n,double Nf){
     int Nlag=n;
     double zpmax=100.00;
     double zp0=0.00;
@@ -772,49 +694,80 @@ double b2g(int n,double Nf)
 }
 
 
-//
 // A routine that calculates the Laguerre coefficients of the
 // splitting functions. It returns a pointer to a structure of type
 // tab_Pij, with properly allocated tables.
-//
-tab_Pij *create_Lag_Pij_table(double Nf, int N)
-{
-    tab_Pij *tt = new tab_Pij(N+1, Nf, N);
+
+tab_Pij *create_Lag_Pij_table(double Nf, int N){
+    tab_Pij *tt=(tab_Pij *)malloc(sizeof(tab_Pij));
+    int i;
     
-    cout << "Calculating Laguerre transform of the Pij..." << endl << flush;
+    fprintf(stderr,"Calculating Laguerre transform of the Pij...");
     
-    //
+    // Allocate some memory
+    
+    tt->pns0=(double *)malloc((1+N)*sizeof(double));
+    tt->pns1=(double *)malloc((1+N)*sizeof(double));
+    tt->psqq0=(double *)malloc((1+N)*sizeof(double));
+    tt->psqq1=(double *)malloc((1+N)*sizeof(double));
+    tt->psqg0=(double *)malloc((1+N)*sizeof(double));
+    tt->psqg1=(double *)malloc((1+N)*sizeof(double));
+    tt->psgq0=(double *)malloc((1+N)*sizeof(double));
+    tt->psgq1=(double *)malloc((1+N)*sizeof(double));
+    tt->psgg0=(double *)malloc((1+N)*sizeof(double));
+    tt->psgg1=(double *)malloc((1+N)*sizeof(double));
+    
+    tt->nf=Nf;
+    tt->nmax=N;
+    
     // Calculate the Laguerre coefficients
-    //
-    for (int i=0; i<=N; i++) {
+    
+    for(i=0;i<=N;i++){
         (tt->pns0)[i]=Pns0(i,Nf);
-        (tt->pns1)[i]=Pns1(i,Nf);   
-        (tt->psqq0)[i]=Psqq0(i,Nf); 
-        (tt->psqq1)[i]=Psqq1(i,Nf); 
-        (tt->psqg0)[i]=Psqg0(i,Nf); 
-        (tt->psqg1)[i]=Psqg1(i,Nf); 
-        (tt->psgq0)[i]=Psgq0(i,Nf); 
-        (tt->psgq1)[i]=Psgq1(i,Nf); 
-        (tt->psgg0)[i]=Psgg0(i,Nf); 
+        (tt->pns1)[i]=Pns1(i,Nf);
+        (tt->psqq0)[i]=Psqq0(i,Nf);
+        (tt->psqq1)[i]=Psqq1(i,Nf);
+        (tt->psqg0)[i]=Psqg0(i,Nf);
+        (tt->psqg1)[i]=Psqg1(i,Nf);
+        (tt->psgq0)[i]=Psgq0(i,Nf);
+        (tt->psgq1)[i]=Psgq1(i,Nf);
+        (tt->psgg0)[i]=Psgg0(i,Nf);
         (tt->psgg1)[i]=Psgg1(i,Nf);
     }
- 
+    
+    fprintf(stderr,"done\n");
+    
     return tt;
 }
 
-//
+
 // Same routine for the DLA approximation of DGLAP
-//
-tab_Pij *create_Lag_Pij_table_DLA(double Nf, int N)
-{
-    tab_Pij *tt = new tab_Pij(N+1, Nf, N);
+
+tab_Pij *create_Lag_Pij_table_DLA(double Nf, int N){
+    tab_Pij *tt=(tab_Pij *)malloc(sizeof(tab_Pij));
+    int i;
     
-    cout << "Calculating Laguerre transform of the Pij..." << flush;
+    fprintf(stderr,"Calculating Laguerre transform of the Pij...");
     
-    //
+    // Allocate some memory
+    
+    tt->pns0=(double *)malloc((1+N)*sizeof(double));
+    tt->pns1=(double *)malloc((1+N)*sizeof(double));
+    tt->psqq0=(double *)malloc((1+N)*sizeof(double));
+    tt->psqq1=(double *)malloc((1+N)*sizeof(double));
+    tt->psqg0=(double *)malloc((1+N)*sizeof(double));
+    tt->psqg1=(double *)malloc((1+N)*sizeof(double));
+    tt->psgq0=(double *)malloc((1+N)*sizeof(double));
+    tt->psgq1=(double *)malloc((1+N)*sizeof(double));
+    tt->psgg0=(double *)malloc((1+N)*sizeof(double));
+    tt->psgg1=(double *)malloc((1+N)*sizeof(double));
+    
+    tt->nf=Nf;
+    tt->nmax=N;
+    
     // Calculate the Laguerre coefficients
-    //
-    for(int i=0;i<=N;i++){
+    
+    for(i=0;i<=N;i++){
         (tt->pns0)[i]=0.0;
         (tt->pns1)[i]=0.0;
         (tt->psqq0)[i]=0.0;
@@ -827,29 +780,64 @@ tab_Pij *create_Lag_Pij_table_DLA(double Nf, int N)
         (tt->psgg1)[i]=0.0;
     }
     
-    cout << "done" << endl;
+    fprintf(stderr,"done\n");
     
     return tt;
 }
 
-//
+
 // The same for the Wilson coefficients
-//
-tab_b2 *create_Lag_b2_table(double Nf, int N)
-{
-    tab_b2 *tt = new tab_b2(1+N, Nf, N);
+
+tab_b2 *create_Lag_b2_table(double Nf, int N){
+    tab_b2 *tt=(tab_b2 *)malloc(sizeof(tab_b2));
+    int i;
     
-    cout << "Calculating Laguerre transform of Wilson coefficients..." << flush;
+    fprintf(stderr,"Calculating Laguerre transform of Wilson coefficients...");
     
-    for(int i=0;i<=N;i++){
+    tt->b2q=(double *)malloc((1+N)*sizeof(double));
+    tt->b2g=(double *)malloc((1+N)*sizeof(double));
+    
+    tt->nf=Nf;
+    tt->nmax=N;
+    
+    for(i=0;i<=N;i++){
         (tt->b2q)[i]=b2q(i,Nf);
         (tt->b2g)[i]=b2g(i,Nf);
     }
     
-    cout << "done" << endl;
+    fprintf(stderr,"done\n");
     
     return tt;
 }
+
+
+// free the memory allocated for a structure of type tab_Pij
+
+void free_Pij_table(tab_Pij *tt){
+    free(tt->pns0);
+    free(tt->pns1);
+    free(tt->psqq0);
+    free(tt->psqq1);
+    free(tt->psqg0);
+    free(tt->psqg1);
+    free(tt->psgq0);
+    free(tt->psgq1);
+    free(tt->psgg0);
+    free(tt->psgg1);
+    
+    free(tt);
+}
+
+
+// free the memory allocated for a structure of type tab_b2
+
+void free_b2_table(tab_b2 *tt){
+    free(tt->b2q);
+    free(tt->b2g);
+    
+    free(tt);
+}
+
 
 
 
