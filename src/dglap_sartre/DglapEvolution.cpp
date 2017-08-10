@@ -55,6 +55,28 @@ DglapEvolution::DglapEvolution()
 	mBeautyThreshold=quarkMass[4]*quarkMass[4];
 }  
 
+<<<<<<< HEAD
+=======
+    //
+    //  For speed purposes the key parameters are held as data member.
+    //  Here we assign the proper ones depending on the model and the
+    //  parameters set choosen.
+    //
+    /*
+    mAg = parameters.Ag();
+    mLambdaG = parameters.lambdaG();
+    mMu02 = parameters.mu02();
+     */
+    //dist = NULL;
+    dglap_initial_condition.mAg = 0;
+    dglap_initial_condition.mLambdaG = 0;
+    dglap_initial_condition.mMu02 = 0;
+    
+    mS = 1e9;
+    
+}
+  
+>>>>>>> origin/master
 DglapEvolution& DglapEvolution::instance()  
 {  
     if(!mInstance) {  
@@ -88,7 +110,7 @@ double DglapEvolution::qs0(double)
   
 double DglapEvolution::g03(double x)  
 {  
-    return mAg*pow(x,-mLambdaG)*pow((1-x),5.6);  //  
+    return mAg*pow(x,-mLambdaG)*pow((1-x),5.6);  //
 }  
 
 double DglapEvolution::g04(double x)  
@@ -233,7 +255,63 @@ double DglapEvolution::G(double x, double Q2)
       
     
     return result;   
+<<<<<<< HEAD
 }  
+=======
+    
+}
+
+
+// H.M. 201707: move initialization to a separated method, so
+// DglapEvolution::G becomes thread safe (hopefully), and can be made const method
+int DglapEvolution::Init(double Ag, double lambdag, double mu02) const
+{
+	if (distgrid_initialized == true)
+	{
+		delete dist;
+	}
+    int N=50;         // maximum Laguerre order
+    double q2i=mu02;  // initial value of Q^2
+    double q2f=mS;     // max/final value of Q^2
+    
+    dglap_initial_condition.mAg = Ag;
+    dglap_initial_condition.mLambdaG = lambdag;
+    dglap_initial_condition.mMu02 = mu02;
+    
+    //static grid_dist *dist;
+    
+    int Nf=3;
+    tab_Pij *tt_pij;
+    tab_dist *dist0;
+    evol_pair pair;
+    tab_evol *tt_evol;
+    
+
+//    cout << "DglapEvolution::G(): initializing DGLAP evolution engine" << endl;
+        
+    tt_pij=create_Lag_Pij_table(Nf,N);
+    
+    
+    dist0=Lag_dist(N,qns0,qs0,g0);
+    
+    dist0->q2=q2i;
+    
+    set_LO();
+    set_NO_QUARKS();
+    compute_GLUON_DERIVATIVE(); // computes  val.dg = d(xG)/dx
+    
+    pair=DGLAP_evol(dist0,q2f,4000,tt_pij);
+    tt_evol=pair.pdf;
+    dist=PDF_grid_calc(2000,1.0e-8,tt_evol);
+    
+    delete tt_pij;
+    delete dist0;
+    delete tt_evol;
+   
+    return 0;
+
+}
+>>>>>>> origin/master
 
 double DglapEvolution::dxGdxOfLastCall() const 
 {

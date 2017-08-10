@@ -18,7 +18,7 @@ using namespace std;
 
 const int Nc=3;
 
-const double ZINTACCURACY=0.0001;
+const double ZINTACCURACY=0.00001;
 const int MAXITER_ZINT=500;
 const double MINZ=1e-8;  // Integration limits
 const double MAXZ=1.0-MINZ;
