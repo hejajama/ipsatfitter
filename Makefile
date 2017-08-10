@@ -14,8 +14,8 @@ LDFLAGS = `/opt/local/bin/gsl-config --libs` -lgfortran
 
 all: ipsatfit
 
-ipsatfit: $(SOURCES) $(CSOURCES)
-	$(CXX)  $(CXXFLAGS) $(LDFLAGS) $(MINUITLIBDIR)/libMinuit2.a  $(OBJECTS) $(COBJECTS) $(FOBJECTS)  -o ipsatfit
+ipsatfit: $(OBJECTS) $(COBJECTS) $(FOBJECTS) $(SOURCES) $(CSOURCES)
+	$(CXX)  $(CXXFLAGS) $(LDFLAGS) $(MINUITLIBDIR)/libMinuit2.a  $(OBJECTS) $(COBJECTS) $(FOBJECTS)   -o ipsatfit
 
 .cpp.o: 
 	$(CXX) $(CXXFLAGS) $< -c -o $@

@@ -535,9 +535,9 @@ double alpha_s_LO(double Q2,double Nf){
     double inv_alpha_s_MZ=1.0/0.113;
     double beta0=(11.0-2.0*Nf/3.0)/(4.0*M_PI);
     double dlog=log(Mz*Mz/Q2);
-    printf("#TT Inside dglap.c:alpha_s_LO, should not be called \n");
-    printf("#TT stopping...\n");
-    exit(1);    
+    //printf("#TT Inside dglap.c:alpha_s_LO, should not be called \n");
+    //printf("#TT stopping...\n");
+    //exit(1);
     return 1.0/(inv_alpha_s_MZ-beta0*dlog);
 }
 

@@ -138,7 +138,7 @@ int main()
     fitter.SetSaturation(true);
     fitter.SetSinglet(false);
     
-    fitter.SetDGLAPSolver(PIA);
+    fitter.SetDGLAPSolver(SARTRE);
     
     FitParameters p;
     p.parameter = &parameters;
