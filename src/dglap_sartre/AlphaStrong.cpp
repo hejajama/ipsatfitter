@@ -41,8 +41,8 @@
 using namespace std;     
    
 //const double AlphaStrong::mMassC   = 1.5;          
-const double AlphaStrong::mMassC   = 1.4;
-const double AlphaStrong::mMassB   = 4.5;
+const double AlphaStrong::mMassC   = 1.27;
+const double AlphaStrong::mMassB   = 4.75;
 const double AlphaStrong::mMassZ   = 91.188;           
 const double AlphaStrong::mSafetyMargin1 = 1.07;          
 const double AlphaStrong::mSafetyMargin2 = 1.33;          

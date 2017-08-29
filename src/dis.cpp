@@ -18,7 +18,7 @@ using namespace std;
 const double MINR = 1e-6;
 const double MAXR = 50;
 // Hera data is very accurate, so eventually one needs to use better accuracy
-const double RINTACCURACY = 0.00001;
+const double RINTACCURACY = 0.0001;
 
 const int INTEGRATIONDEPTH = 50;
 
@@ -150,8 +150,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
                 theory = 99999999;
             }
 
-            chisqr += datasets[dataset]->Weight()*SQR( (theory - sigmar) / sigmar_err );
-            points = points + datasets[dataset]->Weight();
+            chisqr += datasets[dataset]->Weight(i)*SQR( (theory - sigmar) / sigmar_err );
+            points = points + datasets[dataset]->Weight(i);
 
             // Output for plotting
             
@@ -387,6 +387,7 @@ double InitAlphasMur(FitParameters *par)
         cerr << "Initializing alphas with parameters " << PrintVector(*par->values) << " did not succeed";
     //cout << "--- initialized alphas at " << par->values->at( par->parameter->Index("mu_0")) << " GeV to " << asmur << endl;
     
+    
     return asmur;
 
 }
@@ -403,6 +404,6 @@ double alphas_helper(double asmur, void* p)
     double mb = par->values->at( par->parameter->Index("bottom_mass"));
     double mt = 175;
     initalphas_(&iord, &fr2, &mur, &asmur, &mc, &mb, &mt);
-    double mz=91.187;
-    return alphas_(&mz) - 0.1184;
+    double mz=91.1876;
+    return alphas_(&mz) - 0.1183; // From HERA II 1506.06042
 }

@@ -78,7 +78,7 @@ value_dist Lag_dist_inv(double x,tab_dist *tt);
 
 double alpha_s_LO(double Q2,double Nf);
 tab_alpha *alpha_s_evol(double,double,double,double,int,double);
-double alpha_s(double,tab_alpha);
+double alpha_s(double,tab_alpha*);
 
 void set_LO(void);
 void set_NO_QUARKS(void);

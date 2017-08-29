@@ -24,6 +24,7 @@
 //#include "TableGeneratorSettings.h"
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 #include "Parameters_bSat.h"
 //#include "Parameters_bNonSat.h"
 #include "AlphaStrong.h"
@@ -111,6 +112,36 @@ double DglapEvolution::G(double x, double Q2)
     //  we keep the last value. Helps a bit.
     //
     static bool init = true;
+    
+    /*
+    tab_alpha *al =new tab_alpha;
+    double mz = 91.188;
+    double asmz = 0.1184;
+    double q2i=1;
+    double Q2max=100000;
+    int NQ2 = 1000;
+    al = alpha_s_evol(mz*mz,asmz,q2i,mCharmThreshold,NQ2,3);
+    for (double q2=1; q2<mCharmThreshold; q2*=1.1)
+    {
+        cout << q2 << " " << alpha_s(q2, al) << endl;
+    }
+    delete al;
+    al = alpha_s_evol(mz*mz,asmz,mCharmThreshold,mBeautyThreshold,NQ2,4);
+    for (double q2=mCharmThreshold; q2<mBeautyThreshold; q2*=1.1)
+    {
+        cout << q2 << " " << alpha_s(q2, al) << endl;
+    }
+    
+    delete al;
+    al = alpha_s_evol(mz*mz,asmz,mBeautyThreshold, 1e9,NQ2,5);
+    for (double q2=mBeautyThreshold; q2<1e7; q2*=1.1)
+    {
+        cout << q2 << " " << alpha_s(q2, al) << endl;
+    }
+    
+    
+    exit(1);
+*/
     
     int N=100;         // maximum Laguerre order
     

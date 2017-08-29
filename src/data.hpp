@@ -27,7 +27,7 @@ class Data
 {
 public:
     Data();
-    int LoadData(string filename, DataType type);
+    int LoadData(string filename, DataType type, double weight = 1.0);
     int NumOfPoints() const;
     double Qsqr(unsigned int n) const;
     double xbj(unsigned int n) const;
@@ -40,8 +40,7 @@ public:
     void SetMaxQsqr(double q2) { maxQ2 = q2; }
     void SetMinX(double x) { minx = x; }
     void SetMaxX(double x) { maxx = x; }
-    void SetWeight(double w) { weight = w; }
-    double Weight() const { return weight; }
+    double Weight(unsigned int i) const { return weights[i]; }
     
     
     
@@ -57,6 +56,7 @@ private:
     vector<double> sigmarvals;
     vector<double> errors;
     vector<bool> only_charm;
+    vector<double> weights;
     
 };
 

@@ -27,7 +27,8 @@ double StrToReal(std::string str)
 }
 
 // Load data from given file, return 0 if no errors
-int Data::LoadData(string filename, DataType type)
+// By default weight = 1
+int Data::LoadData(string filename, DataType type, double weight)
 {
     
     ifstream file(filename.c_str());
@@ -59,6 +60,7 @@ int Data::LoadData(string filename, DataType type)
         yvals.push_back(StrToReal(y));
         sigmarvals.push_back(StrToReal(sigmar)); errors.push_back(StrToReal(err));
         only_charm.push_back(onlycharm);
+        weights.push_back(weight);
     }
     
     cout << "# Loaded " << points << " datapoints from " << filename << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, now we have in total " << sigmarvals.size() << " points " << endl;

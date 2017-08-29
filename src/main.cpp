@@ -9,6 +9,7 @@
 #include "dis.hpp"
 #include "data.hpp"
 
+#include "dglap_sartre/AlphaStrong.h"
 
 #include <Minuit2/MnUserParameterState.h>
 #include <Minuit2/FunctionMinimum.h>
@@ -30,14 +31,12 @@ int main()
 {
     gsl_set_error_handler(&ErrHandler);
     
-    
-    
     Data data;
     data.SetMinQsqr(0.75);
-    data.SetMaxQsqr(650);
+    data.SetMaxQsqr(500);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-    data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
+    data.LoadData("./data/hera_II_combined_sigmar.txt", TOTAL);
     data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM); // charm data
 
     
@@ -45,7 +44,7 @@ int main()
     // Constants
     parameters.Add("B_G", 4.0);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.270); // 1.27
+    parameters.Add("charm_mass", 1.381, 0.1); // 1.27
     parameters.Add("bottom_mass", 4.75);
     parameters.Add("C", 4.0);
     
@@ -53,18 +52,19 @@ int main()
     // Start using some reasonable parameters
     
     // IPsat, mc fitted to 1.381
-    /* parameters.Add("mu_0", 1.339, 0.2 );
+     parameters.Add("mu_0", 1.339, 0.2 );
     parameters.Add("lambda_g", 0.0955, 0.02);
     parameters.Add("A_g", 2.309, 0.4);
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
-    */
+    
 
 	// Amir
-	parameters.Add("mu_0", 1.188, 0.01);
+	/*
+    parameters.Add("mu_0", 1.188, 0.01);
     parameters.Add("A_g", 2.373, 0.1);
     parameters.Add("lambda_g", 0.043, 0.01);
-
+*/
     //parameters.Add("mu_0", sqrt(1.428), 0.01);
     //parameters.Add("A_g", 2.373, 0.1);
     //parameters.Add("lambda_g", 0.052, 0.01);
@@ -129,7 +129,7 @@ int main()
     
     parameters.SetLowerLimit("A_g", 0);
     parameters.SetLowerLimit("A_s", 0);
-    parameters.SetLowerLimit("mu_0", 0.4); // In priciple can go to anything >0 (right?)
+    parameters.SetLowerLimit("mu_0", 0.76); // In priciple can go to anything >0 (right?)
     //parameters.SetUpperLimit("mu_0", 1.43); // For some reason alphas code does not work with larger mu_0
     
     DISFitter fitter(parameters);
@@ -138,14 +138,25 @@ int main()
     fitter.SetSaturation(true);
     fitter.SetSinglet(false);
     
-    fitter.SetDGLAPSolver(SARTRE);
+    fitter.SetDGLAPSolver(PIA);
     
     FitParameters p;
     p.parameter = &parameters;
     vector<double> parvec = parameters.Params();
     p.values = &parvec;
-   
-	/*
+    
+    
+    /*
+     fitter(parvec);
+    cout << "Q^2 [GeV^2]    alphas*xg(x=0.01, Q^2)    alphas*xg(x=0.001 Q^2)" << endl;
+    for (double q2 = 1.5; q2 < 1e7; q2*=1.1)
+    {
+        cout << q2 << " " << fitter.GetDipole().xg(0.01, q2, p) << " " << fitter.GetDipole().xg(0.001, q2, p) << endl;
+    }
+    exit(1);
+   */
+	
+    /*
     for (double q2=1; q2<10000; q2*=1.2)
     {
         cout << q2 << " " << fitter.F2(q2, 5e-3, p) << " " << fitter.FL(q2, 5e-3, p) << endl;
