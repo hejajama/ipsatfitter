@@ -57,6 +57,13 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double Ag = par[ parameters.Index("A_g")];
     double mu0 =par[parameters.Index("mu_0")];
     
+    // Forbid mu_0 > mc
+    if (mu0 > charm_mass)
+    {
+        cout << "# mu_0 > m_c, returning high chi^2! " << PrintVector(par) << endl;
+        return 999;
+    }
+
     FitParameters fitparams;
     fitparams.values = &par;
     fitparams.parameter = &parameters;
@@ -403,6 +410,11 @@ double alphas_helper(double asmur, void* p)
     double mc = par->values->at( par->parameter->Index("charm_mass"));
     double mb = par->values->at( par->parameter->Index("bottom_mass"));
     double mt = 175;
+    if (mur > mc)
+    {
+        cerr << "mu_r > m_c at alphas_helperf(), parameters: " << PrintVector(*par->values) << endl;
+        return 100;
+    }
     initalphas_(&iord, &fr2, &mur, &asmur, &mc, &mb, &mt);
     double mz=91.1876;
     return alphas_(&mz) - 0.1183; // From HERA II 1506.06042
