@@ -63,7 +63,7 @@ int Data::LoadData(string filename, DataType type, double weight)
         weights.push_back(weight);
     }
     
-    cout << "# Loaded " << points << " datapoints from " << filename << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, now we have in total " << sigmarvals.size() << " points " << endl;
+    cout << "# Loaded " << points << " datapoints from " << filename << " with weight " << weight << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, now we have in total " << sigmarvals.size() << " points " << endl;
     
     return 0;
 }
