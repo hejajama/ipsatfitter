@@ -18,9 +18,9 @@ using namespace std;
 const double MINR = 1e-6;
 const double MAXR = 50;
 // Hera data is very accurate, so eventually one needs to use better accuracy
-const double RINTACCURACY = 0.0001;
+const double RINTACCURACY = 0.00001;
 
-const int INTEGRATIONDEPTH = 50;
+const int INTEGRATIONDEPTH = 100;
 
 
 // xg = x*gluon
@@ -162,7 +162,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
 
             // Output for plotting
             
-            //cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
+            cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
 
             
             
@@ -395,6 +395,7 @@ double InitAlphasMur(FitParameters *par)
     //cout << "--- initialized alphas at " << par->values->at( par->parameter->Index("mu_0")) << " GeV to " << asmur << endl;
     
     
+    
     return asmur;
 
 }
@@ -415,6 +416,7 @@ double alphas_helper(double asmur, void* p)
         cerr << "mu_r > m_c at alphas_helperf(), parameters: " << PrintVector(*par->values) << endl;
         return 100;
     }
+    
     initalphas_(&iord, &fr2, &mur, &asmur, &mc, &mb, &mt);
     double mz=91.1876;
     return alphas_(&mz) - 0.1183; // From HERA II 1506.06042

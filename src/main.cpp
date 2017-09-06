@@ -9,7 +9,9 @@
 #include "dis.hpp"
 #include "data.hpp"
 
-#include "dglap_sartre/AlphaStrong.h"
+#ifdef INCLUDE_SARTRE_DGLAP
+    #include "dglap_sartre/AlphaStrong.h"
+#endif
 
 #include <Minuit2/MnUserParameterState.h>
 #include <Minuit2/FunctionMinimum.h>
@@ -32,19 +34,19 @@ int main()
     gsl_set_error_handler(&ErrHandler);
     
     Data data;
-    data.SetMinQsqr(0.75);
-    data.SetMaxQsqr(50);
+    data.SetMinQsqr(2);
+    data.SetMaxQsqr(500);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     data.LoadData("./data/hera_II_combined_sigmar.txt", TOTAL);
-    data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
+    //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
 
     
     MnUserParameters parameters;
     // Constants
     parameters.Add("B_G", 4.0);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.42594, 0.1); // 1.27
+    parameters.Add("charm_mass", 1.37497, 0.1); // 1.27
     parameters.Add("bottom_mass", 4.75);
     parameters.Add("C", 4.0);
     
@@ -52,86 +54,24 @@ int main()
     // Start using some reasonable parameters
     
     // IPsat, mc fitted to 1.381
-     parameters.Add("mu_0", 1.35791, 0.2 );
-    parameters.Add("lambda_g", 0.0955, 0.02);
-    parameters.Add("A_g", 2.309, 0.4);
+     parameters.Add("mu_0", 1.35179, 0.2 );
+    parameters.Add("lambda_g", 0.09708, 0.02);
+    parameters.Add("A_g", 2.29831, 0.4);
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
     
 
-	// Amir
-	/*
-    parameters.Add("mu_0", 1.188, 0.01);
-    parameters.Add("A_g", 2.373, 0.1);
-    parameters.Add("lambda_g", 0.043, 0.01);
-*/
-    //parameters.Add("mu_0", sqrt(1.428), 0.01);
-    //parameters.Add("A_g", 2.373, 0.1);
-    //parameters.Add("lambda_g", 0.052, 0.01);
+
 	parameters.Add("lambda_s", 0);
 	parameters.Add("A_s", 0);
-    // IPsat with singlet
-    /*
-    parameters.Add("mu_0", 1.538, 0.2 );
-    parameters.Add("lambda_g", 0.1129, 0.02);
-    parameters.Add("A_g", 2.233, 0.4);
-    parameters.Add("lambda_s", 0);
-    parameters.Add("A_s", 0);
-    */
-    
-    // IPsat, mc=1.27
-    /*
-    parameters.Add("mu_0", 1.352, 0.1);
-    parameters.Add("lambda_g", 0.0921, 0.05);
-    parameters.Add("A_g", 2.309, 0.1);
-    parameters.Add("lambda_s", 0);
-    parameters.Add("A_s", 0);
-    */
-    
-    // IPsat without singlet, free charm mass, fitted to all data
-    /*
-    parameters.Add("mu_0", 1.338937588098, 0.2 );
-    parameters.Add("lambda_g", 0.09548245405113, 0.02);
-    parameters.Add("A_g", 2.308901027904, 0.4);
-    parameters.Add("lambda_s", 0);
-    parameters.Add("A_s", 0);
-    */
-    
-    // IPsat fitted to charm data
-    /*
-    parameters.Add("mu_0", 0.8381738043555, 0.2 );
-    parameters.Add("lambda_g", 0.06520164038353, 0.02);
-    parameters.Add("A_g", 2.002630013683, 0.4);
-    parameters.Add("lambda_s", 0);
-    parameters.Add("A_s", 0);
-     */
-    
-    
-    // IPnonsat w/o singlet
-    /*
-    parameters.Add("mu_0", 0.706, 0.1);
-    parameters.Add("lambda_g", -0.199, 0.05);
-    parameters.Add("A_g", 4.105, 0.1);
-    parameters.Add("lambda_s", 0);
-    parameters.Add("A_s", 0);
-    */
-    
-    // IPnonsat with singlet
-    /*
-    parameters.Add("mu_0", 0.7223, 0.1);
-    parameters.Add("lambda_g", -0.1759, 0.05);
-    parameters.Add("A_g", 3.781, 0.1);
-    parameters.Add("lambda_s", 0);
-    parameters.Add("A_s", 0);
-    */
+
     
     // Set limits
     
     parameters.SetLowerLimit("A_g", 0);
     parameters.SetLowerLimit("A_s", 0);
-    parameters.SetLowerLimit("mu_0", 0.76); // In priciple can go to anything >0 (right?)
-    //parameters.SetUpperLimit("mu_0", 1.43); // For some reason alphas code does not work with larger mu_0
-    
+    parameters.SetLowerLimit("mu_0", 0.5); // In priciple can go to anything >0 (right?)
+    parameters.SetUpperLimit("mu_0", sqrt(2.0)); // Upper limit is min Q^2
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
     

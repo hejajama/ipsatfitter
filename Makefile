@@ -17,6 +17,9 @@ all: ipsatfit
 ipsatfit: $(OBJECTS) $(COBJECTS) $(FOBJECTS) $(SOURCES) $(CSOURCES)
 	$(CXX)  $(CXXFLAGS) $(LDFLAGS) $(MINUITLIBDIR)/libMinuit2.a  $(OBJECTS) $(COBJECTS) $(FOBJECTS)   -o ipsatfit
 
+dipole: src/dipoleamplitude.o
+	$(CXX)  $(CXXFLAGS) $(LDFLAGS) -o dipoleamplitude src/dipoleamplitude.o $(FOBJECTS)
+
 .cpp.o: 
 	$(CXX) $(CXXFLAGS) $< -c -o $@
 

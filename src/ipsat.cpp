@@ -25,7 +25,9 @@ const int BINTEGRATIONDEPTH = 54;
 
 using namespace std;
 
+#ifdef INCLUDE_SARTRE_DGLAP
 DglapEvolution sartre_dglap;
+#endif
 
 // IPsat 2012 - to test (extrat xg from this)
 /*
@@ -204,11 +206,17 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
              &Ag, &lambdag, &As, &lambdas );
         return gluon;
     }
+#ifdef INCLUDE_SARTRE_DGLAP
     else if (dglapsolver == SARTRE)
     {
         gluon = x*sartre_dglap.G(x, musqr);
     }
-    
+#endif
+    else
+    {
+        cerr << "Unknown DGLAP solver!" << endl;
+        exit(1);
+    }
     return  gluon;
     
     

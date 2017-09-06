@@ -155,6 +155,8 @@ C      IVFNS = 0                 ! fixed flavour-number scheme (FFNS)
 *     
       IF ( NAORD .GT. 3 ) THEN
          WRITE (6,*) 'Specified order in a_s too high. STOP' 
+         WRITE(6, *) M20
+         WRITE(6, *) MC2
          STOP
       END IF
 *
@@ -165,6 +167,8 @@ C      IVFNS = 0                 ! fixed flavour-number scheme (FFNS)
 *
       IF ( (IVFNS .EQ. 1) .AND. (M20 .GT. MC2) ) THEN
          WRITE (6,*) 'Too high mu_0 for VFNS evolution. STOP'
+         WRITE(6, *) M20
+         WRITE(6, *) MC2
          STOP
       END IF
 *     
