@@ -254,7 +254,9 @@ double IPsat::Alphas(double musqr, FitParameters parameters) const
     }
     else if (dglapsolver == SARTRE)
     {
+#ifdef INCLUDE_SARTRE_DGLAP
         return alpha_s_LO(musqr, 3); // Nf=3
+#endif
     }
     
 }

@@ -6,7 +6,9 @@
 #include <iostream>
 #include <Minuit2/MnUserParameters.h>
 
-#include "dglap_sartre/DglapEvolution.h"
+#ifdef INCLUDE_SARTRE_DGLAP
+    #include "dglap_sartre/DglapEvolution.h"
+#endif
 #include "wave_function.hpp"
 
 
