@@ -34,7 +34,7 @@ int Data::LoadData(string filename, DataType type, double weight)
     ifstream file(filename.c_str());
     if (!file.is_open())
     {
-        cerr << "ERROR! Coudn't read file " << file << endl;
+        cerr << "ERROR! Coudn't read file " << filename << endl;
         return -1;
     }
     

@@ -60,4 +60,6 @@ private:
     
 };
 
+double StrToReal(std::string str);
+
 #endif

@@ -34,19 +34,20 @@ int main()
     gsl_set_error_handler(&ErrHandler);
     
     Data data;
-    data.SetMinQsqr(2);
-    data.SetMaxQsqr(500);
+    data.SetMinQsqr(1.99);
+    data.SetMaxQsqr(501);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-    data.LoadData("./data/hera_II_combined_sigmar.txt", TOTAL);
-    //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
+    data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
+    data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
+    data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
 
     
     MnUserParameters parameters;
     // Constants
     parameters.Add("B_G", 4.0);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.37497, 0.1); // 1.27
+    parameters.Add("charm_mass", 1.3408, 0.1); // 1.27
     parameters.Add("bottom_mass", 4.75);
     parameters.Add("C", 4.0);
     
@@ -54,9 +55,9 @@ int main()
     // Start using some reasonable parameters
     
     // IPsat, mc fitted to 1.381
-     parameters.Add("mu_0", 1.35179, 0.2 );
-    parameters.Add("lambda_g", 0.09708, 0.02);
-    parameters.Add("A_g", 2.29831, 0.4);
+     parameters.Add("mu_0", 1.28802, 0.2 );
+    parameters.Add("lambda_g", 0.0976, 0.02);
+    parameters.Add("A_g", 2.1955, 0.4);
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
     
@@ -95,11 +96,13 @@ int main()
     }
     exit(1);
    */
-	
-    /*
+	/*
+    double xbj=5e-3;
+    cout << "#x = " << xbj <<  ", all quarks included" << endl;
+    cout << "# Q^2   F_2    F_L" << endl;
     for (double q2=1; q2<10000; q2*=1.2)
     {
-        cout << q2 << " " << fitter.F2(q2, 5e-3, p) << " " << fitter.FL(q2, 5e-3, p) << endl;
+        cout << q2 << " " << fitter.F2(q2, xbj, p) << " " << fitter.FL(q2, xbj, p) << endl;
     }
     exit(1);
     */
