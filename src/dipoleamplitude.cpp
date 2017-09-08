@@ -20,10 +20,12 @@ using namespace std;
 // Example
 int main()
 {
-    
-    DipoleAmplitude amplitude(4, 1.26636, 0.09111, 2.2159, 1.3332);
+    // Parameters are: DipoleAmplitude(C, mu0 [GeV], lambda_g, A_g, m_c [GeV]
+    DipoleAmplitude amplitude(4, 1.35179, 0.09708, 2.29831, 1.37497);
     
     cout << "mu^2=5, as*xg (x=0.001) = " << amplitude.Alphas_xg(0.001, 5) << endl;
+    
+    
     
     return 0;
 }

@@ -36,7 +36,7 @@ class DipoleAmplitude
         // Strong coupling, Q in GeV
         double Alphas(double Q);
     
-        // Only xg, calculated internally as Alphas_xg / Alphas
+        // Only xg, calculated internally as Alphas_xg / Alphas, so not as effective!
         double xg(double x, double musqr);
     
         /*

@@ -20,7 +20,7 @@ using namespace std;
 
 const double MINB = 1e-7;
 const double MAXB = 2e2;
-const double BINTACCURACY = 0.001;
+const double BINTACCURACY = 0.0001;
 const int BINTEGRATIONDEPTH = 54;
 
 using namespace std;

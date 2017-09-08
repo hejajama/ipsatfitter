@@ -20,7 +20,7 @@ const double MAXR = 50;
 // Hera data is very accurate, so eventually one needs to use better accuracy
 const double RINTACCURACY = 0.00001;
 
-const int INTEGRATIONDEPTH = 100;
+const int INTEGRATIONDEPTH = 200;
 
 
 // xg = x*gluon
@@ -58,11 +58,12 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double mu0 =par[parameters.Index("mu_0")];
     
     // Forbid mu_0 > mc
+    /*
     if (mu0 > charm_mass)
     {
         cout << "# mu_0 > m_c, returning high chi^2! " << PrintVector(par) << endl;
         return 999;
-    }
+    }*/
 
     FitParameters fitparams;
     fitparams.values = &par;
@@ -407,7 +408,7 @@ double alphas_helper(double asmur, void* p)
     FitParameters *par = (FitParameters*)p;
     int iord=0;
     double fr2 = 1.0;
-    double mur =par->values->at( par->parameter->Index("mu_0"));
+    double mur = ALPHAS_MUR;
     double mc = par->values->at( par->parameter->Index("charm_mass"));
     double mb = par->values->at( par->parameter->Index("bottom_mass"));
     double mt = 175;

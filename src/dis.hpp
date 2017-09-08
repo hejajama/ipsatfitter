@@ -85,6 +85,8 @@ private:
 
 };
 
+const double ALPHAS_MUR = 1;    // Scale at which we initialize alpha_s [GeV]
+
 
 
 #endif

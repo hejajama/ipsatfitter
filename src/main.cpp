@@ -29,13 +29,13 @@ void ErrHandler(const char * reason,
                 int line,
                 int gsl_errno);
 
-int main()
+int main(int argc, char* argv[])
 {
     gsl_set_error_handler(&ErrHandler);
     
     Data data;
     data.SetMinQsqr(1.99);
-    data.SetMaxQsqr(501);
+    data.SetMaxQsqr(50);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
@@ -47,7 +47,7 @@ int main()
     // Constants
     parameters.Add("B_G", 4.0);
     parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.3408, 0.1); // 1.27
+    parameters.Add("charm_mass", StrToReal(argv[1])); // 1.27
     parameters.Add("bottom_mass", 4.75);
     parameters.Add("C", 4.0);
     
@@ -55,7 +55,7 @@ int main()
     // Start using some reasonable parameters
     
     // IPsat, mc fitted to 1.381
-     parameters.Add("mu_0", 1.28802, 0.2 );
+     parameters.Add("mu_0", 1.4, 0.2 );
     parameters.Add("lambda_g", 0.0976, 0.02);
     parameters.Add("A_g", 2.1955, 0.4);
     parameters.Add("lambda_s", 0);
@@ -73,6 +73,7 @@ int main()
     parameters.SetLowerLimit("A_s", 0);
     parameters.SetLowerLimit("mu_0", 0.5); // In priciple can go to anything >0 (right?)
     parameters.SetUpperLimit("mu_0", sqrt(2.0)); // Upper limit is min Q^2
+    parameters.SetUpperLimit("charm_mass", 3);
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
     
