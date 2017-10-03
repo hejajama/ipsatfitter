@@ -4,6 +4,7 @@
 //==============================================================================
 #include "EvolutionLO.h"
 #include <cmath>
+#include <cstdlib>
 
 #define PR(x) cout << #x << " = " << (x) << endl;
 

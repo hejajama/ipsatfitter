@@ -212,6 +212,11 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
         gluon = x*sartre_dglap.G(x, musqr);
     }
 #endif
+    else if (dglapsolver == CPPPIA)
+    {
+        return parameters.cppdglap->alphasxG(x, musqr, mu0, coupling, Ag,
+                   lambdag,  As,  lambdas);
+    }
     else
     {
         cerr << "Unknown DGLAP solver!" << endl;
@@ -250,6 +255,10 @@ double IPsat::Alphas(double musqr, FitParameters parameters) const
         // Currently, xg returns actually alphas*xg, because I modified the
         // Fortran code...
         
+        return 1.0;
+    }
+    else if (dglapsolver == CPPPIA)
+    {
         return 1.0;
     }
     else if (dglapsolver == SARTRE)

@@ -34,30 +34,37 @@ int main(int argc, char* argv[])
     gsl_set_error_handler(&ErrHandler);
     
     Data data;
-    data.SetMinQsqr(1.99);
+    data.SetMinQsqr(2.7);
     data.SetMaxQsqr(50);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
-    data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
+    //data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
     data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
 
     
     MnUserParameters parameters;
     // Constants
     parameters.Add("B_G", 4.0);
-    parameters.Add("light_mass", 0.05); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", StrToReal(argv[1])); // 1.27
+    parameters.Add("light_mass", 0.02); // Having very small mass is numerically difficult
+    parameters.Add("charm_mass", 1.361410284911,  0.1 ); // 1.27 // Ipsat 1.361410284911 // Nonsat 1.350324669808,
     parameters.Add("bottom_mass", 4.75);
     parameters.Add("C", 4.0);
     
     
     // Start using some reasonable parameters
     
-    // IPsat, mc fitted to 1.381
-     parameters.Add("mu_0", 1.4, 0.2 );
-    parameters.Add("lambda_g", 0.0976, 0.02);
-    parameters.Add("A_g", 2.1955, 0.4);
+    
+    
+    parameters.Add("mu_0", 1.37318354655, 0.2 );
+    parameters.Add("lambda_g", 0.09979484002427, 0.02);
+    parameters.Add("A_g", 2.256304324668, 0.4);
+    
+    /*
+    parameters.Add("mu_0", 0.9872695813631, 0.2 );
+    parameters.Add("lambda_g", -0.01903820426713, 0.02);
+    parameters.Add("A_g", 2.926040715645, 0.4);
+    */
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
     
@@ -80,7 +87,7 @@ int main(int argc, char* argv[])
     fitter.SetSaturation(true);
     fitter.SetSinglet(false);
     
-    fitter.SetDGLAPSolver(PIA);
+    fitter.SetDGLAPSolver(CPPPIA);
     
     FitParameters p;
     p.parameter = &parameters;
@@ -98,12 +105,10 @@ int main(int argc, char* argv[])
     exit(1);
    */
 	/*
-    double xbj=5e-3;
-    cout << "#x = " << xbj <<  ", all quarks included" << endl;
-    cout << "# Q^2   F_2    F_L" << endl;
+    cout << "# Q^2   F_2(x=1e-2)    F_L(x=1e-2)   F_2(x=5e-3)   F_L(x=5e-3)    F_2(x=1e-3)   F_L(x=1e-3)    F_L(x=1e-4)    F_2(x=1e-4) " << endl;
     for (double q2=1; q2<10000; q2*=1.2)
     {
-        cout << q2 << " " << fitter.F2(q2, xbj, p) << " " << fitter.FL(q2, xbj, p) << endl;
+        cout << q2 << " " << fitter.F2(q2, 1e-2, p) << " " << fitter.FL(q2, 1e-2, p) << " " << fitter.F2(q2, 5e-3, p) << " " << fitter.FL(q2, 5e-3, p)  << " " << fitter.F2(q2, 1e-3, p) << " " << fitter.FL(q2, 1e-3, p) << " " << fitter.F2(q2, 1e-4, p) << " " << fitter.FL(q2, 1e-4, p) << endl;
     }
     exit(1);
     */
@@ -116,7 +121,7 @@ int main(int argc, char* argv[])
     cout << "DGLAP solver: ";
     if (fitter.GetDGLAPSolver() == PIA) cout << "PIA" << endl;
     else if (fitter.GetDGLAPSolver() == SARTRE) cout << "SARTRE" << endl;
-    
+    else if (fitter.GetDGLAPSolver() == CPPPIA) cout << "C++ version of PIA's" << endl;
     
     cout << "=== Dipole amplitude ===" << endl;
     cout << endl;

@@ -13,6 +13,9 @@
 #include <iomanip>
 #include <sstream>
 
+#include "dglap_cpp/EvolutionLO.h"
+#include "dglap_cpp/AlphaStrong.h"
+
 using namespace std;
 
 const double MINR = 1e-6;
@@ -76,6 +79,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     // InitAlphasMur initializes Alphas() at the initial scale mu_0
     // such that we keep alphas(M_z) = 0.1184
     // Not thread safe!
+    EvolutionLO *cppdglap = NULL;
 #pragma omp critical
 {
     if (dglapsolver == PIA)
@@ -86,6 +90,16 @@ double DISFitter::operator()(const std::vector<double>& par) const
     else if (dglapsolver == SARTRE)
     {
         dipole.InitializeDGLAP(fitparams);
+    }
+    else if (dglapsolver == CPPPIA)
+    {
+        // Initialize alpha_s(M_Z=91.1876)=0.1183
+        AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, charm_mass, bottom_mass, 175);
+        // DGLAP_Solver will take care of deleting alphas when it is deleted
+        cppdglap = new EvolutionLO(alphas);
+        
+        fitparams.cppdglap = cppdglap;
+        fitparams.alpha_strong = alphas;
     }
 }
     
@@ -172,6 +186,11 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
     //exit(1);
+    
+    if (dglapsolver == CPPPIA)
+    {
+        delete cppdglap;
+    }
     return chisqr/points;
 }
 
@@ -291,7 +310,7 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
     double xb = xbj*(1.0 + 4.0*mb*mb/Q2);
     double xs_bottom_l=0;
     double xs_bottom_t = 0;
-    if (xb < 0.1)
+    if (xb < 0.01)
     {
         photon.SetQuark(B, mb);
         double xs_bottom_l =ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
@@ -318,7 +337,7 @@ double DISFitter::FL(double Q2, double xbj, FitParameters fitparams ) const
     
     double xb = xbj*(1.0 + 4.0*mb*mb/Q2);
     double xs_bottom_l=0;
-    if (xb < 0.1)
+    if (xb < 0.01)
     {
         photon.SetQuark(B, mb);
         double xs_bottom_l =ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
@@ -360,6 +379,10 @@ string PrintVector(vector<double> v)
     }
     return ss.str();
 }
+
+
+//////////// ALPHA_S INITIALIZATION
+// Used when Fortran DGLAP solver is selected
 
 
 double InitAlphasMur(FitParameters *par)

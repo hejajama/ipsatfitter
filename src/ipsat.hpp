@@ -9,6 +9,9 @@
 #ifdef INCLUDE_SARTRE_DGLAP
     #include "dglap_sartre/DglapEvolution.h"
 #endif
+
+#include "dglap_cpp/AlphaStrong.h"
+#include "dglap_cpp/EvolutionLO.h"
 #include "wave_function.hpp"
 
 
@@ -18,7 +21,8 @@ using namespace ROOT::Minuit2;
 enum DGLAP_Solver
 {
     SARTRE,     // Sartre version
-    PIA         // Pia's LO_evolution_routine.f
+    PIA,         // Pia's LO_evolution_routine.f
+    CPPPIA      // Pia's code translated into C++
 };
 
 
@@ -33,6 +37,10 @@ struct FitParameters
     const vector<double> *values;
     const MnUserParameters *parameter;
     double alphas_mur;  // alphas at initial scale, solved by DISFitter
+    
+    // Needed for C++ DGLAP code
+    AlphaStrong* alpha_strong;
+    EvolutionLO *cppdglap;
 };
 
 // Note: In general this is designed to support event-by-event fluctuatoins

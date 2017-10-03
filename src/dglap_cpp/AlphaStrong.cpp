@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <cstdlib>
 #include "AlphaStrong.h"
 
 AlphaStrong::AlphaStrong(int order, double fr2, double mur, double asmur, double mc, double mb, double mt)
