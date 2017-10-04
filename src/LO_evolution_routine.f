@@ -178,7 +178,14 @@ c NOTE: Here I have added *alphas!
 c       GLN = 1.d0*(CBETA(XN+two,two+one))
 c       SIN = 1.d0*(CBETA(XN+two,two+one))
 
-        GLN = Ag * CBETA(XN - lambdag - one , 5.6+one)
+c        GLN = Ag * CBETA(XN - lambdag - one , 5.6+one)
+        GLN = Ag * (1.0 / (XN + 5.0 - lambdag) - 6.0 /
+     # (XN + 4.0 - lambdag)
+     # + 15.0 / (XN + 3.0 - lambdag) - 20.0 / (XN + 2.0 -lambdag) +
+     #  15.0 /
+     #  (XN + 1.0 - lambdag) - 6.0 / (XN - lambdag) + 1.0 /
+     # (XN - lambdag
+     # - 1.0) )
 c MSTW parameterization at LO
 c       GLN = 0.0012216*(CBETA(XN-0.83657-one,2.3882+one)
 c     1          -38.997*CBETA(XN-0.83657-0.5,2.3882+one)+
