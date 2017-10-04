@@ -98,7 +98,23 @@ void EvolutionLO::reno(complex<double> *fn, double alpq, int nmax, int coupling,
         complex<double> one(1.,0.);
         complex<double> two(2.,0.);
         
-        complex<double> gln = ag * beta(xn - lambdag - one, 5.6+one);
+        // x*g = A_g x^(-lambda_g) (1-x)^5.6
+        // -one and +one as we parametrize g, not x*g
+        //complex<double> gln = ag * beta(xn - lambdag - one, 5.6+one);
+        
+        // x*g = A_g x^(-lambda_g) (1-x)^6
+        // Mellin transformed g analytically
+        complex<double> gln = ag * (
+            1.0 / (xn + 5.0 - lambdag)
+            - 6.0 / (xn + 4.0 - lambdag)
+            + 15.0 / (xn + 3.0 - lambdag)
+            - 20.0 / (xn + 2.0 -lambdag)
+            + 15.0 / (xn + 1.0 - lambdag)
+            - 6.0 / (xn - lambdag)
+            + 1.0 / (xn - lambdag - 1.0)
+                                    );
+        
+        // TODO: Old singlet parametrization with beta function,
         complex<double> sIn;
         if (coupling == 1) sIn = as*beta(xn - lambdas - one, one);
         
