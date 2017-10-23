@@ -1,24 +1,24 @@
 
 include filelist.m
 
-CXX = /opt/local/bin/g++-mp-5
-CC = /opt/local/bin/gcc-mp-5
-FC = /opt/local/bin/gfortran-mp-5
+CXX = g++-7
+CC = gcc-7
+FC = gfortran
 
 MINUITINC = ../inc
 MINUITLIBDIR = ../lib/
 
-CXXFLAGS = `/opt/local/bin/gsl-config --cflags` -O2 -I$(MINUITINC) 
+CXXFLAGS = `gsl-config --cflags` -O2 -I$(MINUITINC) 
 FFLAGS = -O2
-LDFLAGS = `/opt/local/bin/gsl-config --libs` -lgfortran
+LDFLAGS = `gsl-config --libs` -lgfortran
 
 all: ipsatfit
 
 ipsatfit: $(OBJECTS) $(COBJECTS) $(FOBJECTS) $(SOURCES) $(CSOURCES)
-	$(CXX)  $(CXXFLAGS) $(LDFLAGS) $(MINUITLIBDIR)/libMinuit2.a  $(OBJECTS) $(COBJECTS) $(FOBJECTS)   -o ipsatfit
+	$(CXX)  $(CXXFLAGS) $(LDFLAGS) $(MINUITLIBDIR)/libMinuit2.a  $(OBJECTS) $(COBJECTS) $(FOBJECTS) libColorDipole/libraries/libColorDipole.a  -o ipsatfit
 
-dipole: src/dipoleamplitude.o
-	$(CXX)  $(CXXFLAGS) $(LDFLAGS) -o dipoleamplitude src/dipoleamplitude.o $(FOBJECTS)
+dipole: src/dipoleamplitude.o src/dglap_cpp/AlphaStrong.o src/dglap_cpp/EvolutionLO.o
+	$(CXX)  $(CXXFLAGS) $(LDFLAGS) -o dipoleamplitude src/dipoleamplitude.o src/dglap_cpp/AlphaStrong.o src/dglap_cpp/EvolutionLO.o 
 
 .cpp.o: 
 	$(CXX) $(CXXFLAGS) $< -c -o $@

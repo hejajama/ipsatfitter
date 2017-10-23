@@ -146,8 +146,11 @@ double DISFitter::operator()(const std::vector<double>& par) const
             
             double charmx = x * (1.0 + 4.0*charm_mass*charm_mass / Q2);
             
+            double charmx_limitmass = x * (1.0 + 4.0*1.42*1.42 / Q2);
+            
             // Include only datapoints where charm contribution can be calculated
-            if (charmx > 0.01)
+            // Use here charmx corresponding to m_c = 1.42 GeV, to keep # of datapoints the same!
+            if (charmx_limitmass > 0.01)
                 continue;
 
             double theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
@@ -185,7 +188,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-    //exit(1);
+   // exit(1);
     
     if (dglapsolver == CPPPIA)
     {

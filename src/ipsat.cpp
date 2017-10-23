@@ -21,7 +21,7 @@ using namespace std;
 const double MINB = 1e-7;
 const double MAXB = 2e2;
 const double BINTACCURACY = 0.0001;
-const int BINTEGRATIONDEPTH = 54;
+const int BINTEGRATIONDEPTH = 540;
 
 using namespace std;
 
@@ -30,12 +30,12 @@ DglapEvolution sartre_dglap;
 #endif
 
 // IPsat 2012 - to test (extrat xg from this)
-/*
+
 extern "C" {
     double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
 int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
-*/
+
 
 // LO DGLAP solver
 // Modified by H.M. such that
@@ -97,7 +97,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
 {
     double analres=0;
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
-    if (config == -1 and saturation )
+    if (config == -1 and saturation   )
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
         // b integral analytically, as
@@ -118,27 +118,15 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         gsl_sf_result sinres;
         gsl_sf_result cosres;
         int sinint = gsl_sf_Shi_e(a, &sinres);
+        int cosint = gsl_sf_Chi_e(a, &cosres);
         
-        if (!sinint)
+        if (!sinint and !cosint and cosres.val < 1e3 and sinres.val < 1e3)
         {
-            // No overflows
-            int cosint = gsl_sf_Chi_e(a, &cosres);
-            
-            if (!cosint)
-            {
-                // No overflows, use analytical result, otherwise we fall back to numerics
-                // in the region where the contribution anyway is small
-                analres = 2.0*M_PI*B * ( M_EULER - cosres.val + log(a) + sinres.val);
-                return analres;
-            }
-            else
-                return 0;
-        }
-        else
-        {
-            return 0;
-            // Overflow, very large r most likely. Fall back to numerical integral.
-            //cerr << "Error with argument " << a << " r " << r << endl;
+            // Require sinint and cosint to be so small that we can reliably calculate their difference
+            // Otherwise fall back to numerical integration
+  
+            analres = 2.0*M_PI*B * ( M_EULER - cosres.val + log(a) + sinres.val);
+            return analres;
         }
         
     }
@@ -177,13 +165,11 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
 
 double IPsat::xg(double x, double musqr, FitParameters parameters) const
 {
-    if (x < minx or x>maxx or musqr < minQ2 or musqr > maxQ2)
+    if (x < minx or x>maxx or musqr < minQ2 or musqr > maxQ2 )
     {
         cerr << "xg evaluated outside the validity range, x=" << x << ", mu^2=" << musqr << endl;
         return 0;
     }
-    // For testing: initial condition
-    //return A_g * std::pow(x, -lambda_g) * pow((1.0 - x), 5.6);
     
     double lambdag =parameters.values->at( parameters.parameter->Index("lambda_g"));
     double Ag =parameters.values->at( parameters.parameter->Index("A_g"));

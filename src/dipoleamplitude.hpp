@@ -7,26 +7,14 @@
  *
  * H. Mäntysaari and P. Zurita, 2017
  */
-
-// LO DGLAP solver and alphas
-// gluon = alphas(x,Q^2) * gluon!
-// For documentation of the varaibles see alphaS.f and LO_evolution_routine.f
-// DipoleAmplitude class takes care of calling these, so the user doesn't have to care!
-extern "C"
-{
-    void lo_evol_(double *x, double* Q2, double *gluon, int* coupling,
-                  double *mc, double *mb, double* mu0 , double *asmur,
-                  double* Ag, double* lambdag, double *As, double* lambdas
-                  );
-    void init_();
-    double alphas_(double *mu);
-    void initalphas_(int *iord, double *fr2, double *mur, double* asmur, double *mc, double *mb, double* mt);
-};
+#include "dglap_cpp/AlphaStrong.h"
+#include "dglap_cpp/EvolutionLO.h"
 
 class DipoleAmplitude
 {
     public:
         DipoleAmplitude(double C_, double mu0_, double lambda_g_, double A_g_, double mc_, double mb_=4.75, double mt_=175 );
+        ~DipoleAmplitude();
     
         /*
          * Compute alphas(mu^2) * xg(x, mu^2), musqr in GeV^2
@@ -45,6 +33,10 @@ class DipoleAmplitude
          * [b]=Gev^-1, impact parameter
          */
         double N(double r, double xbj, double b);
+    
+        /* Dipole amplitude integrated over b
+         */
+        double N_bint(double r, double xbj);
     
         /*
          * Proton profile, normalized to unity
@@ -65,6 +57,8 @@ class DipoleAmplitude
         void SetSaturation(bool s) { saturation = s; }
     
     private:
+        EvolutionLO *cppdglap;
+        AlphaStrong *alphas;
         bool saturation;   // True for ipsat, false for ipnonsat
         double InitAlphas();
         double C;

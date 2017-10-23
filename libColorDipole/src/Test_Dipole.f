@@ -20,8 +20,9 @@
 	ENDDO
 
 	xBj=1e-4
+        b=0
 	WRITE(*,2)
-	WRITE(*,*)"       r, fm            d^2 sigma/db^2    "
+	WRITE(*,*)"       r, fm            d^2 sigma/db^2 (b=0)   "
 	WRITE(*,2)
 	DO I=0,30
 	r=I/5.

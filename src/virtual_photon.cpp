@@ -18,9 +18,9 @@ using namespace std;
 
 const int Nc=3;
 
-const double ZINTACCURACY=0.000005;
+const double ZINTACCURACY=0.000001;
 const int MAXITER_ZINT=800;
-const double MINZ=1e-6;  // Integration limits
+const double MINZ=0;  // Integration limits
 const double MAXZ=1.0-MINZ;
 
 VirtualPhoton::VirtualPhoton()
