@@ -34,7 +34,7 @@ double EvolutionLO::xG(double x, double Q2, double mu0, int coupling, double Ag,
         exit(1);
     }
     mFR2 = mAlphaStrong->ratioFR2();
-    mASMUR = mAlphaStrong->alphasAtMuR();
+    mASMUR = mAlphaStrong->value(mu0);
     mMC = mAlphaStrong->massCharm();
     mMB = mAlphaStrong->massBottom();
     mMT = mAlphaStrong->massTop();

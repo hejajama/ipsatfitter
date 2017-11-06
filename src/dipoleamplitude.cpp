@@ -26,6 +26,8 @@ void ErrHandler(const char * reason,
                 int line,
                 int gsl_errno);
 
+double xg_from_ipsat(double x, double Q2, DipoleAmplitude& dipole);
+
 
 double StrToReal(std::string str)
 {
@@ -42,18 +44,26 @@ int main(int argc, char* argv[])
     
     // Parameters are: DipoleAmplitude(C, mu0 [GeV], lambda_g, A_g, m_c [GeV]
     // ipsat
-    DipoleAmplitude amplitude(2.321526423259, 1.1, 0.09106887412584, 2.155203998342, 1.354062489611); //
+    DipoleAmplitude amplitude(2.146034445992, 1.1, 0.09665075464199, 2.103826220003, 1.351650642298); //
     amplitude.SetSaturation(true);
+    
+    
+    //DipoleAmplitude amplitude(4, sqrt(1.17), 0.02, 2.55, 1.4); //
+    //amplitude.SetSaturation(true);
+    
+    //cout << xg_from_ipsat(0.01, 10, amplitude ) << endl;
  
     // IPnonsat
     //DipoleAmplitude amplitude(4.939286653112, 1.1, 0.009631194037871, 3.058791613883, 1.342035015621);
     //amplitude.SetSaturation(false);'
     
     
-    /*
+    
+    
     double minr=1.1e-6;
     double maxr=100;
     int points=500;
+    double b = 0; // in 1/GeV
     double xbj = 0.01*exp(-StrToReal(argv[1]));
      for (int i=0; i<points; i++)
     {
@@ -61,11 +71,14 @@ int main(int argc, char* argv[])
         double n =amplitude.N_bint(r, xbj) ;
         cout <<  std::scientific << std::setprecision(9) << r << " " << n << endl;
     }
-    */
     
-    cout << "# r [1/GeV]    N(r, x=0.01, <b>)    N(r, x=0.001, b=<0>)   N(r, x=0.0001, <b> " << endl;
-    for (double r=1e-6; r<100; r*=1.1)
-    cout << r << " " << amplitude.N_bint(r, 0.01) << " " << amplitude.N_bint(r, 0.001) <<  " " << amplitude.N_bint(r, 0.0001) <<  endl;
+    
+    /*
+    
+    for (double r=1e-8; r<100; r*=1.1)
+    {
+        cout << r << " " << amplitude.N(r, 0.01, 0) << " " << amplitude.N(r, 0.001, 0) << " " << amplitude.N(r, 0.0001, 0) << " " <<  amplitude.N(r, 0.01, 3) << " " << amplitude.N(r, 0.001, 3) << " " << amplitude.N(r, 0.0001, 3) << endl;
+    }*/
     
     
     return 0;
@@ -86,7 +99,7 @@ DipoleAmplitude::DipoleAmplitude(double C_, double mu0_, double lambda_g_, doubl
     mt=175;
     
     // Init alphas(M_Z=91.1876 GeV) = 0.1183
-    alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, mc, mb, mt);
+    alphas = new AlphaStrong(0, 1.0, 91.1876, 0.11403, mc, mb, mt);
     // DGLAP_Solver will take care of deleting alphas when it is deleted
     cppdglap = new EvolutionLO(alphas);
 }
@@ -118,7 +131,7 @@ double DipoleAmplitude::xg(double x, double musqr)
 
 double DipoleAmplitude::N(double r, double xbj, double b)
 {
-    double musqr = mu0*mu0 + C / r*r;
+    double musqr = mu0*mu0 + C / (r*r);
     double exponent = M_PI*M_PI / (2.0 * Nc) * r*r * Alphas_xg(xbj, musqr) * Tp(b);
     
     if (!saturation)     // IPnonsat
@@ -143,7 +156,7 @@ double inthelperf_bint(double b, void* p)
 
 double DipoleAmplitude::N_bint(double r, double xbj)
 {
-    double musqr =mu0*mu0 + C / r*r;
+    double musqr =mu0*mu0 + C / (r*r);
     if (!saturation)
     {
         return 2.0 * M_PI * B_p * N(r, 0, xbj);
@@ -151,25 +164,25 @@ double DipoleAmplitude::N_bint(double r, double xbj)
     
 
     
-        double a = M_PI*M_PI / (2.0 * Nc) * r*r * Alphas_xg(xbj, musqr)  / (2.0 * M_PI * B_p);
-        if (a==0) // Basically so small r that xg =0 as we are outside the dglap evolution grid
-            return 0;
-        
-        gsl_sf_result sinres;
-        gsl_sf_result cosres;
-        int sinint = gsl_sf_Shi_e(a, &sinres);
-        // No overflows
-        int cosint = gsl_sf_Chi_e(a, &cosres);
-        
-        
-        if (cosres.val < 1e3 and sinres.val < 1e3 and !cosint and !sinint)
-        {
-            // Dont trust result if this condition is not true, as we have to compute consint - sinint
-            
-            // No overflows, use analytical result, otherwise we fall back to numerics
-            // in the region where the contribution anyway is small
-            return 2.0*M_PI*B_p * ( M_EULER - cosres.val + log(a) + sinres.val);
-        }
+    double a = M_PI*M_PI / (2.0 * Nc) * r*r * Alphas_xg(xbj, musqr)  / (2.0 * M_PI * B_p);
+    if (a==0) // Basically so small r that xg =0 as we are outside the dglap evolution grid
+        return 0;
+    
+    gsl_sf_result sinres;
+    gsl_sf_result cosres;
+    int sinint = gsl_sf_Shi_e(a, &sinres);
+    // No overflows
+    int cosint = gsl_sf_Chi_e(a, &cosres);
+    
+    
+    if (cosres.val < 1e4 and sinres.val < 1e4 and !cosint and !sinint)
+    {
+        // Dont trust result if this condition is not true, as we have to compute consint - sinint
+        // And these functions grow very rapidly with argument
+        // Here we use the analytical result, otherwise we fall back to numerics
+        // in the region where the contribution anyway is small
+        return 2.0*M_PI*B_p * ( M_EULER - cosres.val + log(a) + sinres.val);
+    }
     
     gsl_function fun; fun.function=inthelperf_bint;
     inthelper_bint par;
@@ -209,10 +222,6 @@ void ErrHandler(const char * reason,
     // 11 = maximum number of subdivisions reached
     // 15: underflows
     
-    if (gsl_errno == 15 or gsl_errno == 16) return;
-    // Ugly hack, comes from the edges of the z integral in virtual_photon.cpp
-    // Overflows come from IPsat::bint when it is done analytically
-    // Hope is that these errors are handled correctly everywhere
     
     errors++;
     std::cerr << file << ":"<< line <<": Error " << errors << ": " <<reason

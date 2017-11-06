@@ -34,20 +34,21 @@ int main(int argc, char* argv[])
     gsl_set_error_handler(&ErrHandler);
     
     Data data;
-    data.SetMinQsqr(0.74);
-    data.SetMaxQsqr(650.1);
+    data.SetMinQsqr(1.49);
+    data.SetMaxQsqr(500.1);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-        data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
-    data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
+   //     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
+    //data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
     //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
-
+    data.LoadData("data/fcc_ncepp.txt", TOTAL);
     
     MnUserParameters parameters;
     // Constants
     parameters.Add("B_G", 4.0);
     
-    //parameters.Add("charm_mass", 1.3231);
+    //parameters.Add("light_mass", 0.0005);
+    //parameters.Add("charm_mass", 1.4);
     
     parameters.Add("light_mass", 0.1388639702255); // Having very small mass is numerically difficult
     parameters.Add("charm_mass", 1.342035015621,  0.1 ); // 1.27 // Ipsat 1.361410284911 // Nonsat 1.350324669808,
@@ -55,7 +56,7 @@ int main(int argc, char* argv[])
     //parameters.Add("charm_mass", 1.354062489611);
     parameters.Add("bottom_mass", 4.75);  // 4.75
     parameters.Add("C", 4.939286653112, 1.0);
-    //parameters.Add("C", 2.321526423259);
+    //parameters.Add("C", 2.146034445992);
     //parameters.Add("C", 2.41367);
     // Start using some reasonable parameters
     
@@ -63,15 +64,15 @@ int main(int argc, char* argv[])
     
     parameters.Add("mu_0", 1.1 );
     
-    //parameters.Add("lambda_g", 0.09106887412584, 0.02);
-    //parameters.Add("A_g", 2.155203998342, 0.4);
+    parameters.Add("lambda_g", 0.09665075464199, 0.02);
+    parameters.Add("A_g", 2.103826220003, 0.4);
     
     // maxQ2 500
     //parameters.Add("lambda_g", 0.09661, 0.02);
     //parameters.Add("A_g", 2.0667, 0.4);
     
-    parameters.Add("lambda_g", -0.009631194037871, 0.02);
-    parameters.Add("A_g", 3.058791613883, 0.4);
+    //parameters.Add("lambda_g", -0.009631194037871, 0.02);
+    //parameters.Add("A_g", 3.058791613883, 0.4);
     
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
@@ -113,13 +114,16 @@ int main(int argc, char* argv[])
    */
 	/*
     cout << "# Q^2   F_2(x=1e-2)    F_L(x=1e-2)   F_2(x=5e-3)   F_L(x=5e-3)    F_2(x=1e-3)   F_L(x=1e-3)    F_L(x=1e-4)    F_2(x=1e-4)   F_L(x=1e-5)    F_2(x=1e-5) " << endl;
-    for (double q2=1; q2<10000; q2*=1.2)
+    for (double q2=1; q2<10000; q2*=1.4)
     {
         cout << q2 << " " << fitter.F2(q2, 1e-2, p) << " " << fitter.FL(q2, 1e-2, p) << " " << fitter.F2(q2, 5e-3, p) << " " << fitter.FL(q2, 5e-3, p)  << " " << fitter.F2(q2, 1e-3, p) << " " << fitter.FL(q2, 1e-3, p) << " " << fitter.F2(q2, 1e-4, p) << " " << fitter.FL(q2, 1e-4, p) << " " << fitter.F2(q2, 1e-5, p) << " " << fitter.FL(q2, 1e-5, p)  << endl;
     }
     exit(1);
     */
-    
+    /*
+    cout << fitter.F2(2, 1e-2, p) << " " << fitter.F2(15, 1e-2, p) << " " <<fitter.F2(50, 1e-2, p) << " " << fitter.F2(150, 1e-2, p)<< " " << fitter.F2(500, 1e-2, p) << endl;
+    exit(1);
+    */
      //parameters.SetPrecision(0.001);
     
     cout << "=== Initial parameters ===" << endl;

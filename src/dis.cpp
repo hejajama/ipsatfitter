@@ -19,9 +19,9 @@
 using namespace std;
 
 const double MINR = 1e-6;
-const double MAXR = 50;
+const double MAXR = 10*5.068;
 // Hera data is very accurate, so eventually one needs to use better accuracy
-const double RINTACCURACY = 0.00001;
+const double RINTACCURACY = 0.000001;
 
 const int INTEGRATIONDEPTH = 200;
 
@@ -60,13 +60,10 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double Ag = par[ parameters.Index("A_g")];
     double mu0 =par[parameters.Index("mu_0")];
     
-    // Forbid mu_0 > mc
-    /*
-    if (mu0 > charm_mass)
-    {
-        cout << "# mu_0 > m_c, returning high chi^2! " << PrintVector(par) << endl;
-        return 999;
-    }*/
+    // Force som limits in case MINUIT does not handle these properly
+    if (light_mass < 0 or light_mass > 1 or charm_mass < 0 or charm_mass > 10
+            or lambdag < -10 or lambdag > 10 or Ag < 0 or mu0 < 0)
+        return 9999;
 
     FitParameters fitparams;
     fitparams.values = &par;
@@ -188,7 +185,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-   // exit(1);
+    //exit(1);
     
     if (dglapsolver == CPPPIA)
     {
@@ -301,8 +298,8 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
     double mc = fitparams.values->at( fitparams.parameter->Index("charm_mass"));
     double mb = fitparams.values->at( fitparams.parameter->Index("bottom_mass"));
     photon.SetQuark(LIGHT, ml );
-    double xs_light_l =ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
-    double xs_light_t =ProtonPhotonCrossSection(Q2, xbj, TRANSVERSE, &photon, fitparams);
+    double xs_light_l = ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
+    double xs_light_t = ProtonPhotonCrossSection(Q2, xbj, TRANSVERSE, &photon, fitparams);
     
     double xc = xbj * (1.0 + 4.0*mc*mc/Q2);
     
@@ -316,8 +313,8 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
     if (xb < 0.01)
     {
         photon.SetQuark(B, mb);
-        double xs_bottom_l =ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
-        double xs_bottom_t =ProtonPhotonCrossSection(Q2, xb, TRANSVERSE, &photon, fitparams);
+        double xs_bottom_l = ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
+        double xs_bottom_t = ProtonPhotonCrossSection(Q2, xb, TRANSVERSE, &photon, fitparams);
     }
 
     return Q2 / (4.0*M_PI*M_PI*ALPHA_e) * (xs_light_l + xs_light_t + xs_charm_l + xs_charm_t + xs_bottom_t + xs_bottom_l);
@@ -331,7 +328,7 @@ double DISFitter::FL(double Q2, double xbj, FitParameters fitparams ) const
     double mc = fitparams.values->at( fitparams.parameter->Index("charm_mass"));
     double mb = fitparams.values->at( fitparams.parameter->Index("bottom_mass"));
     photon.SetQuark(LIGHT, ml );
-    double xs_light_l =ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
+    double xs_light_l = ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
     
     double xc = xbj * (1.0 + 4.0*mc*mc/Q2);
     
@@ -343,7 +340,7 @@ double DISFitter::FL(double Q2, double xbj, FitParameters fitparams ) const
     if (xb < 0.01)
     {
         photon.SetQuark(B, mb);
-        double xs_bottom_l =ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
+        double xs_bottom_l = ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
     }
     
     return Q2 / (4.0*M_PI*M_PI*ALPHA_e) * (xs_light_l + xs_charm_l + xs_bottom_l);

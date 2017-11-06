@@ -49,7 +49,7 @@ class VirtualPhoton  {
          * @param r dipole size
          * @param z longitudinal momentum fraction of the quark
          */
-        const double PsiSqr_T(double Qsqr, double r, double z) const;
+        double PsiSqr_T(double Qsqr, double r, double z) const;
 
         /**
          * Overlap between q bar q and longitudinal photon
@@ -58,7 +58,7 @@ class VirtualPhoton  {
          * @param r dipole size
          * @param z longitudinal momentum fraction of the quark
          */
-        const double PsiSqr_L(double Qsqr, double r, double z) const;
+        double PsiSqr_L(double Qsqr, double r, double z) const;
         
         // Overlap wave functions integrated over z=[0,1]
         /**
@@ -67,7 +67,7 @@ class VirtualPhoton  {
          * @param Qsqr photon virtuality [GeV^2]
          * @param r dipole size
          */
-        const double PsiSqr_T_intz(double Qsqr, double r) const;
+        double PsiSqr_T_intz(double Qsqr, double r) const;
 
         /**
          * Overlap between q bar q and longitudinal photon integrated over z
@@ -75,7 +75,7 @@ class VirtualPhoton  {
          * @param Qsqr photon virtuality [GeV^2]
          * @param r dipole size
          */
-        const double PsiSqr_L_intz(double Qsqr, double r) const;
+        double PsiSqr_L_intz(double Qsqr, double r) const;
         
         
         

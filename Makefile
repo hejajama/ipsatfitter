@@ -17,8 +17,8 @@ all: ipsatfit
 ipsatfit: $(OBJECTS) $(COBJECTS) $(FOBJECTS) $(SOURCES) $(CSOURCES)
 	$(CXX)  $(CXXFLAGS) $(LDFLAGS) $(MINUITLIBDIR)/libMinuit2.a  $(OBJECTS) $(COBJECTS) $(FOBJECTS) libColorDipole/libraries/libColorDipole.a  -o ipsatfit
 
-dipole: src/dipoleamplitude.o src/dglap_cpp/AlphaStrong.o src/dglap_cpp/EvolutionLO.o
-	$(CXX)  $(CXXFLAGS) $(LDFLAGS) -o dipoleamplitude src/dipoleamplitude.o src/dglap_cpp/AlphaStrong.o src/dglap_cpp/EvolutionLO.o 
+dipole: src/dipoleamplitude.o src/ugd_from_ipsat.o src/dglap_cpp/AlphaStrong.o src/dglap_cpp/EvolutionLO.o src/ugd_from_ipsat.o
+	$(CXX)  $(CXXFLAGS) $(LDFLAGS) -o dipoleamplitude src/ugd_from_ipsat.o src/dipoleamplitude.o src/dglap_cpp/AlphaStrong.o src/dglap_cpp/EvolutionLO.o 
 
 .cpp.o: 
 	$(CXX) $(CXXFLAGS) $< -c -o $@

@@ -38,6 +38,7 @@ class DipoleAmplitude
          */
         double N_bint(double r, double xbj);
     
+    
         /*
          * Proton profile, normalized to unity
          * \int d^2 b T_p = 1

@@ -46,7 +46,7 @@ VirtualPhoton::~VirtualPhoton()
 
 
 
-const double VirtualPhoton::PsiSqr_T(double Qsqr, double r, double z) const
+double VirtualPhoton::PsiSqr_T(double Qsqr, double r, double z) const
 {
     double result=0;
     
@@ -100,7 +100,7 @@ const double VirtualPhoton::PsiSqr_T(double Qsqr, double r, double z) const
  * Longitudinally polarized component of the overlap
  */
 
-const double VirtualPhoton::PsiSqr_L(double Qsqr, double r, double z) const
+double VirtualPhoton::PsiSqr_L(double Qsqr, double r, double z) const
 {
     // Avoid unnecessary special function evaluation
     double saved_mass = -1;
@@ -164,7 +164,7 @@ double  zhelperfuncL(double z, void * p){
 							z);
 }
 
-const double VirtualPhoton::PsiSqr_T_intz(double Qsqr, double r) const
+double VirtualPhoton::PsiSqr_T_intz(double Qsqr, double r) const
 {
 #ifdef USE_INTERPOLATOR
     if (interpolator_ready and Qsqr < interpolator_maxQ2 and Qsqr > interpolator_minQ2 and r < interpolator_maxr and r  > interpolator_minr)
@@ -196,7 +196,7 @@ const double VirtualPhoton::PsiSqr_T_intz(double Qsqr, double r) const
     return result;
 }
 
-const double VirtualPhoton::PsiSqr_L_intz(double Qsqr, double r) const
+double VirtualPhoton::PsiSqr_L_intz(double Qsqr, double r) const
 {
     double result,abserr;
     struct zinthelper zintpar;

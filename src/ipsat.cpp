@@ -34,7 +34,7 @@ DglapEvolution sartre_dglap;
 extern "C" {
     double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
 };
-int IPSAT12_PAR = 1;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
+int IPSAT12_PAR = 2;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
 
 
 // LO DGLAP solver
@@ -97,7 +97,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
 {
     double analres=0;
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
-    if (config == -1 and saturation   )
+    if (config == -1 and saturation  )
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
         // b integral analytically, as
@@ -120,7 +120,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         int sinint = gsl_sf_Shi_e(a, &sinres);
         int cosint = gsl_sf_Chi_e(a, &cosres);
         
-        if (!sinint and !cosint and cosres.val < 1e3 and sinres.val < 1e3)
+        if (!sinint and !cosint and cosres.val < 1e4 and sinres.val < 1e4)
         {
             // Require sinint and cosint to be so small that we can reliably calculate their difference
             // Otherwise fall back to numerical integration
@@ -130,7 +130,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         }
         
     }
-    else if (config == -1 and !saturation)
+    else if (config == -1 and !saturation )
     {
         // b integral analytically, now this is trivial as \int d^2 T_b = 1
         // so actually the result is 2\pi B N(r, b=0)
