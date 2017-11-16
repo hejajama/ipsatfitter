@@ -7,8 +7,11 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <vector>
 #include "ipsat.hpp"
 #include "wave_function.hpp"
+#include "woodsaxon.hpp"
+#include "interpolation.hpp"
 
 //#include "dglap_sartre/Dglap.h"
 
@@ -19,8 +22,8 @@
 using namespace std;
 
 const double MINB = 1e-7;
-const double MAXB = 2e2;
-const double BINTACCURACY = 0.0001;
+const double MAXB = 200;
+const double BINTACCURACY = 0.001;
 const int BINTEGRATIONDEPTH = 540;
 
 using namespace std;
@@ -36,6 +39,7 @@ extern "C" {
 };
 int IPSAT12_PAR = 2;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
 
+const bool USE_AMIR_FIT = false;
 
 // LO DGLAP solver
 // Modified by H.M. such that
@@ -59,13 +63,13 @@ extern "C"
 double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parameters,  int config) const
 {
     // Use Amir's dipole
-    //return dipole_amplitude_(&x, &r, &b, &IPSAT12_PAR)/2.0;
+    if (USE_AMIR_FIT)
+        return dipole_amplitude_(&x, &r, &b, &IPSAT12_PAR)/2.0;
     
     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
     double C = parameters.values->at( parameters.parameter->Index("C"));
     
     double musqr = mu_0*mu_0 + C / SQR(r);
-    
     double exponent = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) * Tp(b, parameters, config);
     if (saturation)
         return 1.0 - exp(-exponent);
@@ -97,7 +101,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
 {
     double analres=0;
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
-    if (config == -1 and saturation  )
+    if (config == -1 and saturation and !USE_AMIR_FIT and A==1 )
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
         // b integral analytically, as
@@ -130,7 +134,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         }
         
     }
-    else if (config == -1 and !saturation )
+    else if (config == -1 and !saturation and !USE_AMIR_FIT and A==1 )
     {
         // b integral analytically, now this is trivial as \int d^2 T_b = 1
         // so actually the result is 2\pi B N(r, b=0)
@@ -148,9 +152,6 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     fun.params=&par;
     
     double acc = BINTACCURACY;
-    if (r < 1e-5)
-        acc*=10; // At very small dipoles this is numerically dificult, but also
-        // contribution is very small, so let's not demand too much from GSL
     
     double result,abserr;
     gsl_integration_workspace* ws = gsl_integration_workspace_alloc(BINTEGRATIONDEPTH);
@@ -222,12 +223,18 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
  */
 double IPsat::Tp(double b, FitParameters parameters, int config) const
 {
+    double B_G = parameters.values->at( parameters.parameter->Index("B_G"));
+    if (A>1)
+    {
+        return density_interpolator->Evaluate(b);
+        
+    }
     if (config != -1)
     {
         cerr << "Event-by-event fluctuations for the proton are not supproted at this point!" << endl;
         return 0;
     }
-    double B_G = parameters.values->at( parameters.parameter->Index("B_G"));
+    
     return 1.0 / (2.0 * M_PI * B_G) * exp(-b*b / (2.0 * B_G));
 }
 
@@ -247,11 +254,10 @@ double IPsat::Alphas(double musqr, FitParameters parameters) const
     {
         return 1.0;
     }
-    else if (dglapsolver == SARTRE)
+    else
     {
-#ifdef INCLUDE_SARTRE_DGLAP
-        return alpha_s_LO(musqr, 3); // Nf=3
-#endif
+        cerr << "Unknown DGLAP solver" << endl;
+        return -1;
     }
     
 }
@@ -261,16 +267,7 @@ double IPsat::Alphas(double musqr, FitParameters parameters) const
  */
 void IPsat::InitializeDGLAP(FitParameters par) const
 {
-    if (dglapsolver == SARTRE)
-    {
-        double lambdag =par.parameter->Value("lambda_g");
-        double Ag =par.parameter->Value("A_g");
-        double mu0 =par.parameter->Value("mu_0");
-        double mc =par.parameter->Value("charm_mass");
-        double mb =par.parameter->Value("bottom_mass");
-        
-        //sartre_dglap.Init(Ag, lambdag, mu0*mu0, mc, mb );
-    }
+    
 }
 
 /*
@@ -278,7 +275,7 @@ void IPsat::InitializeDGLAP(FitParameters par) const
  */
 IPsat::IPsat()
 {
-    minx=1e-9;
+    minx=1e-10;
     maxx=0.1;
     minQ2=0;
     maxQ2=1e99;
@@ -286,9 +283,40 @@ IPsat::IPsat()
     enable_singlet = false;
     maxalphas = 0.5;
     
-    dglapsolver = PIA;
+    dglapsolver = CPPPIA;
+    density_interpolator=NULL;
+    A=1;
 }
 
+/*
+ * Change to nuclear mode
+ */
+void IPsat::InitNucleus(int A_)
+{
+
+    A=A_;
+    
+    // Init for nucleus
+    WoodsSaxon nuke(197);
+    vector<double> bvals;
+    vector<double> tavals;
+    for (double b=0; b<100; b+=0.1)
+    {
+        bvals.push_back(b);
+        tavals.push_back(A*nuke.T_A(b));
+    }
+    density_interpolator = new Interpolator(bvals, tavals);
+    density_interpolator->SetOverflow(0);
+    density_interpolator->SetUnderflow(0);
+    density_interpolator->SetFreeze(true);
+
+}
+
+IPsat::~IPsat()
+{
+    if (A>1 and density_interpolator != NULL)
+        delete density_interpolator;
+}
 
 
 std::ostream& operator<<(std::ostream& os, IPsat& ipsat)

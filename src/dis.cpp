@@ -177,7 +177,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
 
             // Output for plotting
             
-            //cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
+            cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
 
             
             
@@ -185,7 +185,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-    //exit(1);
+    exit(1);
     
     if (dglapsolver == CPPPIA)
     {
@@ -310,7 +310,7 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
     double xb = xbj*(1.0 + 4.0*mb*mb/Q2);
     double xs_bottom_l=0;
     double xs_bottom_t = 0;
-    if (xb < 0.01)
+    if (xb < 0.01  )
     {
         photon.SetQuark(B, mb);
         double xs_bottom_l = ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
@@ -337,7 +337,7 @@ double DISFitter::FL(double Q2, double xbj, FitParameters fitparams ) const
     
     double xb = xbj*(1.0 + 4.0*mb*mb/Q2);
     double xs_bottom_l=0;
-    if (xb < 0.01)
+    if (xb < 0.01 )
     {
         photon.SetQuark(B, mb);
         double xs_bottom_l = ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
@@ -360,9 +360,11 @@ DISFitter::DISFitter(MnUserParameters parameters_)
     parameters = parameters_;
     dipole.SetSaturation(false);
     
+    //dipole.InitNucleus(197);
+    
     // Init dglap
-    dglapsolver = PIA;
-    dipole.SetDGLAPSolver(PIA);
+    dglapsolver = CPPPIA;
+    dipole.SetDGLAPSolver(CPPPIA);
     init_();
     
     

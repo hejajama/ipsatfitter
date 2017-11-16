@@ -13,7 +13,7 @@
 #include "dglap_cpp/AlphaStrong.h"
 #include "dglap_cpp/EvolutionLO.h"
 #include "wave_function.hpp"
-
+#include "interpolation.hpp"
 
 using namespace std;
 using namespace ROOT::Minuit2;
@@ -57,6 +57,8 @@ class IPsat
 {
 public:
     IPsat();
+    void InitNucleus(int A_);
+    ~IPsat();
     
     // Evaluate amplitude
     //config allows to specify configuration index in case of eventy-by-event
@@ -106,6 +108,9 @@ private:
     double maxalphas;
     
     DGLAP_Solver dglapsolver;
+    
+    Interpolator *density_interpolator;  // Used for nuclei
+    int A;  // If >1, use WoodsSaxon nucleus
     
     
     

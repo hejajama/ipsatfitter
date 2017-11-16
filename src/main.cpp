@@ -29,6 +29,8 @@ void ErrHandler(const char * reason,
                 int line,
                 int gsl_errno);
 
+
+
 int main(int argc, char* argv[])
 {
     gsl_set_error_handler(&ErrHandler);
@@ -41,7 +43,7 @@ int main(int argc, char* argv[])
    //     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
     //data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
     //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
-    data.LoadData("data/fcc_ncepp.txt", TOTAL);
+    data.LoadData("data/lhec_ncepp.txt", TOTAL);
     
     MnUserParameters parameters;
     // Constants
@@ -50,13 +52,15 @@ int main(int argc, char* argv[])
     //parameters.Add("light_mass", 0.0005);
     //parameters.Add("charm_mass", 1.4);
     
-    parameters.Add("light_mass", 0.1388639702255); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.342035015621,  0.1 ); // 1.27 // Ipsat 1.361410284911 // Nonsat 1.350324669808,
-    //parameters.Add("light_mass", 0.03);
-    //parameters.Add("charm_mass", 1.354062489611);
+    //parameters.Add("light_mass", 0.1388639702255); // Having very small mass is numerically difficult
+    //parameters.Add("charm_mass", 1.342035015621,  0.1 ); // 1.27 // Ipsat 1.361410284911 // Nonsat 1.350324669808,
+    
+    parameters.Add("light_mass", 0.03);
+    parameters.Add("charm_mass", 1.354062489611);
+    //parameters.Add("charm_mass", 1.4);
     parameters.Add("bottom_mass", 4.75);  // 4.75
-    parameters.Add("C", 4.939286653112, 1.0);
-    //parameters.Add("C", 2.146034445992);
+    //parameters.Add("C", 4.939286653112, 1.0);
+    parameters.Add("C", 2.146034445992);
     //parameters.Add("C", 2.41367);
     // Start using some reasonable parameters
     
@@ -93,7 +97,7 @@ int main(int argc, char* argv[])
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
     
-    fitter.SetSaturation(false);
+    fitter.SetSaturation(true);
     fitter.SetSinglet(false);
     
     fitter.SetDGLAPSolver(CPPPIA);
@@ -103,21 +107,32 @@ int main(int argc, char* argv[])
     vector<double> parvec = parameters.Params();
     p.values = &parvec;
     
-    /*
-     fitter(parvec);
-    cout << "Q^2 [GeV^2]    alphas*xg(x=0.01, Q^2)    alphas*xg(x=0.001 Q^2)" << endl;
-    for (double q2 = 1.5; q2 < 1e7; q2*=1.1)
+    
+    // Initialize alpha_s(M_Z=91.1876)=0.1183
+    AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, parvec[parameters.Index("charm_mass")], 4.75, 175);
+    // DGLAP_Solver will take care of deleting alphas when it is deleted
+    EvolutionLO *cppdglap = new EvolutionLO(alphas);
+    
+    p.cppdglap = cppdglap;
+    p.alpha_strong = alphas;
+    
+    cout << "#x  F_2(Q^2=2)    F_2(Q^2=5)    F_2(Q^2=50)   F_2(Q^2=500)  F_L(Q^2=2)  F_L(Q^2=5)     F_L(Q^2=50)     F_L(Q^2=500) " << endl;
+    for (double x=1e-8; x<0.02; x*=1.5)
     {
-        cout << q2 << " " << fitter.GetDipole().xg(0.01, q2, p) << " " << fitter.GetDipole().xg(0.001, q2, p) << endl;
+        cout << x << " " << fitter.F2(2, x, p) << " " << fitter.F2(5, x, p) << " " << fitter.F2(50, x, p) << " " << fitter.F2(500,x,p) << " " <<   fitter.FL(2, x, p) << " " << fitter.FL(5, x, p) << " " << fitter.FL(50, x, p) << " " << fitter.FL(500,x,p) << endl;
     }
     exit(1);
-   */
-	/*
-    cout << "# Q^2   F_2(x=1e-2)    F_L(x=1e-2)   F_2(x=5e-3)   F_L(x=5e-3)    F_2(x=1e-3)   F_L(x=1e-3)    F_L(x=1e-4)    F_2(x=1e-4)   F_L(x=1e-5)    F_2(x=1e-5) " << endl;
+    
+
+    /*
+    
+    cout << "# Q^2   F_2(x=1e-2)    F_L(x=1e-2)   F_2(x=1e-3)   F_L(x=1e-3)    F_L(x=1e-4)    F_2(x=1e-4)   F_L(x=1e-5)    F_2(x=1e-5) " << endl;
     for (double q2=1; q2<10000; q2*=1.4)
     {
-        cout << q2 << " " << fitter.F2(q2, 1e-2, p) << " " << fitter.FL(q2, 1e-2, p) << " " << fitter.F2(q2, 5e-3, p) << " " << fitter.FL(q2, 5e-3, p)  << " " << fitter.F2(q2, 1e-3, p) << " " << fitter.FL(q2, 1e-3, p) << " " << fitter.F2(q2, 1e-4, p) << " " << fitter.FL(q2, 1e-4, p) << " " << fitter.F2(q2, 1e-5, p) << " " << fitter.FL(q2, 1e-5, p)  << endl;
+        cout << q2 << " " << fitter.F2(q2, 1e-2, p) << " " << fitter.FL(q2, 1e-2, p) << " " << fitter.F2(q2, 1e-3, p) << " " << fitter.FL(q2, 1e-3, p) << " " << fitter.F2(q2, 1e-4, p) << " " << fitter.FL(q2, 1e-4, p) << " " << fitter.F2(q2, 1e-5, p) << " " << fitter.FL(q2, 1e-5, p)  << endl;
     }
+    
+    
     exit(1);
     */
     /*

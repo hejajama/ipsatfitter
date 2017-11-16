@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_sf_expint.h>
+#include <gsl/gsl_sf_expint.h>
 #include <gsl/gsl_errno.h>
 
 using namespace std;
@@ -44,8 +45,8 @@ int main(int argc, char* argv[])
     
     // Parameters are: DipoleAmplitude(C, mu0 [GeV], lambda_g, A_g, m_c [GeV]
     // ipsat
-    DipoleAmplitude amplitude(2.146034445992, 1.1, 0.09665075464199, 2.103826220003, 1.351650642298); //
-    amplitude.SetSaturation(true);
+    //DipoleAmplitude amplitude(2.146034445992, 1.1, 0.09665075464199, 2.103826220003, 1.351650642298); //
+    //amplitude.SetSaturation(true);
     
     
     //DipoleAmplitude amplitude(4, sqrt(1.17), 0.02, 2.55, 1.4); //
@@ -54,12 +55,12 @@ int main(int argc, char* argv[])
     //cout << xg_from_ipsat(0.01, 10, amplitude ) << endl;
  
     // IPnonsat
-    //DipoleAmplitude amplitude(4.939286653112, 1.1, 0.009631194037871, 3.058791613883, 1.342035015621);
-    //amplitude.SetSaturation(false);'
+    DipoleAmplitude amplitude(4.939286653112, 1.1, -0.009631194037871, 3.058791613883, 1.342035015621);
+    amplitude.SetSaturation(false);
     
     
     
-    
+    /*
     double minr=1.1e-6;
     double maxr=100;
     int points=500;
@@ -71,14 +72,14 @@ int main(int argc, char* argv[])
         double n =amplitude.N_bint(r, xbj) ;
         cout <<  std::scientific << std::setprecision(9) << r << " " << n << endl;
     }
+    */
     
     
-    /*
     
     for (double r=1e-8; r<100; r*=1.1)
     {
         cout << r << " " << amplitude.N(r, 0.01, 0) << " " << amplitude.N(r, 0.001, 0) << " " << amplitude.N(r, 0.0001, 0) << " " <<  amplitude.N(r, 0.01, 3) << " " << amplitude.N(r, 0.001, 3) << " " << amplitude.N(r, 0.0001, 3) << endl;
-    }*/
+    }
     
     
     return 0;
@@ -203,6 +204,62 @@ double DipoleAmplitude::N_bint(double r, double xbj)
     return 2.0*M_PI*result; //2pi from angular integral
     
 }
+
+
+double DipoleAmplitude::N_sqr_bint(double r, double xbj)
+{
+    double musqr =mu0*mu0 + C / (r*r);
+    if (!saturation)
+    {
+        // int d^2 b N(r)^2 = pi * B * N(r, b=0)
+        return M_PI * B_p * N(r, xbj, 0);
+    }
+    
+    
+    
+    double a = M_PI*M_PI / (2.0 * Nc) * r*r * Alphas_xg(xbj, musqr)  / (2.0 * M_PI * B_p);
+    if (a==0) // Basically so small r that xg =0 as we are outside the dglap evolution grid
+        return 0;
+    
+    gsl_sf_result res2a;
+    gsl_sf_result resa;
+    int res1 = gsl_sf_expint_Ei_e(-a, &resa);
+    int res2 = gsl_sf_expint_Ei_e(-2.0*a, &res2a);
+
+    
+    
+    if (!res1 and !res2)
+    {
+        return 2.0*M_PI*B_p * ( M_EULER + res2a.val - 2.0*resa.val + std::log(a/2.0));
+    }
+    else
+    {
+        cerr << "Problem with expint functions in N_sqr_bint!" << endl;
+        return 0;
+    }
+    /*
+    gsl_function fun; fun.function=inthelperf_bint;
+    inthelper_bint par;
+    par.r=r; par.x=xbj;
+    par.ipsat = this;
+    fun.params=&par;
+    
+    double acc = 0.00001;
+    
+    double result,abserr;
+    gsl_integration_workspace* ws = gsl_integration_workspace_alloc(500);
+    int status = gsl_integration_qag(&fun, 0, 999, 0, acc,
+                                     500, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+    if (status)
+        cerr << "bintegral failed in IPsat::DipoleAmplitude_bit with r=" << r <<", result " << result << " relerror " << abserr/result << endl;
+    gsl_integration_workspace_free(ws);
+    
+    return 2.0*M_PI*result; //2pi from angular integral
+     */
+    
+}
+
+
 
 double DipoleAmplitude::Tp(double b)
 {

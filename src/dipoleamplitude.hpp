@@ -38,6 +38,10 @@ class DipoleAmplitude
          */
         double N_bint(double r, double xbj);
     
+        /* Dipole amplitude squared integrated over b
+         */
+        double N_sqr_bint(double r, double xbj);
+    
     
         /*
          * Proton profile, normalized to unity
