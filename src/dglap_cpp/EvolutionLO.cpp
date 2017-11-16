@@ -8,6 +8,11 @@
 
 #define PR(x) cout << #x << " = " << (x) << endl;
 
+inline complex<double> SQR(complex<double> x)
+{
+    return x*x;
+}
+
 double EvolutionLO::alphasxG(double x, double Q2, double mu0, int coupling, double Ag,
                              double lambdag, double As, double lambdas)
 {
@@ -114,6 +119,9 @@ void EvolutionLO::reno(complex<double> *fn, double alpq, int nmax, int coupling,
             - 6.0 / (xn - lambdag)
             + 1.0 / (xn - lambdag - 1.0)
                                     );
+        
+       
+        
          
         
         // TODO: Old singlet parametrization with beta function,
@@ -282,7 +290,7 @@ EvolutionLO::EvolutionLO(AlphaStrong* alphas)
     double down[18] = {0, 0., 0.5, 1., 2., 3., 4., 6., 8.,
         1.e1, 1.2e1, 1.5e1, 1.8e1, 2.1e1, 2.4e1, 2.7e1, 3.e1, 3.3e1};
     double up[18];
-    mC = 1;
+    mC = 0.8;
     double phi = M_PI * 3./4.;
     double co = cos(phi);
     double si = sin(phi);

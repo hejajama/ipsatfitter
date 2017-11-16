@@ -79,11 +79,11 @@ C       end
        
        implicit none
        
-       DOUBLE PRECISION ALPHAS,C,EX,PA,WN(136),FR2,mur,ASMUR,MC,MB,MT,
+       DOUBLE PRECISION ALPHAS,C,EX,PA,WN(144),FR2,mur,ASMUR,MC,MB,MT,
      1 q2,fz,fun,x,ax,alpq,gluon,alps,alpc,alpb,alpt
        DOUBLE PRECISION mu0,Ag,lambdag, As, lambdas
        DOUBLE PRECISION asmur_, mc_, mb_
-       double COMPLEX CC,XNM,CEX,N(136),FN(136)
+       double COMPLEX CC,XNM,CEX,N(144),FN(144)
        INTEGER NMAX, I1, M , coupling
        COMMON / CONTin  / C, CC                              
        COMMON / WEIGHTS / WN
@@ -118,7 +118,7 @@ c       CALL INITALPHAS(0, FR2, mur, ASMUR, MC, MB, MT)
         EX = dEXP (-C * AX)                                 
 *...INTEGRATION LENGTH PARAMETER FOR THE MELLIN INVERSION :     
              
-        NMAX = 136                ! zmax = 36
+        NMAX = 144                ! zmax = 36
                                              
 *...CALCULATION OF THE GLUON DENSITY AND OUTPUT :
 
@@ -153,8 +153,8 @@ c NOTE: Here I have added *alphas!
        implicit none
        double complex ns8n,ns3n,gln,gl,sin,sg,svn,dsn,ssn,csn,bsn,tsn,
      1 ns35n,ns24n,ns15n,udbn,deln,usn,dvn,uvn,me2,ma2,me,ma,ep,epm,em,
-     2 emp,oswi,ens,ANS(136,3:5),AM(136,3:5),AP(136,3:5),AL(136,3:5),
-     3 BE(136,3:5),AB(136,3:5),AC(136,3:5),FN(136),N(136),XN,CBETA,one,
+     2 emp,oswi,ens,ANS(144,3:5),AM(144,3:5),AP(144,3:5),AL(144,3:5),
+     3 BE(144,3:5),AB(144,3:5),AC(144,3:5),FN(144),N(144),XN,CBETA,one,
      4 two,zero
        Double precision XL,XL1,S,ALP,ALPS,ALPC,ALPB,ALPQ,alpt,
      1 B,b0,b1,alpq1,eqs3,q2,x,FR2,mur,ASMUR,MC,MB,MT,Ag,lambdag
@@ -396,20 +396,20 @@ c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
 *
 *   Present version: the number of active flavours in the factorization
 *    is fixed to ff=3, in the beta-function it varies between f=3 and 
-*    f=5. The dimension of the moment array is 136.
+*    f=5. The dimension of the moment array is 144.
 *    
        SUBROUTINE ANOM (ANS, AM, AP, AL, BE, AB, AC, N)
 
        implicit none
 
        double complex QQI,QGF,GQI,GGI,GGF,XN,xac,xab,xbe,xal,xap,xam,
-     1 xans,gm,gp,sq,gg,gq,qg,qq,ANS(136,3:5),AM(136,3:5),AP(136,3:5),
-     2 AL(136,3:5),BE(136,3:5),AB(136,3:5),AC(136,3:5),N(136)
+     1 xans,gm,gp,sq,gg,gq,qg,qq,ANS(144,3:5),AM(144,3:5),AP(144,3:5),
+     2 AL(144,3:5),BE(144,3:5),AB(144,3:5),AC(144,3:5),N(144)
        Double precision B0, B1, B0F,b10,b02f,b02
        INTEGER F, FR, K1, K2, k3, k4, k5
        
        F = 3
-       DO 1 K1 = 1, 136
+       DO 1 K1 = 1, 144
        XN = N(K1)
        CALL ANCALC (QQI, QGF, GQI, GGI, GGF, XN)
        DO 2 K2 = 3, 5
@@ -505,52 +505,60 @@ c     2           1445.5*CBETA(XN-0.83657,    2.3882+one))
 *    evolution at these n-values. The outputs are written into the 
 *    common-blocks CONT, MOMS, WEIGHTS and ANOMS, respectively. 
 *    
+
        SUBROUTINE INIT
 
        implicit none
-       
-       double precision c,co,phi,si,sum,diff,z,ZS(8),WZ(8),DOWN(17),
-     1 UP(17), WN(136)
+
+       double precision c,co,phi,si,sum,diff,z,ZS(8),WZ(8),DOWN(18),
+     1 UP(18), WN(144)
        INTEGER I1, I2, I3, K
-       double COMPLEX ANS(136,3:5),AM(136,3:5),AP(136,3:5),AL(136,3:5),
-     1 BE(136,3:5),AB(136,3:5),AC(136,3:5),N(136),CC
+       double COMPLEX ANS(144,3:5),AM(144,3:5),AP(144,3:5),AL(144,3:5),
+     1 BE(144,3:5),AB(144,3:5),AC(144,3:5),N(144),CC
        COMMON / WEIGHTS / WN
        COMMON / MOMS / N
        COMMON / CONTin / C, CC
        COMMON / ANOMS / ANS, AM, AP, AL, BE, AB, AC
 *...WEIGHTS AND SUPPORT POINTS FOR NOMALIZED 8 POINT GAUSS QUADRATURE :
-       DATA WZ /0.101228536290376,0.222381034453374,0.313706645877887,  
+       DATA WZ /0.101228536290376,0.222381034453374,0.313706645877887,
      1 0.362683783378362,0.362683783378362,0.313706645877887,
      2 0.222381034453374,0.101228536290376/
        DATA ZS/-0.960289856497536,-0.796666477413627,-0.525532409916329,
      1 -0.183434642495650,0.183434642495650,0.525532409916329,
      2 0.796666477413627,0.960289856497536/
 *...INTEGRATION CONTOUR PARAMETERS :
-       DATA DOWN / 0.D0, 0.5D0, 1.D0, 2.D0, 3.D0, 4.D0, 6.D0, 8.D0,
-     1     1.D1, 1.2D1, 1.5D1, 1.8D1, 2.1D1, 2.4D1, 2.7D1, 3.D1, 3.3D1/
-       C = 1
-       PHI = 3.141592654 * 3./4.
+       DATA DOWN /0.D0,0.1D0,0.3D0,0.6D0,1.0D0,1.6D0,2.4D0,3.5D0,5.0D0,
+     1           7.0D0,10.D0,14.D0,19.D0,25.D0,32.D0,40.D0,50.D0,63.D0/
+
+**** PLAY WITH C!
+       C = 0.8
+****
+       PHI = 3.141592653589793238462643D0 * 3.d0/4.d0
        CO = DCOS (PHI)
        SI = DSIN (PHI)
        CC = dCMPLX (CO, SI)
-       DO 1 I1 = 1, 16
-         UP(I1) = DOWN(I1+1)
-  1    CONTINUE
-       UP(17) = 36.D0 
-*...SUPPORT POINTS AND WEIGHTS FOR THE GAUSS INTEGRATION : 
+       DO i1 = 2, 18
+       DOWN(i1) = DOWN(i1)
+       UP(i1-1) = DOWN(i1)
+       enddo
+       UP(18)  = 80.D0
+*...SUPPORT POINTS AND WEIGHTS FOR THE GAUSS INTEGRATION :
 *    (THE FACTOR (UP-DOWN)/2 IS INCLUDED IN THE WEIGHTS)
        K = 0
-       DO 2 I2 = 1, 17
-         SUM  = UP(I2) + DOWN(I2) 
-         DIFF = UP(I2) - DOWN(I2) 
-       DO 3 I3 = 1, 8
+       DO i2 = 1, 18
+         SUM  = UP(i2) + DOWN(i2)
+         DIFF = UP(i2) - DOWN(i2)
+       DO i3 = 1, 8
          K = K + 1
-         Z = 0.5 * (SUM + DIFF * ZS(I3))
-         WN(K) = DIFF / 2.* WZ(I3) 
-         N(K)  = dCMPLX (C+CO*Z+1.,SI*Z)
-  3    CONTINUE
-  2    CONTINUE 
+         Z = (SUM + DIFF * ZS(i3)) * 0.5
+         WN(K) = DIFF * 0.5 * WZ(i3)
+         N(K) = CC * Z + C + 1.
+       enddo
+       enddo
        CALL ANOM (ANS, AM, AP, AL, BE, AB, AC, N)
        RETURN
-       END 
+       END
+
+
+
 
