@@ -52,15 +52,15 @@ int main(int argc, char* argv[])
     //parameters.Add("light_mass", 0.0005);
     //parameters.Add("charm_mass", 1.4);
     
-    //parameters.Add("light_mass", 0.1388639702255); // Having very small mass is numerically difficult
-    //parameters.Add("charm_mass", 1.342035015621,  0.1 ); // 1.27 // Ipsat 1.361410284911 // Nonsat 1.350324669808,
+    parameters.Add("light_mass", 0.1388639702255); // Having very small mass is numerically difficult
+    parameters.Add("charm_mass", 1.342035015621,  0.1 ); // 1.27 // Ipsat 1.361410284911 // Nonsat 1.350324669808,
     
-    parameters.Add("light_mass", 0.03);
-    parameters.Add("charm_mass", 1.354062489611);
+    //parameters.Add("light_mass", 0.03);
+    //parameters.Add("charm_mass", 1.354062489611);
     //parameters.Add("charm_mass", 1.4);
     parameters.Add("bottom_mass", 4.75);  // 4.75
-    //parameters.Add("C", 4.939286653112, 1.0);
-    parameters.Add("C", 2.146034445992);
+    parameters.Add("C", 4.939286653112, 1.0);
+    //parameters.Add("C", 2.146034445992);
     //parameters.Add("C", 2.41367);
     // Start using some reasonable parameters
     
@@ -68,15 +68,15 @@ int main(int argc, char* argv[])
     
     parameters.Add("mu_0", 1.1 );
     
-    parameters.Add("lambda_g", 0.09665075464199, 0.02);
-    parameters.Add("A_g", 2.103826220003, 0.4);
+    //parameters.Add("lambda_g", 0.09665075464199, 0.02);
+    //parameters.Add("A_g", 2.103826220003, 0.4);
     
     // maxQ2 500
     //parameters.Add("lambda_g", 0.09661, 0.02);
     //parameters.Add("A_g", 2.0667, 0.4);
     
-    //parameters.Add("lambda_g", -0.009631194037871, 0.02);
-    //parameters.Add("A_g", 3.058791613883, 0.4);
+    parameters.Add("lambda_g", -0.009631194037871, 0.02);
+    parameters.Add("A_g", 3.058791613883, 0.4);
     
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 
 	parameters.Add("lambda_s", 0);
 	parameters.Add("A_s", 0);
-
+    parameters.Add("A", 1);
     
     // Set limits
     
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     DISFitter fitter(parameters);
     fitter.AddDataset(data);
     
-    fitter.SetSaturation(true);
+    fitter.SetSaturation(false);
     fitter.SetSinglet(false);
     
     fitter.SetDGLAPSolver(CPPPIA);
@@ -116,14 +116,23 @@ int main(int argc, char* argv[])
     p.cppdglap = cppdglap;
     p.alpha_strong = alphas;
     
+/*
     cout << "#x  F_2(Q^2=2)    F_2(Q^2=5)    F_2(Q^2=50)   F_2(Q^2=500)  F_L(Q^2=2)  F_L(Q^2=5)     F_L(Q^2=50)     F_L(Q^2=500) " << endl;
+    //for (double x=0.0097074; x<0.02; x*=1.5)
     for (double x=1e-8; x<0.02; x*=1.5)
     {
         cout << x << " " << fitter.F2(2, x, p) << " " << fitter.F2(5, x, p) << " " << fitter.F2(50, x, p) << " " << fitter.F2(500,x,p) << " " <<   fitter.FL(2, x, p) << " " << fitter.FL(5, x, p) << " " << fitter.FL(50, x, p) << " " << fitter.FL(500,x,p) << endl;
     }
     exit(1);
-    
+    */
 
+    cout << "#x   F_L(Q^2=2)   F_L(Q^2=3.5)     F_L(Q^2=6.5)    F_L(12)     F_L(25)     F_L(100)    F_L(400)    F_(2000) " << endl;
+    for (double x=1e-8; x<1e-2; x*=1.2)
+    {
+        cout << x << " " << fitter.FL(2, x, p) << " " << fitter.FL(3.5, x, p) << " " << fitter.FL(6.5, x, p) << " " << fitter.FL(12,x,p) << " " << fitter.FL(25, x, p) << " " << fitter.FL(100, x, p) << " " << fitter.FL(400,x,p) << " " <<    fitter.FL(500, x, p) << endl;
+    }
+    exit(1);
+    
     /*
     
     cout << "# Q^2   F_2(x=1e-2)    F_L(x=1e-2)   F_2(x=1e-3)   F_L(x=1e-3)    F_L(x=1e-4)    F_2(x=1e-4)   F_L(x=1e-5)    F_2(x=1e-5) " << endl;

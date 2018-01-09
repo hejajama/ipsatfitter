@@ -225,7 +225,11 @@ double Inthelperf_totxs(double lnr, void* p)
     double r = exp(lnr);
     Inthelper_totxs* par = (Inthelper_totxs*)p;
     
-    double result = r*par->N->DipoleAmplitude_bint(r,par->xbj, par->fitparameters, par->config);
+    double result = 0;
+    if (par->fitparameters.values->at( par->fitparameters.parameter->Index("A")) == 1)
+        result = r*par->N->DipoleAmplitude_bint(r,par->xbj, par->fitparameters, par->config);
+    else
+        result = r*par->N->DipoleAmplitude_bint_lumpyA(r,par->xbj, par->fitparameters, par->config);
     
     result *= r;    // Jacobian, as we integrate ln r
     
@@ -358,14 +362,17 @@ void DISFitter::AddDataset(Data& d)
 DISFitter::DISFitter(MnUserParameters parameters_)
 {
     parameters = parameters_;
-    dipole.SetSaturation(false);
+    dipole.SetSaturation(true);
     
-    //dipole.InitNucleus(197);
+    int A = parameters.Value("A");
+    if (A>1)
+        dipole.InitNucleus(A);
+    
     
     // Init dglap
     dglapsolver = CPPPIA;
     dipole.SetDGLAPSolver(CPPPIA);
-    init_();
+
     
     
 }

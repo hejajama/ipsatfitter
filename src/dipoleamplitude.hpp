@@ -60,11 +60,13 @@ class DipoleAmplitude
         double GetMt() { return mt; }
         bool GetSaturation() { return saturation; }
         void SetSaturation(bool s) { saturation = s; }
+        void SetCoupling(int c) { coupling = c; }
     
     private:
         EvolutionLO *cppdglap;
         AlphaStrong *alphas;
         bool saturation;   // True for ipsat, false for ipnonsat
+        int coupling;
         double InitAlphas();
         double C;
         double mu0;

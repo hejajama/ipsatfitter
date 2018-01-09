@@ -69,6 +69,9 @@ public:
     // Dipole amplitude integrated over d^2 b
     double DipoleAmplitude_bint(double r, double x, FitParameters parameters, int config=-1) const;
     
+    // Integrate over d^2b assuming "lumpy nucleus" ala KT
+    double DipoleAmplitude_bint_lumpyA(double r, double x, FitParameters parameters, int config=-1) const;
+    
     // Proton density profile in transverse plane
     // b is length of 2d vector, [b]=GeV^(-1)
     // config allows to specify configuration index in case of eventy-by-event
@@ -90,6 +93,7 @@ public:
     void SetDGLAPSolver(DGLAP_Solver s) {  dglapsolver = s; }
     
     void InitializeDGLAP(FitParameters par) const;
+    Interpolator* GetDensityInterpolator() const { return density_interpolator; }
     
     
 private:

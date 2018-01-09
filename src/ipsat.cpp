@@ -88,6 +88,7 @@ struct inthelper_bint
 {
     double r,x;
     int config;
+    double total_gammap;    // Used when we have "lumpy nucleus"
     const IPsat* ipsat;
     FitParameters parameters;
 };
@@ -99,9 +100,8 @@ double inthelperf_bint(double b, void* p)
 
 double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters, int  config) const
 {
-    double analres=0;
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
-    if (config == -1 and saturation and !USE_AMIR_FIT and A==1 )
+    if (config == -1 and saturation and !USE_AMIR_FIT )
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
         // b integral analytically, as
@@ -129,12 +129,11 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
             // Require sinint and cosint to be so small that we can reliably calculate their difference
             // Otherwise fall back to numerical integration
   
-            analres = 2.0*M_PI*B * ( M_EULER - cosres.val + log(a) + sinres.val);
-            return analres;
+            return 2.0*M_PI*B * ( M_EULER - cosres.val + log(a) + sinres.val);
         }
         
     }
-    else if (config == -1 and !saturation and !USE_AMIR_FIT and A==1 )
+    else if (config == -1 and !saturation and !USE_AMIR_FIT  )
     {
         // b integral analytically, now this is trivial as \int d^2 T_b = 1
         // so actually the result is 2\pi B N(r, b=0)
@@ -164,6 +163,40 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     return 2.0*M_PI*result; //2pi from angular integral
 }
 
+/*
+ * b integral for nucleus, assuming "lumpy nucleus" from KT hep-ph/0304189 e.q. 47
+ */
+double inthelperf_bint_lumpyA(double b, void* p)
+{
+    inthelper_bint* par = (inthelper_bint*) p;
+    int A = par->parameters.values->at( par->parameters.parameter->Index("A"));
+    double TA = par->ipsat->GetDensityInterpolator()->Evaluate(b);
+    
+    return b * (1.0 - std::pow(1 - TA*par->total_gammap , A));
+}
+double IPsat::DipoleAmplitude_bint_lumpyA(double r, double x, FitParameters parameters, int config) const
+{
+    double total_gammp = DipoleAmplitude_bint(r, x, parameters);
+    gsl_function fun; fun.function=inthelperf_bint_lumpyA;
+    inthelper_bint par;
+    par.r=r; par.x=x; par.config=config;
+    par.parameters = parameters;
+    par.total_gammap = total_gammp;
+    par.ipsat = this;
+    fun.params=&par;
+    
+    double result,abserr;
+    gsl_integration_workspace* ws = gsl_integration_workspace_alloc(BINTEGRATIONDEPTH);
+    int status = gsl_integration_qag(&fun, MINB, MAXB, 0, BINTACCURACY,
+                                     BINTEGRATIONDEPTH, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+    if (status)
+        cerr << "bintegral failed in IPsat::DipoleAmplitude_bint_lumpyA with r=" << r <<", result " << result << " relerror " << abserr/result << endl;
+    gsl_integration_workspace_free(ws);
+    
+    return 2.0*M_PI*result;
+    
+    
+}
 double IPsat::xg(double x, double musqr, FitParameters parameters) const
 {
     if (x < minx or x>maxx or musqr < minQ2 or musqr > maxQ2 )
@@ -224,7 +257,8 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
 double IPsat::Tp(double b, FitParameters parameters, int config) const
 {
     double B_G = parameters.values->at( parameters.parameter->Index("B_G"));
-    if (A>1)
+    /*
+    if (A>1 )
     {
         return density_interpolator->Evaluate(b);
         
@@ -234,7 +268,7 @@ double IPsat::Tp(double b, FitParameters parameters, int config) const
         cerr << "Event-by-event fluctuations for the proton are not supproted at this point!" << endl;
         return 0;
     }
-    
+    */
     return 1.0 / (2.0 * M_PI * B_G) * exp(-b*b / (2.0 * B_G));
 }
 
@@ -303,7 +337,7 @@ void IPsat::InitNucleus(int A_)
     for (double b=0; b<100; b+=0.1)
     {
         bvals.push_back(b);
-        tavals.push_back(A*nuke.T_A(b));
+        tavals.push_back(nuke.T_A(b));
     }
     density_interpolator = new Interpolator(bvals, tavals);
     density_interpolator->SetOverflow(0);

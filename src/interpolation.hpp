@@ -64,7 +64,7 @@ class Interpolator
         /**
          * Evaluate interpolator f(x)
          */
-        double Evaluate(double x);
+        double Evaluate(double x) const;
         /**
          * Evaluate 1st derivative of the interpolated function f'(x)
          */

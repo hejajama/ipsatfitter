@@ -53,7 +53,7 @@ double WoodsSaxon::T_A(double b)
 	double res, abserr;
     inthelper_ta par; par.b=b; par.WS=this;
 	gsl_function f; f.params=&par; f.function=inthelperf_ta;
-	int status = gsl_integration_qag(&f, 0, 200, 0, 0.0001, INTERVALS, GSL_INTEG_GAUSS61,
+	int status = gsl_integration_qag(&f, 0, 100, 0, 0.0001, INTERVALS, GSL_INTEG_GAUSS61,
 		w, &res, &abserr);
     gsl_integration_workspace_free(w);
 	if(status)

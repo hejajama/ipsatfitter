@@ -137,7 +137,7 @@ int Interpolator::Initialize()
 }
 
 
-double Interpolator::Evaluate(double x)
+double Interpolator::Evaluate(double x) const
 {
     if (isnan(x) or isinf(x))
     {

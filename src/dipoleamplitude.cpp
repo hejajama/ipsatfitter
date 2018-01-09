@@ -45,9 +45,10 @@ int main(int argc, char* argv[])
     
     // Parameters are: DipoleAmplitude(C, mu0 [GeV], lambda_g, A_g, m_c [GeV]
     // ipsat
-    //DipoleAmplitude amplitude(2.146034445992, 1.1, 0.09665075464199, 2.103826220003, 1.351650642298); //
-    //amplitude.SetSaturation(true);
     
+    DipoleAmplitude amplitude(2.146034445992, 1.1, 0.09665075464199, 2.103826220003, 1.351650642298); //
+    amplitude.SetSaturation(true);
+    amplitude.SetCoupling(0);
     
     //DipoleAmplitude amplitude(4, sqrt(1.17), 0.02, 2.55, 1.4); //
     //amplitude.SetSaturation(true);
@@ -55,32 +56,41 @@ int main(int argc, char* argv[])
     //cout << xg_from_ipsat(0.01, 10, amplitude ) << endl;
  
     // IPnonsat
-    DipoleAmplitude amplitude(4.939286653112, 1.1, -0.009631194037871, 3.058791613883, 1.342035015621);
-    amplitude.SetSaturation(false);
-    
-    
+    //DipoleAmplitude amplitude(4.939286653112, 1.1, -0.009631194037871, 3.058791613883, 1.342035015621);
+    //amplitude.SetSaturation(false);
     
     /*
+    cout << "Q^2   xg(x=0.01)  xg(x=0.001)  xg(0.0001)" << endl;
+    for (double q2=1; q2<1e6; q2*=1.2)
+    {
+        cout << q2 << " " << amplitude.xg(0.01,q2) << " " << amplitude.xg(0.001, q2) << " " << amplitude.xg(0.0001, q2) << endl;
+    }
+    exit(1);
+    */
+    
+    for (double x=1e-8; x<0.1; x*=1.1)
+        cout << x << " " << amplitude.xg(x, 1.1*1.1) << endl;
+    exit(1);
+    
+    /*
+    
     double minr=1.1e-6;
     double maxr=100;
     int points=500;
-    double b = 0; // in 1/GeV
-    double xbj = 0.01*exp(-StrToReal(argv[1]));
-     for (int i=0; i<points; i++)
+    for (double r=1e-8; r<100; r*=2)
     {
-        double r =  minr * pow((maxr/minr), ((double)i)/((double)points));
-        double n =amplitude.N_bint(r, xbj) ;
-        cout <<  std::scientific << std::setprecision(9) << r << " " << n << endl;
+        double musqr = 1.1*1.1 + 2.146/(r*r);
+        cout <<  std::scientific << std::setprecision(9) << r << " " << amplitude.Alphas(std::sqrt(musqr)) << " " << amplitude.xg(0.01, musqr) << " " << amplitude.xg(0.001, musqr) << endl;
     }
     */
-    
+    /*
     
     
     for (double r=1e-8; r<100; r*=1.1)
     {
         cout << r << " " << amplitude.N(r, 0.01, 0) << " " << amplitude.N(r, 0.001, 0) << " " << amplitude.N(r, 0.0001, 0) << " " <<  amplitude.N(r, 0.01, 3) << " " << amplitude.N(r, 0.001, 3) << " " << amplitude.N(r, 0.0001, 3) << endl;
     }
-    
+    */
     
     return 0;
 }
@@ -100,7 +110,7 @@ DipoleAmplitude::DipoleAmplitude(double C_, double mu0_, double lambda_g_, doubl
     mt=175;
     
     // Init alphas(M_Z=91.1876 GeV) = 0.1183
-    alphas = new AlphaStrong(0, 1.0, 91.1876, 0.11403, mc, mb, mt);
+    alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, mc, mb, mt);
     // DGLAP_Solver will take care of deleting alphas when it is deleted
     cppdglap = new EvolutionLO(alphas);
 }
@@ -112,12 +122,10 @@ DipoleAmplitude::~DipoleAmplitude()
 
 double DipoleAmplitude::Alphas_xg(double x, double musqr)
 {
-    double as_xg=0;
-    int coupling = 0;
     double As=0;
     double lambdas=0; //singlet
     
-    return cppdglap->alphasxG(x, musqr, mu0, 0, A_g, lambda_g, As, lambdas);
+    return cppdglap->alphasxG(x, musqr, mu0, coupling, A_g, lambda_g, As, lambdas);
 }
 
 double DipoleAmplitude::Alphas(double Q)
@@ -127,7 +135,7 @@ double DipoleAmplitude::Alphas(double Q)
 
 double DipoleAmplitude::xg(double x, double musqr)
 {
-    return cppdglap->xG(x, musqr, mu0, 0, A_g, lambda_g, 0 , 0);
+    return cppdglap->xG(x, musqr, mu0, coupling, A_g, lambda_g, 0 , 0);
 }
 
 double DipoleAmplitude::N(double r, double xbj, double b)
