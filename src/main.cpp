@@ -37,13 +37,13 @@ int main(int argc, char* argv[])
     
     Data data;
     data.SetMinQsqr(1.49);
-    data.SetMaxQsqr(500.1);
+    data.SetMaxQsqr(50.1);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-   //     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
-    //data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
-    //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
-    data.LoadData("data/lhec_ncepp.txt", TOTAL);
+       data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
+    data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
+    data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
+    //data.LoadData("data/lhec_ncepp.txt", TOTAL);
     
     MnUserParameters parameters;
     // Constants
@@ -52,15 +52,15 @@ int main(int argc, char* argv[])
     //parameters.Add("light_mass", 0.0005);
     //parameters.Add("charm_mass", 1.4);
     
-    parameters.Add("light_mass", 0.1388639702255); // Having very small mass is numerically difficult
-    parameters.Add("charm_mass", 1.342035015621,  0.1 ); // 1.27 // Ipsat 1.361410284911 // Nonsat 1.350324669808,
+    parameters.Add("light_mass", 0.00); //0.1388639702255, 0.05); // Having very small mass is numerically difficult
+    parameters.Add("charm_mass", 1.34, 0.1); //1.342035015621,  0.1 ); // 1.27 // Ipsat 1.361410284911 // Nonsat 1.350324669808,
     
     //parameters.Add("light_mass", 0.03);
-    //parameters.Add("charm_mass", 1.354062489611);
+    //parameters.Add("charm_mass", 1.35165, 0.1);
     //parameters.Add("charm_mass", 1.4);
     parameters.Add("bottom_mass", 4.75);  // 4.75
-    parameters.Add("C", 4.939286653112, 1.0);
-    //parameters.Add("C", 2.146034445992);
+    parameters.Add("C", 2.84, 0.2); // 4.939286653112, 1.0);
+    //parameters.Add("C", 2.146034445992, 0.1);
     //parameters.Add("C", 2.41367);
     // Start using some reasonable parameters
     
@@ -75,9 +75,10 @@ int main(int argc, char* argv[])
     //parameters.Add("lambda_g", 0.09661, 0.02);
     //parameters.Add("A_g", 2.0667, 0.4);
     
-    parameters.Add("lambda_g", -0.009631194037871, 0.02);
-    parameters.Add("A_g", 3.058791613883, 0.4);
-    
+     //parameters.Add("lambda_g", -0.009631194037871, 0.02);
+     //parameters.Add("A_g", 3.058791613883, 0.4);
+    parameters.Add("lambda_g", 0.04110754881033, 0.01);
+	parameters.Add("A_g", 2.64, 0.2);
     parameters.Add("lambda_s", 0);
     parameters.Add("A_s", 0);
     
@@ -95,9 +96,13 @@ int main(int argc, char* argv[])
     parameters.SetUpperLimit("mu_0", sqrt(2.7)); // Upper limit is min Q^2
     parameters.SetUpperLimit("charm_mass", 3);
     DISFitter fitter(parameters);
-    fitter.AddDataset(data);
+	fitter.MAXR = 99;
+    /*fitter.MAXR = StrToReal(argv[1])*5.068;
+	cout << "MAXR set to " << fitter.MAXR/5.068 << " fm" << endl;
+*/    
+fitter.AddDataset(data);
     
-    fitter.SetSaturation(false);
+    fitter.SetSaturation(true);
     fitter.SetSinglet(false);
     
     fitter.SetDGLAPSolver(CPPPIA);
@@ -109,13 +114,14 @@ int main(int argc, char* argv[])
     
     
     // Initialize alpha_s(M_Z=91.1876)=0.1183
-    AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, parvec[parameters.Index("charm_mass")], 4.75, 175);
+/*    
+AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, parvec[parameters.Index("charm_mass")], 4.75, 175);
     // DGLAP_Solver will take care of deleting alphas when it is deleted
     EvolutionLO *cppdglap = new EvolutionLO(alphas);
     
     p.cppdglap = cppdglap;
     p.alpha_strong = alphas;
-    
+   */ 
 /*
     cout << "#x  F_2(Q^2=2)    F_2(Q^2=5)    F_2(Q^2=50)   F_2(Q^2=500)  F_L(Q^2=2)  F_L(Q^2=5)     F_L(Q^2=50)     F_L(Q^2=500) " << endl;
     //for (double x=0.0097074; x<0.02; x*=1.5)
@@ -125,14 +131,14 @@ int main(int argc, char* argv[])
     }
     exit(1);
     */
-
+/*
     cout << "#x   F_L(Q^2=2)   F_L(Q^2=3.5)     F_L(Q^2=6.5)    F_L(12)     F_L(25)     F_L(100)    F_L(400)    F_(2000) " << endl;
     for (double x=1e-8; x<1e-2; x*=1.2)
     {
         cout << x << " " << fitter.FL(2, x, p) << " " << fitter.FL(3.5, x, p) << " " << fitter.FL(6.5, x, p) << " " << fitter.FL(12,x,p) << " " << fitter.FL(25, x, p) << " " << fitter.FL(100, x, p) << " " << fitter.FL(400,x,p) << " " <<    fitter.FL(500, x, p) << endl;
     }
     exit(1);
-    
+  */  
     /*
     
     cout << "# Q^2   F_2(x=1e-2)    F_L(x=1e-2)   F_2(x=1e-3)   F_L(x=1e-3)    F_L(x=1e-4)    F_2(x=1e-4)   F_L(x=1e-5)    F_2(x=1e-5) " << endl;

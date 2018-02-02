@@ -61,7 +61,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double mu0 =par[parameters.Index("mu_0")];
     
     // Force som limits in case MINUIT does not handle these properly
-    if (light_mass < 0 or light_mass > 1 or charm_mass < 0 or charm_mass > 10
+    if (light_mass < 0 or light_mass > 1 or charm_mass < 1.1 or charm_mass > 10
             or lambdag < -10 or lambdag > 10 or Ag < 0 or mu0 < 0)
         return 9999;
 
@@ -91,7 +91,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     else if (dglapsolver == CPPPIA)
     {
         // Initialize alpha_s(M_Z=91.1876)=0.1183
-        AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, charm_mass, bottom_mass, 175);
+        AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1300, charm_mass, bottom_mass, 175);
         // DGLAP_Solver will take care of deleting alphas when it is deleted
         cppdglap = new EvolutionLO(alphas);
         
@@ -177,7 +177,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
 
             // Output for plotting
             
-            cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
+            //cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
 
             
             
@@ -185,7 +185,6 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-    exit(1);
     
     if (dglapsolver == CPPPIA)
     {
