@@ -111,9 +111,9 @@ int main(int argc, char* argv[])
     // Initialize alpha_s(M_Z=91.1876)=0.1183
     AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, parvec[parameters.Index("charm_mass")], 4.75, 175);
     // DGLAP_Solver will take care of deleting alphas when it is deleted
-    EvolutionLO *cppdglap = new EvolutionLO(alphas);
+    //EvolutionLO *cppdglap = new EvolutionLO(alphas);
     
-    p.cppdglap = cppdglap;
+    //p.cppdglap = cppdglap;
     p.alpha_strong = alphas;
     
     
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
     }
     exit(1);
     */
-    
+    /*
     
     cout << "# Q^2   F_2 F_L" << endl;
     for (double q2=1; q2<1000000; q2*=1.4)
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
     
     exit(1);
     
-    
+    */
     //cout << fitter.FL(2, 1e-2, p) << " " << fitter.FL(15, 1e-2, p) << " " <<fitter.FL(50, 1e-2, p) << " " << fitter.FL(150, 1e-2, p)<< " " << fitter.FL(500, 1e-2, p) << endl;
     //exit(1);
 

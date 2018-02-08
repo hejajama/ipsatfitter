@@ -2,7 +2,7 @@
 //  EvolutionLO.cpp
 //
 //==============================================================================
-#include "EvolutionLO.h"
+#include "EvolutionLO_nocoupling.h"
 #include <cmath>
 #include <cstdlib>
 
@@ -13,7 +13,7 @@ inline complex<double> SQR(complex<double> x)
     return x*x;
 }
 
-double EvolutionLO::alphasxG(double x, double Q2, double mu0, int coupling, double Ag,
+double EvolutionLO_gluon::alphasxG(double x, double Q2, double mu0, int coupling, double Ag,
                              double lambdag, double As, double lambdas)
 {
     double val = xG(x, Q2, mu0, coupling, Ag, lambdag, As, lambdas);
@@ -21,7 +21,7 @@ double EvolutionLO::alphasxG(double x, double Q2, double mu0, int coupling, doub
     
 }
 
-double EvolutionLO::xG(double x, double Q2, double mu0, int coupling, double Ag,
+double EvolutionLO_gluon::xG(double x, double Q2, double mu0, int coupling, double Ag,
                        double lambdag, double As, double lambdas)
 {
     const double FourPi = 4.*M_PI;
@@ -81,7 +81,7 @@ double EvolutionLO::xG(double x, double Q2, double mu0, int coupling, double Ag,
     return pa;
 }
 
-void EvolutionLO::reno(complex<double> *fn, double alpq, int nmax, int coupling,
+void EvolutionLO_gluon::reno(complex<double> *fn, double alpq, int nmax, int coupling,
                        double ag, double lambdag, double as, double lambdas)
 {
     //
@@ -93,13 +93,6 @@ void EvolutionLO::reno(complex<double> *fn, double alpq, int nmax, int coupling,
     //    Currently this takes the simplest possible fit form:
     //    xg = A_g x^(-lambdag) (1-x)^(5.6), following Amir&Raju
     //
-    
-    if (coupling != 1)
-    {
-        cerr << "EvolutionLO does not work without coupling!" << endl;
-        exit(1);
-    }
-    
     for (int k1 = 1; k1 <= nmax; k1++) {
         //
         //   Input moments of the parton densities
@@ -147,141 +140,98 @@ void EvolutionLO::reno(complex<double> *fn, double alpq, int nmax, int coupling,
         */
          
         
-        // TODO: Old singlet parametrization with beta function,
-        complex<double> sIn;
-        if (coupling == 1) sIn = as*beta(xn - lambdas - one, one);
+  
         
         int f;
-        double xl, b, b0, b1, s, xl1, alp;
-        complex<double> em, ep, sg, gl;
+        double xl, s, alp;
+        complex<double> ep, gl;
         
         if (alpq >= mALPC) {   // evolution below the charm threshold
             f = 3;
             xl = mALPS / alpq;
-            b0 = 11.- 2./3.* f;
-            b1 = 102.- 38./3.* f;
-            b = b1/b0;
             
             s = log(xl);
-            xl1 = 1-xl;
-            em = exp(-mAM[k1][f]*s);
+            
             ep = exp(-mAP[k1][f]*s);
             
-            sg = sIn;
             gl = gln;
             
-            sIn = 0;
-            if (coupling == 1) {
-                sIn = em*(mAL[k1][f] * sg + mBE[k1][f] * gl * static_cast<double>(coupling)) + ep * (mAC[k1][f] * sg - mBE[k1][f] * gl * static_cast<double>(coupling));
-            }
-            gln = em*(mAB[k1][f] * sg * static_cast<double>(coupling) + mAC[k1][f] * gl) + ep *(-mAB[k1][f] * sg * static_cast<double>(coupling) + mAL[k1][f] * gl);
+           
+            gln = ep * gl;
+           
             
         }
         else if ((alpq < mALPC) && (alpq >= mALPB)) {  // between thresholds
             f = 3;
             xl = mALPS / mALPC;
-            b0 = 11.- 2./3.* f;
-            b1 = 102.- 38./3.* f;
-            b=b1/b0;
+            
             s   = log(xl);
-            xl1 = 1.- xl;
-            em  = exp(-mAM[k1][f]*s);
+
             ep  = exp(-mAP[k1][f]*s);
             
-            sg = sIn;
             gl = gln;
             
-            sIn = 0;
-            if (coupling == 1) {
-                sIn = em * (mAL[k1][f] * sg + mBE[k1][f] * gl * static_cast<double>(coupling)) + ep * (mAC[k1][f] * sg - mBE[k1][f] * gl * static_cast<double>(coupling));
-            }
-            gln = em * (mAB[k1][f] * sg * static_cast<double>(coupling) + mAC[k1][f] * gl) + ep *(-mAB[k1][f] * sg * static_cast<double>(coupling) + mAL[k1][f] * gl);
+            
+            gln = ep * gl;
+            
+            
             
             f = 4;
             xl = mALPC / alpq;
             
-            b0 = 11.- 2./3.* f;
-            b1 = 102.- 38./3.* f;
-            b=b1/b0;
+            
             s   =  log(xl);
-            xl1 = 1.- xl;
-            em  = exp(-mAM[k1][f]*s);
             ep  = exp(-mAP[k1][f]*s);
             
-            sg = sIn;
             gl = gln;
             
-            sIn = 0;
-            if (coupling == 1) {
-                sIn = em * (mAL[k1][f] * sg + mBE[k1][f] * gl * static_cast<double>(coupling)) + ep * (mAC[k1][f] * sg - mBE[k1][f] * gl * static_cast<double>(coupling));
-            }
-            gln = em * (mAB[k1][f] * sg * static_cast<double>(coupling) + mAC[k1][f] * gl)  + ep *(-mAB[k1][f] * sg * static_cast<double>(coupling) + mAL[k1][f] * gl);
+            
+            gln = ep * gl;
+            
         }
         else if (alpq < mALPB) {    // above bottom threshold
             f = 3;
             xl = mALPS / mALPC;
-            b0 = 11.- 2./3.* f;
-            b1 = 102.- 38./3.* f;
-            b = b1/b0;
-            s   = log (xl);
-            xl1 = 1.- xl;
-            em  = exp(-  mAM[k1][f]*s);
-            ep  = exp (-  mAP[k1][f]*s);
             
-            sg = sIn;
+            s   = log (xl);
+            ep  = exp (-  mAP[k1][f]*s);
+    
             gl = gln;
             
-            sIn = 0;
-            if (coupling == 1) {
-                sIn = em * (mAL[k1][f] * sg + mBE[k1][f] * gl * static_cast<double>(coupling)) + ep * (mAC[k1][f] * sg - mBE[k1][f] * gl * static_cast<double>(coupling));
-            }
-            gln = em * (mAB[k1][f] * sg * static_cast<double>(coupling) + mAC[k1][f] * gl) + ep *(-mAB[k1][f] * sg * static_cast<double>(coupling) + mAL[k1][f] * gl);
+            
+            gln = ep * gl;
             
             f = 4;
             alp = mALPB;
             xl = mALPC / mALPB;
-            b0 = 11.- 2./3.* f;
-            b1 = 102.- 38./3.* f;
-            b=b1/b0;
+            
             s   = log (xl);
-            xl1 = 1.- xl;
-            em  = exp(-mAM[k1][f]*s);
+           
             ep  = exp(-mAP[k1][f]*s);
             
-            sg = sIn;
             gl = gln;
             
-            sIn = 0;
-            if (coupling == 1) {
-                sIn = em * (mAL[k1][f] * sg + mBE[k1][f] * gl * static_cast<double>(coupling)) + ep * (mAC[k1][f] * sg - mBE[k1][f] * gl * static_cast<double>(coupling));
-            }
-            gln = em * (mAB[k1][f] * sg * static_cast<double>(coupling) + mAC[k1][f] * gl) + ep *(-mAB[k1][f] * sg * static_cast<double>(coupling) + mAL[k1][f] * gl);
+            
+            gln = ep * gl;
             
             f = 5;
             xl = mALPB / alpq;
             
-            b0 = 11.- 2./3.* f;
-            b1 = 102.- 38./3.* f;
-            b = b1/b0;
+            
             s  = log(xl);
-            xl1 = 1.- xl;
-            em  = exp(-mAM[k1][f]*s);
+            
             ep  = exp(-mAP[k1][f]*s);
             
-            sg = sIn;
             gl = gln;
             
-            sIn = 0;
-            if (coupling == 1) {
-                sIn = em * (mAL[k1][f] * sg + mBE[k1][f] * gl * static_cast<double>(coupling)) + ep * (mAC[k1][f] * sg - mBE[k1][f] * gl * static_cast<double>(coupling));
-            }
-            gln = em * (mAB[k1][f] * sg * static_cast<double>(coupling) + mAC[k1][f] * gl) + ep *( -mAB[k1][f] * sg * static_cast<double>(coupling) + mAL[k1][f] * gl);
+            
+            gln = ep * gl;
         }
         fn[k1] = gln;
     }
 }
 
-EvolutionLO::EvolutionLO(AlphaStrong* alphas)
+EvolutionLO_gluon::EvolutionLO_gluon(AlphaStrong* alphas)
 {
     //
     //  Get alpha_s
@@ -340,12 +290,12 @@ EvolutionLO::EvolutionLO(AlphaStrong* alphas)
     anom();
  }
 
-EvolutionLO::~EvolutionLO()
+EvolutionLO_gluon::~EvolutionLO_gluon()
 {
     if (mAlphaStrong) delete mAlphaStrong;
 }
 
-void EvolutionLO::anom() {
+void EvolutionLO_gluon::anom() {
     //
     //   Anomalous dimensions for leading order evolution of parton densities.
     //   The moments are calculated on an externally given array of mellin
@@ -356,48 +306,27 @@ void EvolutionLO::anom() {
     //    f=5. The dimension of the moment array is 136.
     //
 
-    double b0, b0f, b02f, b02;
-    complex<double> qqi, qgf, gqi, ggi, ggf;
-    complex<double> xn, xac, xab, xbe, xal, xap, xam, xans;
-    complex<double> gm, gp, sq, gg, gq, qg, qq;
+    double b0,  b02;
+    complex<double>  ggi, ggf;
+    complex<double> xn, xap;
+    complex<double>  gg;
     
     for (int k1=1; k1 <= 136; k1++) {
         xn = mN[k1];
-        anCalc(qqi, qgf, gqi, ggi, ggf, xn);
+        anCalc(ggi, ggf, xn);
         for (int k2=3; k2 <= 5; k2++) {
             double f = k2;
             //  anomalous dimensions and related quantities in leading order
             b0 = 11.- 2./3.* f;
-            b0f = 11.- 2./3.* f;
             b02 = 2.* b0;
-            b02f = 2.* b0f;
-            qq = qqi;
-            qg = f * qgf;
-            gq = gqi;
             gg = ggi + f * ggf;
-            sq = sqrt ((gg - qq) * (gg - qq) + 4.* qg * gq);
-            gp = 0.5 * (qq + gg + sq);
-            gm = 0.5 * (qq + gg - sq);
-            xans = qq / b02;
-            xam = gm / b02;
-            xap = gp / b02;
-            xal = (qq - gp) / (gm - gp);
-            xbe = qg / (gm - gp);
-            xab = gq / (gm - gp);
-            xac = 1.- xal;
-            mANS[k1][k2] = xans;
-            mAM[k1][k2] = xam;
+            xap = gg / b02;
             mAP[k1][k2] = xap;
-            mAL[k1][k2] = xal;
-            mBE[k1][k2] = xbe;
-            mAB[k1][k2] = xab;
-            mAC[k1][k2] = xac;
         }
     }
 }
 
-void EvolutionLO::anCalc(complex<double>& qqi, complex<double>& qgf,
-              complex<double>& gqi, complex<double>& ggi,
+void EvolutionLO_gluon::anCalc( complex<double>& ggi,
               complex<double>& ggf, complex<double>& xn)
 {
     complex<double> xns = xn * xn;
@@ -409,14 +338,11 @@ void EvolutionLO::anCalc(complex<double>& qqi, complex<double>& qgf,
     //  Leading order
     //
     complex<double> cpsi = psiFunction(xn1) + 0.577216;
-    qqi = (8./3.) * (-3.- 2./(xn * xn1) + 4.* cpsi);
-    qgf = -4.* (xns + xn +2.) / (xn * xn1 * xn2);
-    gqi = -(16./3.) * (xns + xn + 2.) / (xn * xn1 * xnm);
     ggi = -22.- 24./(xn * xnm) - 24./(xn1 * xn2) + 24.* cpsi;
     ggf = 4./3.;
 }
 
-complex<double> EvolutionLO::psiFunction(complex<double> z)
+complex<double> EvolutionLO_gluon::psiFunction(complex<double> z)
 {
     //
     //  psi - function for complex argument
@@ -433,7 +359,7 @@ complex<double> EvolutionLO::psiFunction(complex<double> z)
     return result;
 }
 
-complex<double> EvolutionLO::lngam(complex<double> x)
+complex<double> EvolutionLO_gluon::lngam(complex<double> x)
 {
     complex<double> result = (x - complex<double>(0.5,0.0)) * log(x) - x +
     complex<double>(0.91893853,0.0) + complex<double>(1.0,0.0)/(complex<double>(12.0,0.0)* x)
@@ -444,7 +370,7 @@ complex<double> EvolutionLO::lngam(complex<double> x)
     return result;
 }
 
-complex<double> EvolutionLO::beta(complex<double> z1, complex<double> z2)
+complex<double> EvolutionLO_gluon::beta(complex<double> z1, complex<double> z2)
 {
     complex<double> sub;
     

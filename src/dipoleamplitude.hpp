@@ -10,6 +10,8 @@
 #include "dglap_cpp/AlphaStrong.h"
 #include "dglap_cpp/EvolutionLO.h"
 
+#include "dglap_cpp/EvolutionLO_nocoupling.h"
+
 class DipoleAmplitude
 {
     public:
@@ -63,7 +65,7 @@ class DipoleAmplitude
         void SetCoupling(int c) { coupling = c; }
     
     private:
-        EvolutionLO *cppdglap;
+        EvolutionLO_gluon *cppdglap;
         AlphaStrong *alphas;
         bool saturation;   // True for ipsat, false for ipnonsat
         int coupling;

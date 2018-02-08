@@ -14,6 +14,7 @@
 #include <sstream>
 
 #include "dglap_cpp/EvolutionLO.h"
+#include "dglap_cpp/EvolutionLO_nocoupling.h"
 #include "dglap_cpp/AlphaStrong.h"
 
 using namespace std;
@@ -78,7 +79,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     // InitAlphasMur initializes Alphas() at the initial scale mu_0
     // such that we keep alphas(M_z) = 0.1184
     // Not thread safe!
-    EvolutionLO *cppdglap = NULL;
+    EvolutionLO_gluon *cppdglap = NULL;
 #pragma omp critical
 {
     if (dglapsolver == PIA)
@@ -95,7 +96,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
         // Initialize alpha_s(M_Z=91.1876)=0.1183
         AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, charm_mass, bottom_mass, 175);
         // DGLAP_Solver will take care of deleting alphas when it is deleted
-        cppdglap = new EvolutionLO(alphas);
+        cppdglap = new EvolutionLO_gluon(alphas);
         
         fitparams.cppdglap = cppdglap;
         fitparams.alpha_strong = alphas;
