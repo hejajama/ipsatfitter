@@ -94,7 +94,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     else if (dglapsolver == CPPPIA)
     {
         // Initialize alpha_s(M_Z=91.1876)=0.1183
-        AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, charm_mass, bottom_mass, 175);
+        AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1300, charm_mass, bottom_mass, 175);
         // DGLAP_Solver will take care of deleting alphas when it is deleted
         cppdglap = new EvolutionLO_gluon(alphas);
         

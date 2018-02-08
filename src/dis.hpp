@@ -73,6 +73,8 @@ public:
     
     DGLAP_Solver GetDGLAPSolver() { return dglapsolver; }
     void SetDGLAPSolver(DGLAP_Solver s) { dglapsolver = s; dipole.SetDGLAPSolver(s); }
+
+    double MAXR;
 private:
     IPsat dipole;
 

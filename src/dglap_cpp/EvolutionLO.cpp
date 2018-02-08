@@ -116,9 +116,7 @@ void EvolutionLO::reno(complex<double> *fn, double alpq, int nmax, int coupling,
         
         // x*g = A_g x^(-lambda_g) (1-x)^6
         // Mellin transformed g analytically
-        
-        
-        
+
         complex<double> gln = ag * (
             1.0 / (xn + 5.0 - lambdag)
             - 6.0 / (xn + 4.0 - lambdag)
@@ -128,10 +126,8 @@ void EvolutionLO::reno(complex<double> *fn, double alpq, int nmax, int coupling,
             - 6.0 / (xn - lambdag)
             + 1.0 / (xn - lambdag - 1.0)
                                     );
-        
-       
-        /*
-        complex<double> gln = ag * (
+      /* 
+	complex<double> gln = ag * (
                                     1.0 / (xn + 9.0 - lambdag)
                                     - 10.0 / (xn + 8.0 - lambdag)
                                     + 45.0 / (xn + 7.0 - lambdag)
@@ -143,7 +139,7 @@ void EvolutionLO::reno(complex<double> *fn, double alpq, int nmax, int coupling,
                                     + 45.0 / (xn + 1.0 - lambdag)
                                     - 10.0 / (xn - lambdag)
                                     + 1.0 / (xn - lambdag - 1.0)
-                                    );
+     
         */
          
         
