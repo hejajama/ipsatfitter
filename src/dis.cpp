@@ -19,7 +19,7 @@
 using namespace std;
 
 const double MINR = 1e-6;
-const double MAXR = 10*5.068;
+const double MAXR =50*5.068;
 // Hera data is very accurate, so eventually one needs to use better accuracy
 const double RINTACCURACY = 0.000001;
 
@@ -59,10 +59,12 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double lambdag = par[ parameters.Index("lambda_g")];
     double Ag = par[ parameters.Index("A_g")];
     double mu0 =par[parameters.Index("mu_0")];
+    double Cscale = par[parameters.Index("C")];
     
     // Force som limits in case MINUIT does not handle these properly
-    if (light_mass < 0 or light_mass > 1 or charm_mass < 0 or charm_mass > 10
-            or lambdag < -10 or lambdag > 10 or Ag < 0 or mu0 < 0)
+    if (light_mass < 0 or light_mass > 1 or charm_mass < 1.1 or charm_mass > 10
+            or lambdag < -10 or lambdag > 10 or Ag < 0 or mu0 < 0
+            or Cscale <= 0 or Cscale > 1e6)
         return 9999;
 
     FitParameters fitparams;
@@ -177,7 +179,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
 
             // Output for plotting
             
-            cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
+            //cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
 
             
             
@@ -185,7 +187,6 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-    exit(1);
     
     if (dglapsolver == CPPPIA)
     {
@@ -226,10 +227,10 @@ double Inthelperf_totxs(double lnr, void* p)
     Inthelper_totxs* par = (Inthelper_totxs*)p;
     
     double result = 0;
-    if (par->fitparameters.values->at( par->fitparameters.parameter->Index("A")) == 1)
+    //if (par->fitparameters.values->at( par->fitparameters.parameter->Index("A")) == 1)
         result = r*par->N->DipoleAmplitude_bint(r,par->xbj, par->fitparameters, par->config);
-    else
-        result = r*par->N->DipoleAmplitude_bint_lumpyA(r,par->xbj, par->fitparameters, par->config);
+    //else
+    //    result = r*par->N->DipoleAmplitude_bint_lumpyA(r,par->xbj, par->fitparameters, par->config);
     
     result *= r;    // Jacobian, as we integrate ln r
     

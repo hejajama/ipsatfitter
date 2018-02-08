@@ -50,7 +50,7 @@ class DISFitter : public FCNBase
 public:
     // MINUIT functions
     double operator() (const vector<double>& par) const; // Calculate Chi^2
-    double Up() const {return 2.;}
+    double Up() const {return 1.;}
     
     // Initialize based on MINUIT parameters
     DISFitter(MnUserParameters parameters_);

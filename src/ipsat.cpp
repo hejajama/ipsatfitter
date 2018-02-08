@@ -101,7 +101,8 @@ double inthelperf_bint(double b, void* p)
 double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters, int  config) const
 {
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
-    if (config == -1 and saturation and !USE_AMIR_FIT )
+    int A =parameters.values->at( parameters.parameter->Index("A"));
+    if (config == -1 and saturation and !USE_AMIR_FIT and A==1 )
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
         // b integral analytically, as
@@ -133,7 +134,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         }
         
     }
-    else if (config == -1 and !saturation and !USE_AMIR_FIT  )
+    else if (config == -1 and !saturation and !USE_AMIR_FIT and A==1 )
     {
         // b integral analytically, now this is trivial as \int d^2 T_b = 1
         // so actually the result is 2\pi B N(r, b=0)
@@ -176,6 +177,9 @@ double inthelperf_bint_lumpyA(double b, void* p)
 }
 double IPsat::DipoleAmplitude_bint_lumpyA(double r, double x, FitParameters parameters, int config) const
 {
+    cerr << "LumpyA is not in use!" << endl;    // Check also definition of T_A, it should
+    // not have prefactor A if lumpu nucleus is used
+    exit(1);
     double total_gammp = DipoleAmplitude_bint(r, x, parameters);
     gsl_function fun; fun.function=inthelperf_bint_lumpyA;
     inthelper_bint par;
@@ -257,7 +261,7 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
 double IPsat::Tp(double b, FitParameters parameters, int config) const
 {
     double B_G = parameters.values->at( parameters.parameter->Index("B_G"));
-    /*
+    
     if (A>1 )
     {
         return density_interpolator->Evaluate(b);
@@ -268,7 +272,7 @@ double IPsat::Tp(double b, FitParameters parameters, int config) const
         cerr << "Event-by-event fluctuations for the proton are not supproted at this point!" << endl;
         return 0;
     }
-    */
+    
     return 1.0 / (2.0 * M_PI * B_G) * exp(-b*b / (2.0 * B_G));
 }
 
@@ -310,7 +314,7 @@ void IPsat::InitializeDGLAP(FitParameters par) const
 IPsat::IPsat()
 {
     minx=1e-10;
-    maxx=0.1;
+    maxx=0.6;
     minQ2=0;
     maxQ2=1e99;
     saturation = true;
@@ -337,7 +341,7 @@ void IPsat::InitNucleus(int A_)
     for (double b=0; b<100; b+=0.1)
     {
         bvals.push_back(b);
-        tavals.push_back(nuke.T_A(b));
+        tavals.push_back(A * nuke.T_A(b));
     }
     density_interpolator = new Interpolator(bvals, tavals);
     density_interpolator->SetOverflow(0);
