@@ -193,7 +193,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     {
         delete cppdglap;
     }
-    return chisqr/points;
+    return chisqr;
 }
 
 
