@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     data.SetMaxQsqr(50.1);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-    //data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
+    data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
     data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
     data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
 

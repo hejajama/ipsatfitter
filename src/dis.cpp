@@ -195,7 +195,6 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-    exit(1);
     
     if (dglapsolver == CPPPIA)
     {
