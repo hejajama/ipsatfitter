@@ -122,7 +122,14 @@ void EvolutionLO_gluon::reno(complex<double> *fn, double alpq, int nmax, int cou
             + 1.0 / (xn - lambdag - 1.0)
                                     );
         
-       
+         
+        // ic with (1-x)^2
+        /*
+        complex<double> gln = ag * 2.0 / ( (-1.0 + xn - lambdag)*(xn - lambdag) * (1.0 + xn - lambdag) );
+       */
+        // (1-x)^1
+        //complex<double> gln = ag * ( 1.0 / ( (-1.0 + xn - lambdag) * (xn - lambdag) ) );
+        
         /*
         complex<double> gln = ag * (
                                     1.0 / (xn + 9.0 - lambdag)
