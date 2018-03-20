@@ -59,7 +59,7 @@ class AlphaStrong {
 public:
     AlphaStrong(int order, double fr2, double mur, double asmur, double mc, double mb, double mt);
 
-    double value(double);
+    double value(double scale);  // scale in GeV
     
     int order() const;            // used order
     double massCharm() const;     // used charm quark mass

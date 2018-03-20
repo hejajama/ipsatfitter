@@ -24,6 +24,16 @@ double EvolutionLO_gluon::alphasxG(double x, double Q2, double mu0, int coupling
 double EvolutionLO_gluon::xG(double x, double Q2, double mu0, int coupling, double Ag,
                        double lambdag, double As, double lambdas)
 {
+    if (mUseLookupTable && !mLookupTableIsFilled) {
+        cerr << "EvolutionLO_gluon::xG(): Warning, use of lookup table requested\n"
+        << "                           but table is not setup. First use \n"
+        << "                           generateLookupTable() to fill table.\n"
+        << "                           Will fall back to numeric calculation."
+        << endl;
+    }
+    if (mUseLookupTable and x > mTableMinX and x < mTableMaxX and Q2 > mTableMinQ2 and Q2 < mTableMaxQ2)
+        return xG_Interpolator(x, Q2);
+    
     const double FourPi = 4.*M_PI;
     
     mMUR = mu0;               // input mu_r in GeV
@@ -84,6 +94,11 @@ double EvolutionLO_gluon::xG(double x, double Q2, double mu0, int coupling, doub
 void EvolutionLO_gluon::reno(complex<double> *fn, double alpq, int nmax, int coupling,
                        double ag, double lambdag, double as, double lambdas)
 {
+    if (coupling==1)
+    {
+        cerr << "Using EvolutionLO_gluon with coupling=1, this can not be right!" << endl;
+        exit(1);
+    }
     //
     //   Mellin-n space Q**2 - evolution of the gluon at LO
     //
@@ -238,6 +253,7 @@ void EvolutionLO_gluon::reno(complex<double> *fn, double alpq, int nmax, int cou
     }
 }
 
+
 EvolutionLO_gluon::EvolutionLO_gluon(AlphaStrong* alphas)
 {
     //
@@ -249,6 +265,13 @@ EvolutionLO_gluon::EvolutionLO_gluon(AlphaStrong* alphas)
     }
     mAlphaStrong = alphas;
 
+    
+    // Interpolation options
+    mTableMinQ2 = 1;
+    mTableMaxQ2 = 1e8;
+    mTableMinX = 1e-8;
+    mTableMaxX = 0.05;
+    
     //
     //   Initialization of support points in n-space and weights for the
     //   Gauss quadrature and of the anomalous dimensions for the RG
@@ -300,7 +323,124 @@ EvolutionLO_gluon::EvolutionLO_gluon(AlphaStrong* alphas)
 EvolutionLO_gluon::~EvolutionLO_gluon()
 {
     if (mAlphaStrong) delete mAlphaStrong;
+    if (mLookupTableIsFilled) {
+        for (unsigned int i = 0; i < mNumberOfNodesInQ2; ++i)
+        delete [] mLookupTable[i];
+        delete [] mLookupTable;
+    }
 }
+
+
+
+
+void EvolutionLO_gluon::generateLookupTable(double mu0, int coupling, double Ag,
+                                            double lambdag, double As, double lambdas, int nx, int nq2 )
+{
+    //
+    //  Delete old lookup table (if it exists)
+    //
+    if (mLookupTableIsFilled) {
+        for (unsigned int i = 0; i < mNumberOfNodesInQ2; ++i)
+        delete [] mLookupTable[i];
+        delete [] mLookupTable;
+    }
+    
+    mNumberOfNodesInX = nx;
+    mNumberOfNodesInQ2 = nq2;
+    
+    //
+    //  Create new table
+    //
+    mLookupTable = new double*[mNumberOfNodesInQ2];
+    for(unsigned int i = 0; i < mNumberOfNodesInQ2; ++i)
+    mLookupTable[i] = new double[mNumberOfNodesInX];
+    
+    //
+    //  Fill lookup table
+    //
+    int printEach = mNumberOfNodesInQ2*mNumberOfNodesInX/10;
+    int nCount = 0;
+    cout << "#DglapEvolution: generating lookup table "; cout.flush();
+    for (unsigned int i = 0; i < mNumberOfNodesInQ2; i++) {
+        double Q2 = pow(mTableMaxQ2/mTableMinQ2,i*1./(mNumberOfNodesInQ2-1.))*mTableMinQ2;
+        for (unsigned int j = 0; j < mNumberOfNodesInX; j++) {
+            double x = pow(mTableMaxX/mTableMinX,j*1./(mNumberOfNodesInX-1.))*mTableMinX;
+            mLookupTable[i][j] = xG(x, Q2, mu0,  coupling,  Ag,
+                                     lambdag,  As,  lambdas);
+            nCount++;
+            if (nCount%printEach == 0) cout << '.'; cout.flush();
+        }
+    }
+    cout << " done" << endl;
+    mLookupTableIsFilled = true;
+}
+
+double EvolutionLO_gluon::xG_Interpolator(double x, double Q2)
+{
+    int q2steps = mNumberOfNodesInQ2-1;
+    int xsteps = mNumberOfNodesInX-1;
+    
+    //
+    //  Position in the Q2 grid
+    //
+    double realq = q2steps * log(Q2/mTableMinQ2)/log(mTableMaxQ2/mTableMinQ2);
+    
+    int n_q2 = static_cast<int>(realq);
+    if (n_q2 <= 0) {n_q2 = 1;}
+    if (n_q2 > q2steps-2) {n_q2 = n_q2-2;}
+    
+    //
+    //  Position in the x grid
+    //
+    double realx = xsteps * log(x/mTableMinX)/log(mTableMaxX/mTableMinX);
+    
+    int n_x = static_cast<int>(realx);
+    if (n_x <= 0) { n_x = 1;}
+    if (n_x > xsteps-2){ n_x = n_x-2;}
+    
+    //
+    //  Starting the interpolation
+    //
+    double arg[4];
+    for (int i=0; i < 4; i++) { arg[i] = n_x-1+i;}
+    
+    double fu[4], fg[4];
+    for (int i=0; i < 4; i++) {
+        fu[0] = mLookupTable[n_q2-1+i][n_x-1];
+        fu[1] = mLookupTable[n_q2-1+i][n_x];
+        fu[2] = mLookupTable[n_q2-1+i][n_x+1];
+        fu[3] = mLookupTable[n_q2-1+i][n_x+2];
+        fg[i] = luovi(fu,arg,realx);
+    }
+    for (int i=0; i < 4; i++) { arg[i] = n_q2-1+i;}
+    
+    return luovi(fg, arg, realq);
+}
+
+double EvolutionLO_gluon::luovi(double f[4], double arg[4], double z)
+{
+    double cof[4];
+    for (int i=0; i < 4; i++ ) cof[i]=f[i];
+    
+    for (int i=0; i < 3 ; i++) {
+        for (int j=i; j < 3 ; j++) {
+            int jndex = 2 - j;
+            int index = jndex + 1 + i;
+            cof[index]= (cof[index]-cof[index-1])/(arg[index]-arg[jndex]);
+        }
+    }
+    
+    double sum=cof[3];
+    
+    for (int i=0; i < 3; i++ ) {
+        int index = 2 - i;
+        sum = (z-arg[index])*sum + cof[index];
+    }
+    
+    return sum;
+}
+
+
 
 void EvolutionLO_gluon::anom() {
     //

@@ -43,79 +43,69 @@ double StrToReal(std::string str)
 int main(int argc, char* argv[])
 {
     gsl_set_error_handler(&ErrHandler);
-    double mu0 = 1.1;
-    // IPnonsat
-    //double C =4.939286653112;
-     // IPsat
-    double C =2.146034445992;
+    double mu0 = std::sqrt(1.1);
     
-    // as=0.13
-    /*
-    double C = 1.043413144754;
-    double mc = 1.348859904616;
-    double lambdag = 0.1098091381306;
-    double Ag=1.475904880738;
-     */
-    // as=0.12
+    // IPsat
     
-    // 0.115
-    /*
-     double C = 2.869756248568;
-     double mc = 1.353964793376;
-     double lambdag = 0.08647720400332;
-     double Ag=2.37379280277;
-    */
-    
-    //DipoleAmplitude amplitude(C, 1.1, lambdag, Ag, mc); //
-    //amplitude.SetSaturation(true);
-    //amplitude.SetCoupling(0);
-    
-    // Parameters are: DipoleAmplitude(C, mu0 [GeV], lambda_g, A_g, m_c [GeV]
-    // ipsat
-    
-    DipoleAmplitude amplitude(C, 1.1, 0.09665075464199, 2.103826220003, 1.351650642298); //
+    double C=2.289363553168;
+    DipoleAmplitude amplitude(C, std::sqrt(1.1), 0.08289088639946, 2.195310911936, 1.35277437092);
     amplitude.SetSaturation(true);
-    amplitude.SetCoupling(0);
     
-    //DipoleAmplitude amplitude(4, sqrt(1.17), 0.02, 2.55, 1.4); //
-    //amplitude.SetSaturation(true);
     
-    //cout << xg_from_ipsat(0.01, 10, amplitude ) << endl;
- 
     // IPnonsat
-    //DipoleAmplitude amplitude(C, mu0, -0.009631194037871, 3.058791613883, 1.342035015621);
-    //amplitude.SetSaturation(false);
-    //amplitude.SetCoupling(0);
+    /*
+    double C=4.297444629517;
+    DipoleAmplitude amplitude(C, mu0, 0.006657294973805, 3.039134356321, 1.350367375905);
+    amplitude.SetSaturation(false);
+    */
+    amplitude.SetCoupling(0);
+   
     
-    for (double qsqr=1.1*1.1; qsqr < 100000; qsqr*=1.2)
+    /*
+    for (double x=1e-6; x<1; x*=1.1)
     {
-        cout << qsqr << " " << amplitude.xg(0.01, qsqr) << endl;
+        for (double r=1e-6; r<10; r*=1.1)
+        {
+            cout << x << " " << r << " " << amplitude.xg(x, 1.0/(r*r)) << endl;
+        }
+        cout << endl;
+    }
+    
+    exit(1);*/
+    /*
+    for (double x=1e-6; x<1; x*=2)
+    {
+        cout << x << " " <<  amplitude.xg(x, 100)  << " " << amplitude.xg(x, 1000) << endl;
     }
     exit(1);
     cout << "# r   N(r, y=" << argv[1] << ")" << endl;
+     */
+    /*
     for (double r=1e-9; r<50; r*=1.002)
     {
         double xbj = 0.01*std::exp(-StrToReal(argv[1]));
         
-        cout << r << " " << amplitude.N(r,  xbj , 0) << " " << amplitude.xg(xbj, mu0*mu0 + C/(r*r) ) << endl;
+        cout << r << " " << amplitude.N(r,  xbj , 2.35482) << " " << amplitude.xg(xbj, mu0*mu0 + C/(r*r) ) << endl;
     }
+    */
     
-    /*
+    cout << amplitude.Alphas(91.1876) << endl;
+    exit(1);
+    
     cout << "Q^2   xg(x=0.01)  xg(x=0.001)  xg(0.0001)" << endl;
     for (double q2=1; q2<1e6; q2*=1.2)
     {
         cout << q2 << " " << amplitude.xg(0.01,q2) << " " << amplitude.xg(0.001, q2) << " " << amplitude.xg(0.0001, q2) << endl;
     }
     exit(1);
-    */
     
-    /*
+        /*
     cout << "# r   N(r, x=1e-2)   N(r, x=0.1e-3)    N(r, x=1e-4)     N(r, x=1e-5)     N(r, x=1e-6) "<< endl;
     for (double r=1e-8; r<100; r*=1.1)
     {
         cout << r << " " << amplitude.N(r, 0.01, 0) << " " <<  amplitude.N(r, 1e-3, 0) << " " <<  amplitude.N(r, 1e-4, 0) << " " <<  amplitude.N(r, 1e-5, 0) << " " <<  amplitude.N(r, 1e-6, 0) << endl;
-    }*/
-    
+    }
+    */
     /*
     for (double x=1e-8; x<0.1; x*=1.1)
         cout << x << " " << amplitude.xg(x, 1.1*1.1) << endl;
