@@ -251,6 +251,8 @@ EvolutionLO_gluon::EvolutionLO_gluon(AlphaStrong* alphas)
     mTableMaxQ2 = 1e8;
     mTableMinX = 1e-8;
     mTableMaxX = 0.05;
+    mLookupTableIsFilled = false;
+    mUseLookupTable = false;
     
     //
     //   Initialization of support points in n-space and weights for the
@@ -321,7 +323,7 @@ void EvolutionLO_gluon::generateLookupTable(double mu0, int coupling, double Ag,
     //
     if (mLookupTableIsFilled) {
         for (unsigned int i = 0; i < mNumberOfNodesInQ2; ++i)
-        delete [] mLookupTable[i];
+         delete [] mLookupTable[i];
         delete [] mLookupTable;
     }
     
