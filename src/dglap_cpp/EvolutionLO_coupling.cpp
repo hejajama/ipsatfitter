@@ -2,7 +2,7 @@
 //  EvolutionLO.cpp
 //
 //==============================================================================
-#include "EvolutionLO.h"
+#include "EvolutionLO_coupling.h"
 #include <cmath>
 #include <cstdlib>
 
@@ -24,6 +24,11 @@ double EvolutionLO::alphasxG(double x, double Q2, double mu0, int coupling, doub
 double EvolutionLO::xG(double x, double Q2, double mu0, int coupling, double Ag,
                        double lambdag, double As, double lambdas)
 {
+	if (coupling==0)
+	{
+		cerr << "You are using coupling-DGLAP with coupling=0!" << endl;
+		exit(1);
+	}
     const double FourPi = 4.*M_PI;
     
     mMUR = mu0;               // input mu_r in GeV

@@ -13,7 +13,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "dglap_cpp/EvolutionLO.h"
+#include "dglap_cpp/EvolutionLO_coupling.h"
 #include "dglap_cpp/EvolutionLO_nocoupling.h"
 #include "dglap_cpp/AlphaStrong.h"
 
@@ -61,11 +61,15 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double Ag = par[ parameters.Index("A_g")];
     double mu0 =par[parameters.Index("mu_0")];
     double Cscale = par[parameters.Index("C")];
+    double As = par[ parameters.Index("A_s")];
+    double lambdas = par[ parameters.Index("lambda_s")];
+    
     
     // Force som limits in case MINUIT does not handle these properly
     if (light_mass < 0 or light_mass > 1 or charm_mass < 1.1 or charm_mass > 10
             or lambdag < -10 or lambdag > 10 or Ag < 0 or mu0 < 0
-            or Cscale <= 0 or Cscale > 1e6)
+            or Cscale <= 0 or Cscale > 1e6
+            or As < 0 or As > 100 or lambdas < -10 or lambdas > 10)
         return 9999;
 
     FitParameters fitparams;
@@ -98,6 +102,9 @@ double DISFitter::operator()(const std::vector<double>& par) const
         // DGLAP_Solver will take care of deleting alphas when it is deleted
         cppdglap = new EvolutionLO_gluon(alphas);
         
+        int coupling=0;
+        cppdglap->generateLookupTable(mu0, coupling, Ag, lambdag, As, lambdas);
+        cppdglap->useLookupTable(true);
         fitparams.cppdglap = cppdglap;
         fitparams.alpha_strong = alphas;
     }

@@ -42,6 +42,13 @@ public:
     
     double alphasxG(double x, double Q2, double mu0, int coupling, double Ag,
                     double lambdag, double As, double lambdas);
+    
+    void generateLookupTable( double mu0, int coupling, double Ag,
+                             double lambdag, double As, double lambdas, int nx = 200, int nq2 = 200);
+    void useLookupTable(bool) ;
+    bool lookupTableIsUsed() const;
+    double xG_Interpolator(double x, double Q2);
+    double luovi( double f[4], double arg[4], double z);
 
 private:
     void anom();
@@ -54,6 +61,7 @@ private:
               double ag, double lambdag, double as, double lambdas);
 
 private:
+    static EvolutionLO_gluon* mInstance;
     double   mWN[137];
     complex<double>   mN[137];
     double   mC;
@@ -70,7 +78,27 @@ private:
     double mMB;
     double mMT;
     
+    bool mLookupTableIsFilled;
+    bool mUseLookupTable;
+    unsigned int mNumberOfNodesInX;
+    unsigned int mNumberOfNodesInQ2;
+    double mTableMinX;
+    double mTableMaxX;
+    double mTableMinQ2;
+    double mTableMaxQ2;
+    double **mLookupTable;
+    
     AlphaStrong *mAlphaStrong;
 };
+
+inline void EvolutionLO_gluon::useLookupTable(bool val) {mUseLookupTable = val;}
+
+inline bool EvolutionLO_gluon::lookupTableIsUsed() const
+{
+    return mUseLookupTable && mLookupTableIsFilled;
+}
+
+
+
 #endif
 
