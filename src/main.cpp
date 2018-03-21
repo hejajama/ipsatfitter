@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     gsl_set_error_handler(&ErrHandler);
     
     Data data;
-    data.SetMinQsqr(1.49);
+    data.SetMinQsqr(StrToReal(argv[1]));
     data.SetMaxQsqr(50.1);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
