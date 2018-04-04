@@ -32,7 +32,9 @@ void ErrHandler(const char * reason,
 enum INITIAL_PARAMETERS
 {
     IPSAT_MAXQ2_50,
-    IPNONSAT_MAXQ2_50
+	IPSAT_MAXQ2_500,
+    IPNONSAT_MAXQ2_50,
+	IPNONSAT_MAXQ2_500
 };
 
 
@@ -45,7 +47,7 @@ int main(int argc, char* argv[])
     data.SetMaxQsqr(50.1);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-    //data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
+    data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
     data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
     data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
 
@@ -66,6 +68,17 @@ int main(int argc, char* argv[])
         parameters.Add("lambda_g", 0.08289088639946, 0.01);
         parameters.Add("A_g", 2.195310911936, 0.01);
     }
+	if (start_params == IPSAT_MAXQ2_500)
+    {
+        parameters.Add("light_mass", 0.03);
+        parameters.Add("charm_mass", 1.3296, 0.01);
+        parameters.Add("bottom_mass", 4.75, 0.01);
+        parameters.Add("C", 2.6477, 0.01);
+        parameters.Add("mu_0", std::sqrt(1.1));
+        parameters.Add("lambda_g", 0.0779, 0.01);
+        parameters.Add("A_g", 2.2097, 0.01);
+    }
+
     else if (start_params == IPNONSAT_MAXQ2_50)
     {
         // IPnonsat
@@ -77,7 +90,18 @@ int main(int argc, char* argv[])
         parameters.Add("lambda_g", -0.006657294973805);
         parameters.Add("A_g", 3.039134356321);
     }
-
+    else if (start_params == IPNONSAT_MAXQ2_500)
+    {
+        // IPnonsat
+        parameters.Add("light_mass", 0.1332);
+        parameters.Add("charm_mass", 1.3187);
+        parameters.Add("bottom_mass", 4.75);
+        parameters.Add("C", 5.6510);
+        parameters.Add("mu_0", std::sqrt(1.1));
+        parameters.Add("lambda_g", -0.03460);
+        parameters.Add("A_g", 3.2820);
+	}
+ 
 	parameters.Add("lambda_s", 0);
 	parameters.Add("A_s", 0);
     parameters.Add("A", 1);
@@ -96,7 +120,7 @@ int main(int argc, char* argv[])
      */
     fitter.AddDataset(data);
     
-    if (start_params == IPSAT_MAXQ2_50)
+    if (start_params == IPSAT_MAXQ2_50 or start_params == IPSAT_MAXQ2_500)
         fitter.SetSaturation(true);
     else
         fitter.SetSaturation(false);

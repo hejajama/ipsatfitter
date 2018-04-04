@@ -247,7 +247,7 @@ EvolutionLO_gluon::EvolutionLO_gluon(AlphaStrong* alphas)
 
     
     // Interpolation options
-    mTableMinQ2 = 1;
+    mTableMinQ2 = 0.6;
     mTableMaxQ2 = 1e8;
     mTableMinX = 1e-8;
     mTableMaxX = 0.05;
@@ -342,7 +342,7 @@ void EvolutionLO_gluon::generateLookupTable(double mu0, int coupling, double Ag,
     //
     int printEach = mNumberOfNodesInQ2*mNumberOfNodesInX/10;
     int nCount = 0;
-    cout << "#DglapEvolution: generating lookup table "; cout.flush();
+//    cout << "#DglapEvolution: generating lookup table "; cout.flush();
     for (unsigned int i = 0; i < mNumberOfNodesInQ2; i++) {
         double Q2 = pow(mTableMaxQ2/mTableMinQ2,i*1./(mNumberOfNodesInQ2-1.))*mTableMinQ2;
         for (unsigned int j = 0; j < mNumberOfNodesInX; j++) {
@@ -350,10 +350,10 @@ void EvolutionLO_gluon::generateLookupTable(double mu0, int coupling, double Ag,
             mLookupTable[i][j] = xG(x, Q2, mu0,  coupling,  Ag,
                                      lambdag,  As,  lambdas);
             nCount++;
-            if (nCount%printEach == 0) cout << '.'; cout.flush();
+  //          if (nCount%printEach == 0) cout << '.'; cout.flush();
         }
     }
-    cout << " done" << endl;
+ //   cout << " done" << endl;
     mLookupTableIsFilled = true;
 }
 
