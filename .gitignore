@@ -1,0 +1,5 @@
+*.o
+data/ipsat*
+figs/
+tmp
+libColorDipole

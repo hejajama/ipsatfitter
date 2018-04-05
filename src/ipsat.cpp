@@ -34,14 +34,7 @@ DglapEvolution sartre_dglap;
 
 using namespace ROOT::Minuit2;
 
-// IPsat 2012 - to test (extrat xg from this)
 
-extern "C" {
-    double dipole_amplitude_(double* xBj, double* r, double* b, int* param);
-};
-int IPSAT12_PAR = 2;    // 1: m_c=1.27 GeV,   2: m_c=1.4GeV
-
-const bool USE_AMIR_FIT = false;
 
 // LO DGLAP solver
 // Modified by H.M. such that
@@ -64,9 +57,6 @@ extern "C"
  */
 double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parameters,  int config) const
 {
-    // Use Amir's dipole
-    if (USE_AMIR_FIT)
-        return dipole_amplitude_(&x, &r, &b, &IPSAT12_PAR)/2.0;
     
     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
     double C = parameters.values->at( parameters.parameter->Index("C"));
@@ -105,7 +95,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
     int A =parameters.values->at( parameters.parameter->Index("A"));
-    if (config == -1 and saturation and !USE_AMIR_FIT and A==1 )
+    if (config == -1 and saturation and A==1 )
     {
         // Assume Gaussian profile exp(-b^2/(2B)) in the IPsat, can calculate
         // b integral analytically, as
@@ -137,7 +127,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         }
         
     }
-    else if (config == -1 and !saturation and !USE_AMIR_FIT and A==1 )
+    else if (config == -1 and !saturation and A==1 )
     {
         // b integral analytically, now this is trivial as \int d^2 T_b = 1
         // so actually the result is 2\pi B N(r, b=0)
