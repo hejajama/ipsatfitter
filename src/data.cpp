@@ -40,10 +40,6 @@ int Data::LoadData(string filename, DataType type, double weight)
     
     int points=0;
     
-    bool onlycharm = false;
-    if (type == CHARM )
-        onlycharm = true;
-    
     while(!file.eof() )
     {
         string line;
@@ -59,7 +55,7 @@ int Data::LoadData(string filename, DataType type, double weight)
         Qsqrvals.push_back(StrToReal(qsqr)); xbjvals.push_back(StrToReal(x));
         yvals.push_back(StrToReal(y));
         sigmarvals.push_back(StrToReal(sigmar)); errors.push_back(StrToReal(err));
-        only_charm.push_back(onlycharm);
+        point_type.push_back(type);
         weights.push_back(weight);
     }
     
@@ -98,10 +94,13 @@ double Data::ReducedCrossSectionError(unsigned int n) const
     return errors[n];
 }
 
-bool Data::OnlyCharm(unsigned int n) const
+DataType Data::DataPointType(unsigned int n) const
 {
-    return only_charm[n];
+    return point_type[n];
 }
+
+
+
 
 
 Data::Data()

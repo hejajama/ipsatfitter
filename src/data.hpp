@@ -20,7 +20,8 @@ using namespace std;
 enum DataType
 {
     TOTAL,      // total reduced cross section
-    CHARM       // only charm contribution
+    CHARM,       // only charm contribution
+    BOTTOM      // only b
 };
 
 class Data
@@ -34,7 +35,7 @@ public:
     double y(unsigned int n) const;
     double ReducedCrossSection(unsigned int n) const;
     double ReducedCrossSectionError(unsigned int n) const;
-    bool OnlyCharm(unsigned int n) const;
+    DataType DataPointType(unsigned int n) const;
     
     void SetMinQsqr(double q2) { minQ2 = q2; }
     void SetMaxQsqr(double q2) { maxQ2 = q2; }
@@ -55,7 +56,7 @@ private:
     vector<double> yvals;
     vector<double> sigmarvals;
     vector<double> errors;
-    vector<bool> only_charm;
+    vector<DataType> point_type;
     vector<double> weights;
     
 };

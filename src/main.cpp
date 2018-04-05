@@ -43,14 +43,16 @@ int main(int argc, char* argv[])
     gsl_set_error_handler(&ErrHandler);
     
     Data data;
-    data.SetMinQsqr(StrToReal(argv[1]));
-    data.SetMaxQsqr(50.1);
+    data.SetMinQsqr(1.49);
+    data.SetMaxQsqr(500.1);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
     data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
-    data.LoadData("data/hera_II_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
+    data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
 
+    //data.LoadData("data/hera_II_combined_sigmar_b.txt", BOTTOM, 1.0);
+    
     INITIAL_PARAMETERS start_params = IPSAT_MAXQ2_50;
     
     MnUserParameters parameters;
@@ -135,19 +137,18 @@ int main(int argc, char* argv[])
     
     
     // Initialize alpha_s(M_Z=91.1876)=0.1183
-    
-    //AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, parvec[parameters.Index("charm_mass")], 4.75, 175);
-    // DGLAP_Solver will take care of deleting alphas when it is deleted
-    //EvolutionLO_gluon *cppdglap = new EvolutionLO_gluon(alphas);
-    //cppdglap->generateLookupTable(parvec[parameters.Index("mu_0")], 0, parvec[parameters.Index("A_g")], parvec[parameters.Index("lambda_g")], 0, 0);
     /*
+    AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, parvec[parameters.Index("charm_mass")], 4.75, 175);
+    // DGLAP_Solver will take care of deleting alphas when it is deleted
+    EvolutionLO_gluon *cppdglap = new EvolutionLO_gluon(alphas);
+    cppdglap->generateLookupTable(parvec[parameters.Index("mu_0")], 0, parvec[parameters.Index("A_g")], parvec[parameters.Index("lambda_g")], 0, 0);
+    
     p.cppdglap = cppdglap;
     p.alpha_strong = alphas;
      // Now one can have
-     fitter.F2(Q2,x,p)
-     */
-
-
+    cout << "Q2=2 " << fitter.F2(2,0.01,p) << endl;
+    exit(1);
+*/
      //parameters.SetPrecision(0.001);
     
     cout << "=== Initial parameters ===" << endl;

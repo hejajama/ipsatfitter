@@ -147,8 +147,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
             double Q2 = datasets[dataset]->Qsqr(i);
             double sigmar = datasets[dataset]->ReducedCrossSection(i);
             double sigmar_err = datasets[dataset]->ReducedCrossSectionError(i);
-            bool onlycharm = datasets[dataset]->OnlyCharm(i);
-            
+            DataType point_type =datasets[dataset]->DataPointType(i);
             double sqrts = sqrt( Q2 / (x * y) );
             
             double charmx = x * (1.0 + 4.0*charm_mass*charm_mass / Q2);
@@ -160,17 +159,22 @@ double DISFitter::operator()(const std::vector<double>& par) const
             if (charmx_limitmass > 0.01)
                 continue;
 
-            double theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
+            double theory_charm =0;
             double theory_light=0, theory_bottom=0;
-            if (!onlycharm) // All quarks
+            if (point_type == CHARM or point_type == TOTAL)
             {
-                theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
-                
+                theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
+            }
+            if (point_type == BOTTOM or point_type == TOTAL)
+            {
                 // Include bottom conribution if kinematically allowed
                 double bottomx = x * (1.0 + 4.0*bottom_mass*bottom_mass/Q2);
-                if (bottomx < 0.1) //0.01: chi2 1.399  0.1: 1.409, no b: 1.27
+                if (bottomx < 0.1)
                     theory_bottom = ReducedCrossSection(Q2, bottomx, sqrts, &wf_bottom, fitparams);
-                
+            }
+            if (point_type == TOTAL) // All quarks
+            {
+                theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
                 
             }
             double theory = theory_light + theory_charm + theory_bottom;
@@ -195,7 +199,6 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
-    
     if (dglapsolver == CPPPIA)
     {
         delete cppdglap;
@@ -317,7 +320,7 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
     double xc = xbj * (1.0 + 4.0*mc*mc/Q2);
     
     photon.SetQuark(C, mc);
-    double xs_charm_l =ProtonPhotonCrossSection(Q2, xc, LONGITUDINAL, &photon, fitparams);
+    double xs_charm_l = ProtonPhotonCrossSection(Q2, xc, LONGITUDINAL, &photon, fitparams);
     double xs_charm_t =ProtonPhotonCrossSection(Q2, xc, TRANSVERSE, &photon, fitparams);
     
     double xb = xbj*(1.0 + 4.0*mb*mb/Q2);
