@@ -92,7 +92,6 @@ double inthelperf_bint(double b, void* p)
 
 double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters, int  config) const
 {
-    
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
     int A =parameters.values->at( parameters.parameter->Index("A"));
     if (config == -1 and saturation and A==1 )
@@ -109,9 +108,11 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
         double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
         double C = parameters.values->at( parameters.parameter->Index("C"));
         double musqr = mu_0*mu_0 + C / SQR(r);
+        
+        
+        
         double a = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) / (2.0 * M_PI * B);
-       if (a==0) // Basically so small r that xg =0 as we are outside the dglap evolution grid
-			   return 0; 
+        
         
         gsl_sf_result sinres;
         gsl_sf_result cosres;
@@ -165,16 +166,26 @@ double inthelperf_bint_lumpyA(double b, void* p)
     inthelper_bint* par = (inthelper_bint*) p;
     int A = par->parameters.values->at( par->parameters.parameter->Index("A"));
     double TA = par->ipsat->GetDensityInterpolator()->Evaluate(b)/A ;
-    //cout << 1.0 - TA*par->total_gammap/2.0  << " " << 1.0 - std::pow(1.0 - TA*par->total_gammap/2.0 , A) << endl;
-    double power  = std::pow(1.0 - TA*par->total_gammap/2.0 , A);
     
-    // Sometimes we get that power > 1, which happens if total gammap xs is too large
-    // NOTE: This happens always at crazy large r, because the total dipole-proton xs
-    // goes like log(r). Of course, the photon wave function kills these crazy contributions.
-    // But here we have to return 0, otherwise we may end up returning a large (negative) number which is not
-    // damped by the virtual photon wave function
-    if (power > 1) return 0;
-    return b * (1.0 - power );
+    // For ligh nulcei do not take large-A limit
+    if (A < 100)
+    {
+        //cout << 1.0 - TA*par->total_gammap/2.0  << " " << 1.0 - std::pow(1.0 - TA*par->total_gammap/2.0 , A) << endl;
+        double power  = std::pow(1.0 - TA*par->total_gammap/2.0 , A);
+        
+        // Sometimes we get that power > 1, which happens if total gammap xs is too large
+        // NOTE: This happens always at crazy large r, because the total dipole-proton xs
+        // goes like log(r). Of course, the photon wave function kills these crazy contributions.
+        // But here we have to return 0, otherwise we may end up returning a large (negative) number which is not
+        // damped by the virtual photon wave function
+        if (power > 1) return 0;
+        return b * (1.0 - power );
+    }
+    else
+    {
+        
+        return b * (1.0 - std::exp( -A*TA*par->total_gammap/2.0));
+    }
 }
 double IPsat::DipoleAmplitude_bint_lumpyA(double r, double x, FitParameters parameters, int config) const
 {
