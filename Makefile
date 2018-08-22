@@ -14,11 +14,14 @@ LDFLAGS = `gsl-config --libs` -lgfortran
 
 all: ipsatfit
 
-ipsatfit: $(OBJECTS) $(COBJECTS) $(FOBJECTS) $(SOURCES) $(CSOURCES)
-	$(CXX)  $(CXXFLAGS) $(LDFLAGS) $(MINUITLIBDIR)/libMinuit2.a  $(OBJECTS) $(COBJECTS) $(FOBJECTS) -o ipsatfit
+ipsatfit: src/main.o $(OBJECTS) $(COBJECTS) $(FOBJECTS) $(SOURCES) $(CSOURCES)
+	$(CXX)  $(CXXFLAGS) $(LDFLAGS) $(MINUITLIBDIR)/libMinuit2.a  src/main.o $(OBJECTS) $(COBJECTS) $(FOBJECTS) -o ipsatfit
 
 dipole: src/dipoleamplitude.o src/ugd_from_ipsat.o src/dglap_cpp/AlphaStrong.o src/dglap_cpp/EvolutionLO.o src/dglap_cpp/EvolutionLO_nocoupling.o src/ugd_from_ipsat.o 
 	$(CXX)  $(CXXFLAGS) $(LDFLAGS) -o dipoleamplitude src/ugd_from_ipsat.o src/dipoleamplitude.o src/dglap_cpp/AlphaStrong.o src/dglap_cpp/EvolutionLO.o  src/dglap_cpp/EvolutionLO_nocoupling.o
+
+tools: $(OBJECTS) tools/create_light_f2.o 
+	$(CXX)  $(CXXFLAGS) $(LDFLAGS) -o tools/create_light_f2 $(MINUITLIBDIR)/libMinuit2.a tools/create_light_f2.o $(OBJECTS) $(COBJECTS) $(FOBJECTS)
 
 .cpp.o: 
 	$(CXX) $(CXXFLAGS) $< -c -o $@
