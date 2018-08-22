@@ -20,7 +20,6 @@
 using namespace std;
 
 const double MINR = 1e-6;
-const double MAXR =50*5.068;
 // Hera data is very accurate, so eventually one needs to use better accuracy
 const double RINTACCURACY = 0.000001;
 
@@ -156,7 +155,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
             
             // Include only datapoints where charm contribution can be calculated
             // Use here charmx corresponding to m_c = 1.42 GeV, to keep # of datapoints the same!
-            if (charmx_limitmass > 0.01)
+            if (charmx_limitmass > 0.01 and point_type != UDS)
                 continue;
 
             double theory_charm =0;
@@ -172,12 +171,14 @@ double DISFitter::operator()(const std::vector<double>& par) const
                 if (bottomx < 0.1)
                     theory_bottom = ReducedCrossSection(Q2, bottomx, sqrts, &wf_bottom, fitparams);
             }
-            if (point_type == TOTAL) // All quarks
+            if (point_type == TOTAL or point_type == UDS) // All quarks
             {
                 theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
                 
             }
             double theory = theory_light + theory_charm + theory_bottom;
+            if (point_type == UDS)
+                theory = theory_light;
             
             
             if (isnan(theory) or isinf(theory))
@@ -199,6 +200,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     }
     
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
+    
     if (dglapsolver == CPPPIA)
     {
         delete cppdglap;
@@ -268,7 +270,6 @@ double Inthelperf_totxs(double lnr, void* p)
     
     gsl_function fun; fun.function=Inthelperf_totxs;
     fun.params=&par;
-    
     
     
     double result,abserr;
@@ -379,6 +380,9 @@ DISFitter::DISFitter(MnUserParameters parameters_)
     int A = parameters.Value("A");
     if (A>1)
         dipole.InitNucleus(A);
+    
+    
+    MAXR = 20*5.068;
     
     
     // Init dglap

@@ -21,7 +21,8 @@ enum DataType
 {
     TOTAL,      // total reduced cross section
     CHARM,       // only charm contribution
-    BOTTOM      // only b
+    BOTTOM,      // only b
+    UDS          // Light quarks u,d,s
 };
 
 class Data
