@@ -8,7 +8,6 @@
  * H. Mäntysaari and P. Zurita, 2017
  */
 #include "dglap_cpp/AlphaStrong.h"
-#include "dglap_cpp/EvolutionLO.h"
 
 #include "dglap_cpp/EvolutionLO_nocoupling.h"
 
