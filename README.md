@@ -1,5 +1,9 @@
 IPsat fitter to combined HERA data using MINUIT
 
+Reference: H. Mantysaari, P. Zurita, Phys.Rev. D98 (2018) 036002, arXiv:1804.05311
+
+Questions and comments: heikki.mantysaari@jyu.fi
+
 Install:
 
 0. Download MINUIT2 from http://seal.web.cern.ch/seal/snapshot/work-packages/mathlibs/minuit/ -> Download
@@ -41,7 +45,9 @@ I have tried to design it such that one can later on add support for fluctuating
 structure.
 
 * DGLAP code is in the fortran files alphaS.f and LO_evolution_routine.f
-Note that I have made a change: LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
+There is also a C++ implementation of the same code which is used by default,
+Note that in the Fortran version
+LO_evol(X, Q2, gluon, coupling, Ag, lambdag)
 actually now returns alphas(Q^2) * LO_evol
 This way it remains easy to keep definition of alphas consistent in the Fortran and
 C++ (IPsat class) parts
