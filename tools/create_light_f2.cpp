@@ -43,6 +43,14 @@ void ErrHandler(const char * reason,
 const double AS_MZ = 0.1183;
 using namespace ROOT::Minuit2;
 
+double StrToReal(std::string str)
+{
+    std::stringstream buff(str);
+    double tmp;
+    buff >> tmp;
+    return tmp;
+}
+
 // Example
 int main(int argc, char* argv[])
 {
