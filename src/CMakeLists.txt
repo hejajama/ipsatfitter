@@ -20,6 +20,7 @@ add_executable(
 	${CMAKE_CURRENT_BINARY_DIR}/gitsha1.cpp
 	LO_evolution_routine.f 
 	alphaS.f
+	inclusive_diffraction.cpp
 	)
 
 include_directories(.)

@@ -91,6 +91,13 @@ class VirtualPhoton  {
          */
         void SetQuark(Parton p, double mass=-1);
     
+        /*
+         * Quarks
+         */
+        int NumberOfQuarks() const { return m_f.size(); }
+        double QuarkMass(int i) const { return m_f[i]; }
+        double QuarkCharge(int i) const { return e_f[i]; }   // Charge relative to e    
+    
     
 #ifdef USE_INTERPOLATOR
         /**

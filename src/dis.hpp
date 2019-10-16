@@ -64,6 +64,13 @@ public:
     double F2(double Q2, double x, FitParameters fitparams) const;
     double FL(double Q2, double x, FitParameters fitparams) const;
     
+    //// Inclusive diffraction
+    // qq component
+    double DiffractiveStructureFunction_qq_T(double xpom, double beta, double qsqr ,const VirtualPhoton* wf , FitParameters fitparams);
+    double DiffractiveStructureFunction_qq_L(double xpom, double beta, double qsqr, const VirtualPhoton* wf , FitParameters fitparams);
+    // Helpers for inclusive diffraction
+    double Qq_component_n(double xpom, double qsqr, double Mxsqr, double z, int n, const VirtualPhoton* wf , FitParameters fitparams, int flavor=0 );
+    
     void AddDataset(Data& d);
     
     void SetSaturation(bool s) { dipole.SetSaturation(s); }
@@ -83,6 +90,8 @@ private:
     DGLAP_Solver dglapsolver;
     
     vector<Data*> datasets;
+    
+    
     
 
 };
