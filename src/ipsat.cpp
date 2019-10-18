@@ -104,7 +104,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     double x0 = std::exp(lnx0);
     double qs2 = qs02 * std::pow(x0/x, lambda);
     
-    return 2.0*M_PI*sigma02*(1.0 - std::exp(-std::pow(r*r*qs2, gamma)/4.0));
+    return sigma02*(1.0 - std::exp(-std::pow(r*r*qs2, gamma)/4.0));
     /*
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
     int A =parameters.values->at( parameters.parameter->Index("A"));
