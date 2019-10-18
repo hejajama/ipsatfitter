@@ -57,6 +57,10 @@ extern "C"
  */
 double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parameters,  int config) const
 {
+    cout << "Why I'm here?" << endl;
+    
+    
+    
     
     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
     double C = parameters.values->at( parameters.parameter->Index("C"));
@@ -92,6 +96,16 @@ double inthelperf_bint(double b, void* p)
 
 double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters, int  config) const
 {
+    double qs02 = parameters.values->at( parameters.parameter->Index("qs02"));
+    double lambda = parameters.values->at( parameters.parameter->Index("lambda"));
+    double gamma = parameters.values->at( parameters.parameter->Index("gamma"));
+    double sigma02 = parameters.values->at( parameters.parameter->Index("sigma02"));
+    double lnx0 = parameters.values->at( parameters.parameter->Index("lnx0"));
+    double x0 = std::exp(lnx0);
+    double qs2 = qs02 * std::pow(x0/x, lambda);
+    
+    return 2.0*M_PI*sigma02*(1.0 - std::exp(-std::pow(r*r*qs2, gamma)/4.0));
+    /*
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
     int A =parameters.values->at( parameters.parameter->Index("A"));
     if (config == -1 and saturation and A==1 )
@@ -156,6 +170,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     gsl_integration_workspace_free(ws);
     
     return 2.0*M_PI*result; //2pi from angular integral
+     */
 }
 
 /*

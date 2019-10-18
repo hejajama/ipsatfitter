@@ -55,20 +55,18 @@ double DISFitter::operator()(const std::vector<double>& par) const
     
     double light_mass = par[ parameters.Index("light_mass")];
     double charm_mass = par[ parameters.Index("charm_mass")];
-    double bottom_mass = par[ parameters.Index("bottom_mass")];
-    double lambdag = par[ parameters.Index("lambda_g")];
-    double Ag = par[ parameters.Index("A_g")];
-    double mu0 =par[parameters.Index("mu_0")];
-    double Cscale = par[parameters.Index("C")];
-    double As = par[ parameters.Index("A_s")];
-    double lambdas = par[ parameters.Index("lambda_s")];
+    
+    double qs02 = par[ parameters.Index("qs02")];
+    double lambda = par[ parameters.Index("lambda")];
+    double gamma = par[ parameters.Index("gamma")];
+    
+    
+    
     
     
     // Force som limits in case MINUIT does not handle these properly
     if (light_mass < 0 or light_mass > 1 or charm_mass < 1.1 or charm_mass > 10
-            or lambdag < -10 or lambdag > 10 or Ag < 0 or mu0 < 0
-            or Cscale <= 0 or Cscale > 1e6
-            or As < 0 or As > 100 or lambdas < -10 or lambdas > 10)
+            or lambda < 0 or lambda > 10 or gamma < 0)
         return 9999;
 
     FitParameters fitparams;
@@ -97,7 +95,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     else if (dglapsolver == CPPPIA)
     {
         // Initialize alpha_s(M_Z=91.1876)=0.1183
-        AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, charm_mass, bottom_mass, 175);
+       /* AlphaStrong *alphas = new AlphaStrong(0, 1.0, 91.1876, 0.1183, charm_mass, bottom_mass, 175);
         // DGLAP_Solver will take care of deleting alphas when it is deleted
         cppdglap = new EvolutionLO_gluon(alphas);
         
@@ -105,7 +103,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
         cppdglap->generateLookupTable(mu0, coupling, Ag, lambdag, As, lambdas);
         cppdglap->useLookupTable(true);
         fitparams.cppdglap = cppdglap;
-        fitparams.alpha_strong = alphas;
+        fitparams.alpha_strong = alphas;*/
     }
 }
     
@@ -116,7 +114,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
     VirtualPhoton wf_bottom;
     wf_lightquark.SetQuark(LIGHT, light_mass);
     wf_charm.SetQuark(C, charm_mass);
-    wf_bottom.SetQuark(B, bottom_mass);
+    //wf_bottom.SetQuark(B, bottom_mass);
 #ifdef USE_INTERPOLATOR
     wf_lightquark.InitializeZintInterpolators();
     wf_charm.InitializeZintInterpolators();
@@ -160,7 +158,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
 
             double theory_charm =0;
             double theory_light=0, theory_bottom=0;
-            if (point_type == CHARM or point_type == TOTAL)
+            
+            /*if (point_type == CHARM or point_type == TOTAL)
             {
                 theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
             }
@@ -171,11 +170,13 @@ double DISFitter::operator()(const std::vector<double>& par) const
                 if (bottomx < 0.1)
                     theory_bottom = ReducedCrossSection(Q2, bottomx, sqrts, &wf_bottom, fitparams);
             }
+             */
             if (point_type == TOTAL or point_type == UDS) // All quarks
             {
                 theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
                 
             }
+            
             double theory = theory_light + theory_charm + theory_bottom;
             if (point_type == UDS)
                 theory = theory_light;
@@ -283,8 +284,8 @@ double Inthelperf_totxs(double lnr, void* p)
         << " relerr=" << abserr/result << "), parameters " << PrintVector(*fitparams.values) <<" at " << LINEINFO << std::endl;
     }
     
-    return 2.0*2.0*M_PI*result; //2\pi from \theta integral (angular integral over the dipole orientation)
-    // Additional 2 in front is part of gamma^*p cross section
+    return 2.0*M_PI*result; //2\pi from \theta integral (angular integral over the dipole orientation)
+    // No factor 2 in this version, as we have sigma0/2 in the dipole
 }
 
 
@@ -320,6 +321,11 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
     
     double xc = xbj * (1.0 + 4.0*mc*mc/Q2);
     
+    double xs_charm_l = 0;
+    double xs_charm_t = 0;
+    double xs_bottom_l =  0;
+    double xs_bottom_t = 0;
+    /*
     photon.SetQuark(C, mc);
     double xs_charm_l = ProtonPhotonCrossSection(Q2, xc, LONGITUDINAL, &photon, fitparams);
     double xs_charm_t =ProtonPhotonCrossSection(Q2, xc, TRANSVERSE, &photon, fitparams);
@@ -330,10 +336,10 @@ double DISFitter::F2(double Q2, double xbj, FitParameters fitparams ) const
     if (xb < 0.01  )
     {
         photon.SetQuark(B, mb);
-        double xs_bottom_l = ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
-        double xs_bottom_t = ProtonPhotonCrossSection(Q2, xb, TRANSVERSE, &photon, fitparams);
+        xs_bottom_l = ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
+        xs_bottom_t = ProtonPhotonCrossSection(Q2, xb, TRANSVERSE, &photon, fitparams);
     }
-
+*/
     return Q2 / (4.0*M_PI*M_PI*ALPHA_e) * (xs_light_l + xs_light_t + xs_charm_l + xs_charm_t + xs_bottom_t + xs_bottom_l);
 }
 
@@ -347,19 +353,21 @@ double DISFitter::FL(double Q2, double xbj, FitParameters fitparams ) const
     photon.SetQuark(LIGHT, ml );
     double xs_light_l = ProtonPhotonCrossSection(Q2, xbj, LONGITUDINAL, &photon, fitparams);
     
-    double xc = xbj * (1.0 + 4.0*mc*mc/Q2);
+    double xs_charm_l = 0;
+    double xs_bottom_l = 0;
+    /*double xc = xbj * (1.0 + 4.0*mc*mc/Q2);
     
     photon.SetQuark(C, mc);
     double xs_charm_l =ProtonPhotonCrossSection(Q2, xc, LONGITUDINAL, &photon, fitparams);
     
     double xb = xbj*(1.0 + 4.0*mb*mb/Q2);
-    double xs_bottom_l=0;
-    if (xb < 0.01 )
+    double xs_bottom_l=0;*/
+    /*if (xb < 0.01 )
     {
         photon.SetQuark(B, mb);
-        double xs_bottom_l = ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
+        xs_bottom_l = ProtonPhotonCrossSection(Q2, xb, LONGITUDINAL, &photon, fitparams);
     }
-    
+    */
     return Q2 / (4.0*M_PI*M_PI*ALPHA_e) * (xs_light_l + xs_charm_l + xs_bottom_l);
 }
 
