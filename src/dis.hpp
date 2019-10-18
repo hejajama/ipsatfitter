@@ -66,10 +66,10 @@ public:
     
     //// Inclusive diffraction
     // qq component
-    double DiffractiveStructureFunction_qq_T(double xpom, double beta, double qsqr ,const VirtualPhoton* wf , FitParameters fitparams);
-    double DiffractiveStructureFunction_qq_L(double xpom, double beta, double qsqr, const VirtualPhoton* wf , FitParameters fitparams);
+    double DiffractiveStructureFunction_qq_T(double xpom, double beta, double qsqr ,const VirtualPhoton* wf , FitParameters fitparams) const;
+    double DiffractiveStructureFunction_qq_L(double xpom, double beta, double qsqr, const VirtualPhoton* wf , FitParameters fitparams) const;
     // Helpers for inclusive diffraction
-    double Qq_component_n(double xpom, double qsqr, double Mxsqr, double z, int n, const VirtualPhoton* wf , FitParameters fitparams, int flavor=0 );
+    double Qq_component_n(double xpom, double qsqr, double Mxsqr, double z, int n, const VirtualPhoton* wf , FitParameters fitparams, int flavor=0 ) const;
     
     void AddDataset(Data& d);
     

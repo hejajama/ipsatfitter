@@ -48,15 +48,36 @@ int Data::LoadData(string filename, DataType type, double weight)
         continue;
         string x,qsqr,y,sigmar,err;
         stringstream l(line);
-        l >> qsqr; l>>x; l>>y; l>>sigmar; l>>err;
         
-        if (StrToReal(x)>maxx or StrToReal(x)<minx or StrToReal(qsqr)<minQ2 or StrToReal(qsqr)>maxQ2) continue;
-        points++;
+        // Inclusive case
+        if (type != INC_DIFFRACTIVE_TOTAL)
+        {
+            l >> qsqr; l>>x; l>>y; l>>sigmar; l>>err;
+            
+            if (StrToReal(x)>maxx or StrToReal(x)<minx or StrToReal(qsqr)<minQ2 or StrToReal(qsqr)>maxQ2) continue;
+            points++;
+            yvals.push_back(StrToReal(y));
+            errors.push_back(StrToReal(err));
+            
+        }
+        else if (type == INC_DIFFRACTIVE_TOTAL)
+        {
+            string beta; string tmp;
+            l >> qsqr; l>>beta; l>>x; l>>sigmar;
+            l>>tmp; l>>tmp;
+            l>>err;
+            if (StrToReal(x)>maxx or StrToReal(x)<minx or StrToReal(qsqr)<minQ2 or StrToReal(qsqr)>maxQ2 or StrToReal(beta)<minbeta or StrToReal(beta)>maxbeta)
+                continue;
+            
+            betavals.push_back(StrToReal(beta));
+            errors.push_back(StrToReal(err)*StrToReal(sigmar)/100.0/1.23);
+            points++;
+            
+        }
         Qsqrvals.push_back(StrToReal(qsqr)); xbjvals.push_back(StrToReal(x));
-        yvals.push_back(StrToReal(y));
-        sigmarvals.push_back(StrToReal(sigmar)); errors.push_back(StrToReal(err));
         point_type.push_back(type);
         weights.push_back(weight);
+        sigmarvals.push_back(StrToReal(sigmar)/1.23);
     }
     
     cout << "# Loaded " << points << " datapoints from " << filename << " with weight " << weight << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, now we have in total " << sigmarvals.size() << " points " << endl;
@@ -83,7 +104,15 @@ double Data::Qsqr(unsigned int n) const
 }
  double Data::y(unsigned int n) const
 {
+    if (point_type[n] == INC_DIFFRACTIVE_TOTAL)
+        return 0;   // y not used in this case
     return yvals[n];
+}
+double Data::beta(unsigned int n) const
+{
+    if (point_type[n] != INC_DIFFRACTIVE_TOTAL)
+        return 0;
+    return betavals[n];
 }
  double Data::ReducedCrossSection(unsigned int n) const
 {
@@ -93,6 +122,7 @@ double Data::ReducedCrossSectionError(unsigned int n) const
 {
     return errors[n];
 }
+
 
 DataType Data::DataPointType(unsigned int n) const
 {
@@ -109,5 +139,7 @@ Data::Data()
     maxx=0.01;
     minQ2=0.75;
     maxQ2=650;
+    minbeta=0;
+    maxbeta=1.0;
     weight = 1.0;
 }

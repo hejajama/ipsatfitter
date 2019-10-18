@@ -143,6 +143,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
         {
             double x = datasets[dataset]->xbj(i);
             double y = datasets[dataset]->y(i);
+            double beta = datasets[dataset]->beta(i);
             double Q2 = datasets[dataset]->Qsqr(i);
             double sigmar = datasets[dataset]->ReducedCrossSection(i);
             double sigmar_err = datasets[dataset]->ReducedCrossSectionError(i);
@@ -155,30 +156,44 @@ double DISFitter::operator()(const std::vector<double>& par) const
             
             // Include only datapoints where charm contribution can be calculated
             // Use here charmx corresponding to m_c = 1.42 GeV, to keep # of datapoints the same!
-            if (charmx_limitmass > 0.01 and point_type != UDS)
+            if (charmx_limitmass > 0.01 and point_type != UDS and point_type != INC_DIFFRACTIVE_TOTAL )
                 continue;
 
             double theory_charm =0;
             double theory_light=0, theory_bottom=0;
-            if (point_type == CHARM or point_type == TOTAL)
+            double theory;
+            
+            // inclusive
+            if (point_type != INC_DIFFRACTIVE_TOTAL)
             {
-                theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
+                if (point_type == CHARM or point_type == TOTAL)
+                {
+                    theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
+                }
+                if (point_type == BOTTOM or point_type == TOTAL)
+                {
+                    // Include bottom conribution if kinematically allowed
+                    double bottomx = x * (1.0 + 4.0*bottom_mass*bottom_mass/Q2);
+                    if (bottomx < 0.1)
+                        theory_bottom = ReducedCrossSection(Q2, bottomx, sqrts, &wf_bottom, fitparams);
+                }
+                if (point_type == TOTAL or point_type == UDS) // All quarks
+                {
+                    theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
+                    
+                }
+                double theory = theory_light + theory_charm + theory_bottom;
+                if (point_type == UDS)
+                    theory = theory_light;
             }
-            if (point_type == BOTTOM or point_type == TOTAL)
+            else
             {
-                // Include bottom conribution if kinematically allowed
-                double bottomx = x * (1.0 + 4.0*bottom_mass*bottom_mass/Q2);
-                if (bottomx < 0.1)
-                    theory_bottom = ReducedCrossSection(Q2, bottomx, sqrts, &wf_bottom, fitparams);
+                double trans_l = DiffractiveStructureFunction_qq_T(x, beta, Q2, &wf_lightquark, fitparams);
+                double lng_l = DiffractiveStructureFunction_qq_L(x, beta, Q2, &wf_lightquark, fitparams);
+                double trans_c = DiffractiveStructureFunction_qq_T(x, beta, Q2, &wf_charm, fitparams);
+                double lng_c = DiffractiveStructureFunction_qq_L(x, beta, Q2, &wf_charm, fitparams);
+                theory = trans_l + lng_l + trans_c + lng_c;
             }
-            if (point_type == TOTAL or point_type == UDS) // All quarks
-            {
-                theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
-                
-            }
-            double theory = theory_light + theory_charm + theory_bottom;
-            if (point_type == UDS)
-                theory = theory_light;
             
             
             if (isnan(theory) or isinf(theory))
@@ -191,6 +206,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
             points = points + datasets[dataset]->Weight(i);
 
             // Output for plotting
+            cout <<setw(10) << x <<setw(10)  << Q2 << " " << setw(10) << beta << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << theory << endl;
             
             //cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
 

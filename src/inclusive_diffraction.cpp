@@ -26,8 +26,8 @@
 
 struct inthelper_inclusive
 {
-    IPsat* amp;
-    DISFitter *disfitter;
+    const IPsat* amp;
+    const DISFitter *disfitter;
     double xpom;
     double beta;
     double qsqr;
@@ -56,6 +56,12 @@ double inthelperf_zint_t(double z, void* p)
     double phi1 = par->disfitter->Qq_component_n(par->xpom, par->qsqr, par->Mxsqr, z, 1, par->wf, par->fitparams, flavor);
     double phi0 = par->disfitter->Qq_component_n(par->xpom, par->qsqr, par->Mxsqr, z, 0, par->wf, par->fitparams, flavor);
     
+    if (isnan(phi1) or isnan(phi0))
+    {
+        cout << phi1 << " " << phi0 << " " << z << " xp=" << par->xpom <<endl;
+        exit(1);
+    }
+    
     double mf = par->wf->QuarkMass(par->flavor);
     double eps = sqrt(z*(1.0-z)*par->qsqr + mf*mf);
     
@@ -78,7 +84,7 @@ double inthelperf_zint_l(double z, void* p)
     
 }
 
-double DISFitter::DiffractiveStructureFunction_qq_T(double xpom, double beta, double qsqr ,const VirtualPhoton* wf , FitParameters fitparams)
+double DISFitter::DiffractiveStructureFunction_qq_T(double xpom, double beta, double qsqr ,const VirtualPhoton* wf , FitParameters fitparams) const
 {
     inthelper_inclusive par;
     par.disfitter = this;
@@ -91,6 +97,7 @@ double DISFitter::DiffractiveStructureFunction_qq_T(double xpom, double beta, do
     
     double mxsqr = qsqr / beta - qsqr;
     par.Mxsqr = mxsqr;
+    if(isnan(par.Mxsqr)) exit(1);
     double sum=0;
     double prevres = -1;
     for (unsigned int flavor=0; flavor<wf->NumberOfQuarks(); flavor++)
@@ -119,7 +126,7 @@ double DISFitter::DiffractiveStructureFunction_qq_T(double xpom, double beta, do
             double z0 = (1.0 - sqrt(1.0 - 4.0*wf->QuarkMass(flavor)*wf->QuarkMass(flavor)/mxsqr))/2.0;
             if (z0 > 0.5 or 1.0 - 4.0*wf->QuarkMass(flavor)*wf->QuarkMass(flavor)/mxsqr < 0)
             {
-                cout << "# quark flavor " << flavor << ", beta " << beta << " Mx^2 " << mxsqr << " out of kinematical limit!" << endl;
+                //cout << "# quark flavor " << flavor << ", beta " << beta << " Mx^2 " << mxsqr << " out of kinematical limit!" << endl;
                 continue;
             }
             
@@ -128,7 +135,7 @@ double DISFitter::DiffractiveStructureFunction_qq_T(double xpom, double beta, do
             double error;
             int status = gsl_integration_qag(&f, z0, 0.5, 0, ACCURACY, INTERVALS, GSL_INTEG_GAUSS51, w, &result, &error);
             
-            cout << "# Transverse, flavor " << flavor << " contribution w.o. quark charge " << result*3.0*qsqr*qsqr/(16.0*pow(M_PI,3.0)*beta) << endl;
+            //cout << "# Transverse, flavor " << flavor << " (mass " <<wf->QuarkMass(flavor) << ")  contribution w.o. quark charge " << result*3.0*qsqr*qsqr/(16.0*pow(M_PI,3.0)*beta) << endl;
             //cout << "zint from " << z0 << " to 1/2: " << result << " relerr " << error/result << endl;
             
             if (status)
@@ -147,7 +154,7 @@ double DISFitter::DiffractiveStructureFunction_qq_T(double xpom, double beta, do
     
 }
 
-double DISFitter::DiffractiveStructureFunction_qq_L(double xpom, double beta, double qsqr ,const VirtualPhoton* wf , FitParameters fitparams)
+double DISFitter::DiffractiveStructureFunction_qq_L(double xpom, double beta, double qsqr ,const VirtualPhoton* wf , FitParameters fitparams) const
 {
     inthelper_inclusive par;
     par.disfitter = this;
@@ -230,6 +237,7 @@ double inthelperf_Qq_component_n(double r, void* p)
     
     double dsigma = 2.0 * par->amp->DipoleAmplitude(r, par->b_len, par->xpom, par->fitparams);    // 2 as this is sigma_qq, not N
     
+    
     double mf=par->wf->QuarkMass(par->flavor);
     double eps = sqrt(z*(1.0-z)*Q2 + mf*mf);
     double Kn = gsl_sf_bessel_Kn(par->bessel_component, eps*r);
@@ -237,6 +245,13 @@ double inthelperf_Qq_component_n(double r, void* p)
     double k = sqrt(z*(1.0-z)*Mxsqr-mf*mf);
     double Jn = gsl_sf_bessel_Jn(par->bessel_component, k*r);
     double result = r*Jn*Kn*dsigma;
+    
+    if (isnan(result))
+    {
+        cout << "NaN result at r=" << r << " z=" << par->z << " Mx2=" << Mxsqr << endl;
+        exit(1);
+        
+    }
     
     
     return result;
@@ -297,7 +312,7 @@ double inthelperf_Qq_component_n_b(double b, void* p)
 
 
 
-double DISFitter::Qq_component_n(double xpom, double qsqr, double Mxsqr, double z, int n, const VirtualPhoton* wf , FitParameters fitparams, int flavor )
+double DISFitter::Qq_component_n(double xpom, double qsqr, double Mxsqr, double z, int n, const VirtualPhoton* wf , FitParameters fitparams, int flavor ) const
 {
     inthelper_inclusive par;
     par.amp=&dipole;

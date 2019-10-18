@@ -43,20 +43,33 @@ int main(int argc, char* argv[])
     gsl_set_error_handler(&ErrHandler);
     
     Data data;
-    data.SetMinQsqr(1.49);
-    data.SetMaxQsqr(50.1);
+    data.SetMinQsqr(1);
+    data.SetMaxQsqr(50);
+    data.SetMinBeta(0.51);
+    
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-    data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
+    
+    /*data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
     data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
     data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
-
+     */
+    
+    // NOTE CHECK DATA.CPP THAT FORMAT IS COMPATIBLE, SOME DATAFILES INCLUDE STAT AND SYST ERRS
+    data.LoadData("./data/diffxs.txt", INC_DIFFRACTIVE_TOTAL);
+     
     //data.LoadData("data/light_quark_f2/hera_I_combined_eplus_lightq", UDS);
     
     
     //data.LoadData("data/hera_II_combined_sigmar_b.txt", BOTTOM, 1.0);
     
-    INITIAL_PARAMETERS start_params = IPSAT_MAXQ2_50;
+    INITIAL_PARAMETERS start_params = IPNONSAT_MAXQ2_50;
+    double mc =1.35277437092;
+    double ml = 0.03;
+    if (start_params == IPNONSAT_MAXQ2_50) {
+        mc =1.350367375905;
+        ml =0.1515769997484;
+    }
     
     MnUserParameters parameters;
     // Constants
@@ -159,6 +172,25 @@ int main(int argc, char* argv[])
     
     p.cppdglap = cppdglap;
     p.alpha_strong = alphas;
+    
+    // Test
+    
+    double beta = 0.816;
+    double qsqr = 46;
+    VirtualPhoton wf_l;
+    wf_l.SetQuark(LIGHT, ml);
+    VirtualPhoton wf_c;
+    wf_c.SetQuark(C,mc);
+    for (double x = 1e-7; x < 0.01; x*=1.5)
+    {
+        double trans_l = fitter.DiffractiveStructureFunction_qq_T(x, beta, qsqr, &wf_l, p);
+        double lng_l = fitter.DiffractiveStructureFunction_qq_L(x, beta, qsqr, &wf_l, p);
+        double trans_c = fitter.DiffractiveStructureFunction_qq_T(x, beta, qsqr, &wf_c, p);
+        double lng_c = fitter.DiffractiveStructureFunction_qq_L(x, beta, qsqr, &wf_c, p);
+        
+        cout << x << " " << trans_l + trans_c << " " << lng_l + lng_c << endl;
+    }
+    exit(1);
     
     /*double q2vals[4] = {2,15, 50, 500};
     double totvals_f2[4];
