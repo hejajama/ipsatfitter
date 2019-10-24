@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     Data data;
     data.SetMinQsqr(1.49);
     data.SetMaxQsqr(50.1);
-    
+    data.SetMinX(0.01*std::exp(-3.95));
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
     data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
@@ -64,10 +64,10 @@ int main(int argc, char* argv[])
     parameters.Add("light_mass", 0.14);
     parameters.Add("charm_mass", 1.4);
     parameters.Add("qs02", 1);
-    parameters.Add("lnx0", std::log(0.0004), 0.1);
-    parameters.Add("lambda", 0.2, 0.1);     // Qs^2 = qs2*(0.01/x)^lambda
-    parameters.Add("gamma", 0.6);            // Anomalous dimension in GBW
-    parameters.Add("sigma02", 30, 5);
+    parameters.Add("lnx0", -10.60908198183, 0.1);
+    parameters.Add("lambda", 0.2821644716706, 0.1);     // Qs^2 = qs2*(0.01/x)^lambda
+    parameters.Add("gamma", 1);            // Anomalous dimension in GBW
+    parameters.Add("sigma02", 2*18.81*2.568, 5);
     
     parameters.Add("A", 1);
     

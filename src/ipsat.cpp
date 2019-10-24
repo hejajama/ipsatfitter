@@ -16,6 +16,7 @@
 //#include "dglap_sartre/Dglap.h"
 
 #include <gsl/gsl_integration.h>
+#include <gsl/gsl_sf_bessel.h>
 #include <gsl/gsl_sf_expint.h>
 #include <Minuit2/MnUserParameterState.h>
 
@@ -104,7 +105,46 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     double x0 = std::exp(lnx0);
     double qs2 = qs02 * std::pow(x0/x, lambda);
     
-    return sigma02*(1.0 - std::exp(-std::pow(r*r*qs2, gamma)/4.0));
+    
+    // MVe parameters from MV1 fit
+    /*
+    double qsvals[41] = {0.10400002, 0.11022163, 0.11635523, 0.12221185, 0.12801917,
+        0.13363025, 0.13921473, 0.14466365, 0.15010054, 0.15544989,
+        0.16079722, 0.16609624, 0.17140054, 0.17668929, 0.18198885,
+        0.18730077, 0.19262793, 0.19799149, 0.20337401, 0.20881393,
+        0.21427605, 0.21981414, 0.22537738, 0.2310332 , 0.23671696,
+        0.2425083 , 0.24833031, 0.25427355, 0.26025024, 0.2663607 ,
+        0.27250746, 0.27879965, 0.28513108, 0.29161885, 0.298149  ,
+        0.30484573, 0.31158817, 0.31850694, 0.32547495, 0.33262852,
+        0.33983511};
+    double ecvals[41] = {0.99999957, 0.91878236, 0.85158939, 0.79843715, 0.75275814,
+        0.71531934, 0.68231557, 0.65454305, 0.62961714, 0.60820037,
+        0.58872498, 0.57170004, 0.55606573, 0.54219472, 0.52936165,
+        0.51782602, 0.50709279, 0.49733034, 0.48820742, 0.47981952,
+        0.47195515, 0.4646516 , 0.45778681, 0.45135153, 0.44529162,
+        0.43956051, 0.43415644, 0.4290028 , 0.42413862, 0.41946313,
+        0.4150474 , 0.41077116, 0.40673084, 0.40279047, 0.39906658,
+        0.3954106 , 0.39195505, 0.38854124, 0.38531438, 0.38210795,
+        0.37907704};
+    double yvals[41]; int i=0;
+    for (double y=0; y<=4.01; y+=0.1) { yvals[i]=y; i++; }
+    
+    Interpolator qs2interp(yvals, qsvals,41);
+    Interpolator ecinterp(yvals, ecvals,41);
+    
+    double y = std::log(0.01/x);
+    if (y<0) y=0;
+    qs2 = qs2interp.Evaluate(y);
+    double ec = ecinterp.Evaluate(y);*/
+    
+    //return sigma02*(1.0 - std::exp(-r*r*qs2/4.0*std::log(1.0/(r*0.241)+std::exp(1)*ec)));
+    
+    // Screened MV
+    // Farid notes (2)
+    double m = 0.03;
+    return 1.0 - std::exp(-qs2/(m*m) * (1.0 - m*r*gsl_sf_bessel_K1(m*r)));
+    
+    
     /*
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
     int A =parameters.values->at( parameters.parameter->Index("A"));
