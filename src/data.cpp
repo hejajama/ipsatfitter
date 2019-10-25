@@ -64,20 +64,19 @@ int Data::LoadData(string filename, DataType type, double weight)
         {
             string beta; string tmp;
             l >> qsqr; l>>beta; l>>x; l>>sigmar;
-            l>>tmp; l>>tmp;
             l>>err;
             if (StrToReal(x)>maxx or StrToReal(x)<minx or StrToReal(qsqr)<minQ2 or StrToReal(qsqr)>maxQ2 or StrToReal(beta)<minbeta or StrToReal(beta)>maxbeta)
                 continue;
             
             betavals.push_back(StrToReal(beta));
-            errors.push_back(StrToReal(err)*StrToReal(sigmar)/100.0/1.23);
+            errors.push_back(StrToReal(err)*StrToReal(sigmar)/100.0);
             points++;
             
         }
         Qsqrvals.push_back(StrToReal(qsqr)); xbjvals.push_back(StrToReal(x));
         point_type.push_back(type);
         weights.push_back(weight);
-        sigmarvals.push_back(StrToReal(sigmar)/1.23);
+        sigmarvals.push_back(StrToReal(sigmar));
     }
     
     cout << "# Loaded " << points << " datapoints from " << filename << " with weight " << weight << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, now we have in total " << sigmarvals.size() << " points " << endl;
