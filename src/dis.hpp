@@ -57,7 +57,7 @@ public:
 
     
     // Total gamma-p cross section with given wave function (describing polarization and parton)
-    double  ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol,const VirtualPhoton* wf , FitParameters fitparams) const;
+    double  ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol, const VirtualPhoton* wf , FitParameters fitparams, const double W=-1) const;
     
     double  ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, const VirtualPhoton* wf, FitParameters fitparams) const;
     

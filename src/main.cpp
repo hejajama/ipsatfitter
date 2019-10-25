@@ -50,20 +50,21 @@ int main(int argc, char* argv[])
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
     
-    /*data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
-    data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
+    data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
     data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
+    /*data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
+    
      */
     
     // NOTE CHECK DATA.CPP THAT FORMAT IS COMPATIBLE, SOME DATAFILES INCLUDE STAT AND SYST ERRS
-    data.LoadData("./data/diffxs.txt", INC_DIFFRACTIVE_TOTAL);
+    //data.LoadData("./data/hera_combined_diffxs.txt", INC_DIFFRACTIVE_TOTAL);
      
     //data.LoadData("data/light_quark_f2/hera_I_combined_eplus_lightq", UDS);
     
     
     //data.LoadData("data/hera_II_combined_sigmar_b.txt", BOTTOM, 1.0);
     
-    INITIAL_PARAMETERS start_params = IPNONSAT_MAXQ2_50;
+    INITIAL_PARAMETERS start_params = IPSAT_MAXQ2_50;
     double mc =1.35277437092;
     double ml = 0.03;
     if (start_params == IPNONSAT_MAXQ2_50) {
@@ -130,14 +131,14 @@ int main(int argc, char* argv[])
         parameters.Add("A_g", 3.2820);
 	}
  
-	parameters.Add("lambda_s", 0);
-	parameters.Add("A_s", 0);
+	//parameters.Add("alpha", 0.164);
+    parameters.Add("alpha", 0);
     parameters.Add("A", 1);
     
     // Set limits
     
     parameters.SetLowerLimit("A_g", 0);
-    parameters.SetLowerLimit("A_s", 0);
+    
     parameters.SetLowerLimit("mu_0", 0.5); // In priciple can go to anything >0 (right?)
     parameters.SetUpperLimit("mu_0", sqrt(2.7)); // Upper limit is min Q^2
     parameters.SetUpperLimit("charm_mass", 3);
@@ -174,7 +175,7 @@ int main(int argc, char* argv[])
     p.alpha_strong = alphas;
     
     // Test
-    
+    /*
     double beta = 0.816;
     double qsqr = 46;
     VirtualPhoton wf_l;
@@ -191,7 +192,7 @@ int main(int argc, char* argv[])
         cout << x << " " << trans_l + trans_c << " " << lng_l + lng_c << endl;
     }
     exit(1);
-    
+    */
     /*double q2vals[4] = {2,15, 50, 500};
     double totvals_f2[4];
     double totvals_fl[4];

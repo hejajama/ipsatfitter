@@ -19,6 +19,8 @@
 using namespace std;
 using namespace ROOT::Minuit2;
 
+const double W0=90; // Used with growing proton size
+
 enum DGLAP_Solver
 {
     SARTRE,     // Sartre version
@@ -65,10 +67,10 @@ public:
     //config allows to specify configuration index in case of eventy-by-event
     // fluctuations (-1 = no fluctuations or average)
     // r and b are in GeV^(-1), x is Bjorken-x
-    double DipoleAmplitude(double r, double b, double x, FitParameters parameter, int config=-1) const;
+    double DipoleAmplitude(double r, double b, double x, FitParameters parameter,double W=W0, int config=-1) const;
     
     // Dipole amplitude integrated over d^2 b
-    double DipoleAmplitude_bint(double r, double x, FitParameters parameters, int config=-1) const;
+    double DipoleAmplitude_bint(double r, double x, FitParameters parameters, double W=W0, int config=-1) const;
     
     // Integrate over d^2b assuming "lumpy nucleus" ala KT
     double DipoleAmplitude_bint_lumpyA(double r, double x, FitParameters parameters, int config=-1) const;
@@ -77,7 +79,7 @@ public:
     // b is length of 2d vector, [b]=GeV^(-1)
     // config allows to specify configuration index in case of eventy-by-event
     // fluctuations
-    double Tp(double b, FitParameters parameters, int config=-1) const;
+    double Tp(double b, FitParameters parameters, double W=W0, int config=-1) const;
     
     
     double Alphas(double musqr, FitParameters parameters) const;

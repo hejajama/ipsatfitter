@@ -55,14 +55,14 @@ extern "C"
  * config can be used to specify a given eventy-by-event configuration, default is -1
  * which refers to non-fluctuating case
  */
-double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parameters,  int config) const
+double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parameters, double W, int config) const
 {
     
     double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
     double C = parameters.values->at( parameters.parameter->Index("C"));
     
     double musqr = mu_0*mu_0 + C / SQR(r);
-    double exponent = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) * Tp(b, parameters, config);
+    double exponent = SQR(M_PI*r)/(2.0*NC) * Alphas(musqr, parameters) * xg(x, musqr, parameters) * Tp(b, parameters, W, config);
     if (saturation)
         return 1.0 - exp(-exponent);
     else
@@ -78,7 +78,7 @@ double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parame
  */
 struct inthelper_bint
 {
-    double r,x;
+    double r,x,W;
     int config;
     double total_gammap;    // Used when we have "lumpy nucleus"
     const IPsat* ipsat;
@@ -87,12 +87,15 @@ struct inthelper_bint
 double inthelperf_bint(double b, void* p)
 {
     inthelper_bint* par = (inthelper_bint*) p;
-    return b*par->ipsat->DipoleAmplitude(par->r, b, par->x, par->parameters, par->config);
+    return b*par->ipsat->DipoleAmplitude(par->r, b, par->x, par->parameters, par->W, par->config);
 }
 
-double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters, int  config) const
+double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters, double W, int  config) const
 {
     double B = parameters.values->at( parameters.parameter->Index("B_G"));
+    double alpha_prime = parameters.values->at( parameters.parameter->Index("alpha"));
+    if (W < 0) W = W0;
+    B = B + 4.0*alpha_prime*std::log(W/W0);
     int A =parameters.values->at( parameters.parameter->Index("A"));
     if (config == -1 and saturation and A==1 )
     {
@@ -140,7 +143,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     
     gsl_function fun; fun.function=inthelperf_bint;
     inthelper_bint par;
-    par.r=r; par.x=x; par.config=config;
+    par.r=r; par.x=x; par.config=config; par.W=W;
     par.parameters = parameters;
     par.ipsat = this;
     fun.params=&par;
@@ -254,8 +257,8 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
     
     double lambdag =parameters.values->at( parameters.parameter->Index("lambda_g"));
     double Ag =parameters.values->at( parameters.parameter->Index("A_g"));
-    double lambdas =parameters.values->at( parameters.parameter->Index("lambda_s"));
-    double As =parameters.values->at( parameters.parameter->Index("A_s"));
+    double lambdas =0;
+    double As =0;
     double mu0 =parameters.values->at( parameters.parameter->Index("mu_0"));
     double mc = parameters.values->at( parameters.parameter->Index("charm_mass"));
     double mb = parameters.values->at( parameters.parameter->Index("bottom_mass"));
@@ -301,9 +304,11 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
  * In order to support event-by-event fluctuations, there is parameter config 
  * by default, config = -1, and in that case we have the round non-fluctuating profile
  */
-double IPsat::Tp(double b, FitParameters parameters, int config) const
+double IPsat::Tp(double b, FitParameters parameters, double W, int config) const
 {
     double B_G = parameters.values->at( parameters.parameter->Index("B_G"));
+    double alpha_prime = parameters.values->at( parameters.parameter->Index("alpha"));
+    B_G = B_G + 4.0*alpha_prime*std::log(W/W0);
     
     if (A>1 )
     {

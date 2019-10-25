@@ -60,15 +60,13 @@ double DISFitter::operator()(const std::vector<double>& par) const
     double Ag = par[ parameters.Index("A_g")];
     double mu0 =par[parameters.Index("mu_0")];
     double Cscale = par[parameters.Index("C")];
-    double As = par[ parameters.Index("A_s")];
-    double lambdas = par[ parameters.Index("lambda_s")];
     
     
     // Force som limits in case MINUIT does not handle these properly
-    if (light_mass < 0 or light_mass > 1 or charm_mass < 1.1 or charm_mass > 10
+    if (light_mass < 0 or light_mass > 1 or charm_mass < 1.1 or charm_mass >=bottom_mass
             or lambdag < -10 or lambdag > 10 or Ag < 0 or mu0 < 0
             or Cscale <= 0 or Cscale > 1e6
-            or As < 0 or As > 100 or lambdas < -10 or lambdas > 10)
+            )
         return 9999;
 
     FitParameters fitparams;
@@ -102,6 +100,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
         cppdglap = new EvolutionLO_gluon(alphas);
         
         int coupling=0;
+        double As=0; double lambdas=0;
         cppdglap->generateLookupTable(mu0, coupling, Ag, lambdag, As, lambdas);
         cppdglap->useLookupTable(true);
         fitparams.cppdglap = cppdglap;
@@ -182,7 +181,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
                     theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
                     
                 }
-                double theory = theory_light + theory_charm + theory_bottom;
+                theory = theory_light + theory_charm + theory_bottom;
                 if (point_type == UDS)
                     theory = theory_light;
             }
@@ -202,13 +201,14 @@ double DISFitter::operator()(const std::vector<double>& par) const
                 theory = 99999999;
             }
 
+            
             chisqr += datasets[dataset]->Weight(i)*SQR( (theory - sigmar) / sigmar_err );
             points = points + datasets[dataset]->Weight(i);
 
             // Output for plotting
-            cout <<setw(10) << x <<setw(10)  << Q2 << " " << setw(10) << beta << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << theory << endl;
+            //cout <<setw(10) << x <<setw(10)  << Q2 << " " << setw(10) << beta << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << theory << endl;
             
-            //cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
+           // cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
 
             
             
@@ -244,7 +244,7 @@ struct Inthelper_totxs
 {
     const IPsat* N;
     Polarization pol;    // L (longitudinal) or T (transverse)
-    double Qsqr,xbj;
+    double Qsqr,xbj,W;
     const VirtualPhoton* wf;
     FitParameters fitparameters;
     int config;     // To support fluctuations
@@ -257,7 +257,7 @@ double Inthelperf_totxs(double lnr, void* p)
     
     double result = 0;
     //if (par->fitparameters.values->at( par->fitparameters.parameter->Index("A")) == 1)
-        result = r*par->N->DipoleAmplitude_bint(r,par->xbj, par->fitparameters, par->config);
+        result = r*par->N->DipoleAmplitude_bint(r,par->xbj, par->fitparameters, par->W, par->config);
     //else
     //    result = r*par->N->DipoleAmplitude_bint_lumpyA(r,par->xbj, par->fitparameters, par->config);
     
@@ -275,10 +275,11 @@ double Inthelperf_totxs(double lnr, void* p)
 
 
 
- double DISFitter::ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol, const VirtualPhoton *wf, FitParameters fitparams) const
+ double DISFitter::ProtonPhotonCrossSection(const double Qsqr, const double xbj, const Polarization pol, const VirtualPhoton *wf,  FitParameters fitparams, const double W) const
 {
     Inthelper_totxs par; par.N=&dipole;
     par.wf=wf;
+    par.W=W;
     par.pol=pol; par.Qsqr=Qsqr; par.xbj=xbj;
     par.fitparameters = fitparams;
     par.config = -1;    // no fluctuations
@@ -309,9 +310,10 @@ double Inthelperf_totxs(double lnr, void* p)
  */
  double DISFitter::ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, const VirtualPhoton *wf, FitParameters fitparams) const
 {
+    double W = std::sqrt((1.0 + xbj)/xbj * Qsqr + 0.9387); // constant = proton mass
     double kin_y = Qsqr/(sqrts*sqrts*xbj);   // inelasticity, not rapidity
-    double xs_l = ProtonPhotonCrossSection(Qsqr, xbj, LONGITUDINAL, wf, fitparams);
-    double xs_t = ProtonPhotonCrossSection(Qsqr, xbj, TRANSVERSE, wf, fitparams);
+    double xs_l = ProtonPhotonCrossSection(Qsqr, xbj, LONGITUDINAL, wf, fitparams, W);
+    double xs_t = ProtonPhotonCrossSection(Qsqr, xbj, TRANSVERSE, wf, fitparams, W);
     double f2 = Qsqr/(4.0*SQR(M_PI)*ALPHA_e)*(xs_l+xs_t);
     double fl = Qsqr/(4.0*SQR(M_PI)*ALPHA_e)*xs_l;
     
