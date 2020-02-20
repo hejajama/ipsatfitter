@@ -135,7 +135,7 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     {
         // b integral analytically, now this is trivial as \int d^2 T_b = 1
         // so actually the result is 2\pi B N(r, b=0)
-        return 2.0 * M_PI * B * DipoleAmplitude(r, 0, x, parameters, -1);
+        return 2.0 * M_PI * B * DipoleAmplitude(r, 0, x, parameters, W, config);
     }
     
     
@@ -308,6 +308,7 @@ double IPsat::Tp(double b, FitParameters parameters, double W, int config) const
 {
     double B_G = parameters.values->at( parameters.parameter->Index("B_G"));
     double alpha_prime = parameters.values->at( parameters.parameter->Index("alpha"));
+    if (W<0) W=W0;
     B_G = B_G + 4.0*alpha_prime*std::log(W/W0);
     
     if (A>1 )
