@@ -15,8 +15,10 @@ add_executable(
 	data.cpp
 	woodsaxon.cpp
 	interpolation.cpp
+	vector.cpp
 	virtual_photon.cpp
 	wave_function.cpp
+	interpolation2d.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/gitsha1.cpp
 	LO_evolution_routine.f 
 	alphaS.f

@@ -1,56 +1,57 @@
 /*
- * C++ wrapper to GSL 2d interpolator
- * Heikki Mäntysaari <mantysaari@bnl.gov>, 2017
+ * Interpolate 2D data array using GSL
+ * Heikki Mäntysaari <heikki.mantysaari@jyu.fi>, 2021
  */
-
 
 #ifndef _INTERPOLATION2D_H
 #define _INTERPOLATION2D_H
 
-#include <gsl/gsl_bspline.h>
-#include <gsl/gsl_multifit.h>
-#include <gsl/gsl_spline.h>
+
+
+#include <gsl/gsl_interp2d.h>
+#include <gsl/gsl_spline2d.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_vector.h>
 #include <vector>
-#include <gsl/gsl_interp2d.h>
-#include <gsl/gsl_spline2d.h>
 
-using namespace std;
 
-class Interpolator2D
+/**
+ * 2D interpolator
+ * Interpolates given data using spline (goes trough every data point)
+ *
+ * xdata and ydata pointers are saved, but not used for interpolation purposes
+ * If user frees the allocated memory, one should be sure that these pointers
+ * are not asked from this class!
+ */
+
+class DipoleInterpolator2D
 {
-public:
-    // data format [xind][yind]
-    // Grid is rectangular, that is, grid(x,y) = (grid[x], grid[y])
-    /**
-     * Initialize 2D interpolator
-     * Assumes that the interpolation grid is rectangular, and
-     * coordinates are given in the grid vector.
-     * Grid point corresponding to indexes (x,y) is
-     * grid(x,y) = (grid[x], grid[y])
-     * @param grid Vector of x and y coordinates
-     * @param data 2D vector of datapoints, data[i][j] = f(grid[i], grid[j])
-     * @see Interpolator
-     */
-    Interpolator2D();
-    Interpolator2D(Interpolator2D& inter);
-    // values is xpoints*ypoints array, dtapoint = values[yinx*xpoints + xind]
-    void Initialize(vector<double> xpoints, vector<double> ypoints, vector<double> values);
-    ~Interpolator2D();
-    void Clear();
+    public:
+        // data format [xind][yind]
+        // Grid is rectangular, that is, grid(x,y) = (grid[x], grid[y])
+        /**
+         * Initialize 2D interpolator
+         * zgrid[i] is the point at xgrid[i],ygrid[i]
+         */
+        DipoleInterpolator2D(std::vector<double> xgrid, std::vector<double> ygrid,
+                       std::vector<double> zgrid);
+                       
+        ~DipoleInterpolator2D();
+        
+        double Evaluate(double x, double y);
     
-    double Evaluate(double x, double y) const;
+        double MinX() { return minx; };
+        double MinY() { return miny; };
+        double MaxX() { return maxx; };
+        double MaxY() { return maxy; };
+
+    private:
+        gsl_spline2d *gslinterp;
+        gsl_interp_accel *xacc;
+        gsl_interp_accel *yacc;
+        double minx,maxx,miny,maxy;
     
-    
-private:
-    gsl_spline2d *spline;
-    gsl_interp_accel *xacc;
-    gsl_interp_accel *yacc;
-    
-    bool initialized;
-    
-    
+    bool show_warnings;
 
 
 };

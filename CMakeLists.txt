@@ -17,7 +17,7 @@ find_package(GSL REQUIRED)
 
 # Directory where you have build AmplitudeLib libraries 
 # Minuit lib dir
-link_directories("../minuit2_apple//lib/")
+link_directories("~/lib//minuit//lib/")
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -27,7 +27,7 @@ if(OPENMP_FOUND)
 endif()
 
 # Minuit
-include_directories("../minuit2//include/")
+include_directories("~/lib//minuit//include/")
 add_subdirectory(src)
 
 set_target_properties(ipsatfit PROPERTIES

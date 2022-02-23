@@ -8,10 +8,13 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include "vector.hpp"
 #include "ipsat.hpp"
 #include "wave_function.hpp"
 #include "woodsaxon.hpp"
 #include "interpolation.hpp"
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 //#include "dglap_sartre/Dglap.h"
 
@@ -71,6 +74,24 @@ double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parame
     
 }
 
+// Dipole amplitude including angles
+double IPsat::DipoleAmplitude(Vec r, Vec b, double x, FitParameters parameters, int config) const
+{
+    
+    double mu_0 = parameters.values->at( parameters.parameter->Index("mu_0"));
+    double C = parameters.values->at( parameters.parameter->Index("C"));
+    
+    double musqr = mu_0*mu_0 + C / r.LenSqr();
+    
+    double as_xg =Alphas(musqr, parameters) * xg(x, musqr, parameters);
+    
+    double exponent = SQR(M_PI) * r.LenSqr()/(2.0*NC) * as_xg * Tp(b, config);
+    if (saturation)
+        return 1.0 - exp(-exponent);
+    else
+        return exponent;
+}
+
 
 /*
  * Dipole amplitude integrated over d^2 b
@@ -78,7 +99,7 @@ double IPsat::DipoleAmplitude(double r, double b, double x, FitParameters parame
  */
 struct inthelper_bint
 {
-    double r,x;
+    double r,x,b;
     int config;
     double total_gammap;    // Used when we have "lumpy nucleus"
     const IPsat* ipsat;
@@ -157,6 +178,76 @@ double IPsat::DipoleAmplitude_bint(double r, double x, FitParameters parameters,
     
     return 2.0*M_PI*result; //2pi from angular integral
 }
+
+
+double inthelperf_fluct_bint_thb(double thb, void* p);
+double inthelperf_fluct_bint_b(double b, void* p)
+{
+    inthelper_bint* par = (inthelper_bint*) p;
+    par->b = b;
+    
+    gsl_function fun; fun.function=inthelperf_fluct_bint_thb;
+    fun.params=par;
+    
+    double acc = BINTACCURACY;
+    
+    double result,abserr;
+    gsl_integration_workspace* ws = gsl_integration_workspace_alloc(BINTEGRATIONDEPTH);
+    int status = gsl_integration_qag(&fun, 0, 2.0*M_PI, 0, acc,
+                                     BINTEGRATIONDEPTH, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+    if (status)
+        cerr << "theta bintegral failed in IPsat::DipoleAmplitude_bit with r=" << par->r <<", result " << result << " relerror " << abserr/result << endl;
+    gsl_integration_workspace_free(ws);
+    
+    return b*result;
+    
+    
+}
+
+double inthelperf_fluct_bint_thb(double thb, void* p)
+{
+    inthelper_bint* par = (inthelper_bint*) p;
+    Vec b (par->b * std::cos(thb), par->b*std::sin(thb));
+    Vec r(par->r, 0);
+    
+    return par->ipsat->DipoleAmplitude(r, b, par->x, par->parameters, par->config);
+}
+
+
+double IPsat::DipoleAmplitude_fluctuating_bint(double r, double x, FitParameters parameters) const
+{
+    double B = parameters.values->at( parameters.parameter->Index("B_G"));
+    int A =parameters.values->at( parameters.parameter->Index("A"));
+    
+    
+    double sum=0;
+    for (unsigned int config = 0; config < hot_spot_centers.size(); config++)
+    {
+    
+        gsl_function fun; fun.function=inthelperf_fluct_bint_b;
+        inthelper_bint par;
+        par.r=r; par.x=x; par.config=config;
+        par.parameters = parameters;
+        par.ipsat = this;
+        fun.params=&par;
+        
+        double acc = BINTACCURACY;
+        
+        double result,abserr;
+        gsl_integration_workspace* ws = gsl_integration_workspace_alloc(BINTEGRATIONDEPTH);
+        int status = gsl_integration_qag(&fun, MINB, MAXB, 0, acc,
+                                         BINTEGRATIONDEPTH, GSL_INTEG_GAUSS51, ws, &result, &abserr);
+        if (status)
+            cerr << "bintegral failed in IPsat::DipoleAmplitude_bit with r=" << r <<", result " << result << " relerror " << abserr/result << endl;
+        gsl_integration_workspace_free(ws);
+        
+        sum += result;
+    }
+    
+        
+    return sum/hot_spot_centers.size();
+}
+
 
 /*
  * b integral for nucleus, assuming "lumpy nucleus" from KT hep-ph/0304189 e.q. 47
@@ -303,20 +394,53 @@ double IPsat::xg(double x, double musqr, FitParameters parameters) const
  */
 double IPsat::Tp(double b, FitParameters parameters, int config) const
 {
-    double B_G = parameters.values->at( parameters.parameter->Index("B_G"));
-    
-    if (A>1 )
+    if (config == -1)
     {
-        return density_interpolator->Evaluate(b);
+        double B_G = parameters.values->at( parameters.parameter->Index("B_G"));
         
+        
+        if (A>1 )
+        {
+            return density_interpolator->Evaluate(b);
+            
+        }
+        return 1.0 / (2.0 * M_PI * B_G) * exp(-b*b / (2.0 * B_G));
     }
-    if (config != -1)
+    else
     {
+       
+        
+        
+        
         cerr << "Event-by-event fluctuations for the proton are not supproted at this point!" << endl;
         return 0;
     }
+}
+
+
+double IPsat::Tp(Vec b, int config) const
+{
+    if (config > hot_spot_centers.size())
+    {
+        cerr << "Too large config " << config << endl;
+        exit(1);
+    }
     
-    return 1.0 / (2.0 * M_PI * B_G) * exp(-b*b / (2.0 * B_G));
+    if (config < 0) {
+        cerr << "WTF? config=" << config << endl;
+        exit(1);
+        
+    }
+    
+    double density=0;
+    for (unsigned int i=0; i < hot_spot_centers[config].size(); i++)
+    {
+        Vec projection (hot_spot_centers[config][i].GetX(), hot_spot_centers[config][i].GetY());
+        Vec deltab = b - projection;
+        density = density + 1.0 / (2.0 * M_PI * hotspot_size_bq * hot_spot_centers[config].size()) * exp(-deltab.LenSqr() / (2.0 * hotspot_size_bq));;
+    }
+    return density;
+    
 }
 
 /*
@@ -363,6 +487,7 @@ IPsat::IPsat()
     saturation = true;
     enable_singlet = false;
     maxalphas = 0.5;
+    substructure = false;
     
     dglapsolver = CPPPIA;
     density_interpolator=NULL;
@@ -397,6 +522,49 @@ IPsat::~IPsat()
 {
     if (A>1 and density_interpolator != NULL)
         delete density_interpolator;
+}
+
+
+void IPsat::InitializeSubstructure(double Bqc, double Bq_, int configurations)
+{
+    hotspot_size_bq = Bq_;
+    
+    for (int i=0; i < configurations; i++)
+    {
+        std::vector<Vec> quarks;
+        // Sample 3 quarks
+        for (int i=0; i<3; i++)
+        {
+            // Radius from uniform distribution
+            double radius=0;
+            double maxr = 30;
+            
+            double x,y,z;
+            if (Bqc < 1e-5)
+            {
+                            x=y=z=0;
+                            //radius=0;
+            }
+            else
+            {
+                x=gsl_ran_gaussian(&random, std::sqrt(Bqc));
+                y=gsl_ran_gaussian(&random, std::sqrt(Bqc));
+                z=gsl_ran_gaussian(&random, std::sqrt(Bqc));
+            }
+                        
+            Vec tmpvec(x,y,0);
+            Vec tmpvec3d(x,y,z);
+                
+            cout << "Sampled hot spot " << tmpvec << endl;
+                
+            quarks.push_back(tmpvec);
+            
+        }
+        hot_spot_centers.push_back(quarks);
+        
+    }
+    //exit(1);
+    
 }
 
 

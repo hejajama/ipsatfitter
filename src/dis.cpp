@@ -187,6 +187,8 @@ double DISFitter::operator()(const std::vector<double>& par) const
                 theory = 99999999;
             }
 
+            cout << "Theory: " << theory << " exp " << sigmar << endl;
+            
             chisqr += datasets[dataset]->Weight(i)*SQR( (theory - sigmar) / sigmar_err );
             points = points + datasets[dataset]->Weight(i);
 
@@ -241,7 +243,7 @@ double Inthelperf_totxs(double lnr, void* p)
     
     double result = 0;
     //if (par->fitparameters.values->at( par->fitparameters.parameter->Index("A")) == 1)
-        result = r*par->N->DipoleAmplitude_bint(r,par->xbj, par->fitparameters, par->config);
+        result = r*par->N->DipoleAmplitude_fluctuating_bint(r,par->xbj, par->fitparameters);
     //else
     //    result = r*par->N->DipoleAmplitude_bint_lumpyA(r,par->xbj, par->fitparameters, par->config);
     
@@ -388,6 +390,7 @@ DISFitter::DISFitter(MnUserParameters parameters_)
     // Init dglap
     dglapsolver = CPPPIA;
     dipole.SetDGLAPSolver(CPPPIA);
+    dipole.InitializeSubstructure(0,4,1);
 
     
     

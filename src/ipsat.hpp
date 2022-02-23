@@ -15,6 +15,9 @@
 #include "dglap_cpp/EvolutionLO_nocoupling.h"
 #include "wave_function.hpp"
 #include "interpolation.hpp"
+#include "interpolation2d.hpp"
+#include "vector.hpp"
+#include <gsl/gsl_rng.h>
 
 using namespace std;
 using namespace ROOT::Minuit2;
@@ -67,17 +70,22 @@ public:
     // r and b are in GeV^(-1), x is Bjorken-x
     double DipoleAmplitude(double r, double b, double x, FitParameters parameter, int config=-1) const;
     
+    double DipoleAmplitude(Vec r, Vec b, double x, FitParameters parameter, int config) const;
+    
     // Dipole amplitude integrated over d^2 b
     double DipoleAmplitude_bint(double r, double x, FitParameters parameters, int config=-1) const;
+    double DipoleAmplitude_fluctuating_bint(double r, double x, FitParameters parameters) const;
     
     // Integrate over d^2b assuming "lumpy nucleus" ala KT
     double DipoleAmplitude_bint_lumpyA(double r, double x, FitParameters parameters, int config=-1) const;
+    
     
     // Proton density profile in transverse plane
     // b is length of 2d vector, [b]=GeV^(-1)
     // config allows to specify configuration index in case of eventy-by-event
     // fluctuations
     double Tp(double b, FitParameters parameters, int config=-1) const;
+    double Tp(Vec b, int config=-1) const;
     
     
     double Alphas(double musqr, FitParameters parameters) const;
@@ -96,6 +104,7 @@ public:
     void InitializeDGLAP(FitParameters par) const;
     Interpolator* GetDensityInterpolator() const { return density_interpolator; }
     
+    void InitializeSubstructure(double Bqc, double Bq, int configurations); // Initializes 2d interpolator dipole_amplitude_interpolator
     
 private:
 
@@ -118,6 +127,12 @@ private:
     int A;  // If >1, use WoodsSaxon nucleus
     
     
+    DipoleInterpolator2D *dipole_amplitude_interpolator;
+    bool substructure;
+    std::vector<std::vector<Vec> > hot_spot_centers;
+    double hotspot_size_bq;
+    
+    gsl_rng random;
     
 };
 
