@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <stdexcept>
 #include <gsl/gsl_errno.h>
 #include <vector>
 
@@ -41,15 +42,51 @@ enum INITIAL_PARAMETERS
 int main(int argc, char* argv[])
 {
     gsl_set_error_handler(&ErrHandler);
+
+    double minQ2 = 1.49;
+    double maxQ2 = 50.1;
+
+    for (int i = 1; i < argc; ++i)
+    {
+        std::string arg = argv[i];
+        if (arg == "-minQ2" || arg == "-maxQ2")
+        {
+            if (i + 1 >= argc)
+            {
+                std::cerr << "Missing value for " << arg << std::endl;
+                return 1;
+            }
+
+            double value = 0.0;
+            try
+            {
+                value = std::stod(argv[++i]);
+            }
+            catch (const std::exception&)
+            {
+                std::cerr << "Invalid numeric value for " << arg << ": " << argv[i] << std::endl;
+                return 1;
+            }
+
+            if (arg == "-minQ2") minQ2 = value;
+            else maxQ2 = value;
+        }
+    }
+
+    if (minQ2 > maxQ2)
+    {
+        std::cerr << "Invalid Q2 range: minQ2 (" << minQ2 << ") is greater than maxQ2 (" << maxQ2 << ")." << std::endl;
+        return 1;
+    }
     
     Data data;
-    data.SetMinQsqr(1.49);
-    data.SetMaxQsqr(50.1);
+    data.SetMinQsqr(minQ2);
+    data.SetMaxQsqr(maxQ2);
     
     // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-    data.LoadData("./data/hera_combined_sigmar.txt", TOTAL);
-    data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
-    data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
+    data.LoadData("/Users/hejajama/data/holocgc/holodata/BB_249Full_4T_NM_NoPen_WideVals_converted", TOTAL);
+    //data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
+    //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
 
     //data.LoadData("data/light_quark_f2/hera_I_combined_eplus_lightq", UDS);
     
@@ -185,6 +222,27 @@ int main(int argc, char* argv[])
         cout << endl;
     }
     exit(1);*/
+    /*
+    double x = 5.6234e-05;
+    double q2=10;
+    parvec[parameters.Index("charm_mass")] = 0.03;
+    parvec[parameters.Index("bottom_mass")] = 0.03;
+    double mf0_F2 =fitter.F2(q2, x, p );
+    double mf0_FL =fitter.FL(q2, x, p );
+    
+    
+    for (double mc=0.03; mc < 4; mc += 0.1)
+    {
+        parvec[parameters.Index("charm_mass")] = mc;
+        parvec[parameters.Index("bottom_mass")] = mc;
+        parvec[parameters.Index("light_mass")] = mc;
+        double F2 =fitter.F2(q2, x, p );
+        double FL =fitter.FL(q2, x, p );
+        
+        cout << mc << " " << F2/mf0_F2 << " " << FL/mf0_FL << endl;
+    }
+    exit(1);
+    */
     
      //parameters.SetPrecision(0.001);
     
