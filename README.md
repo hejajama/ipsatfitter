@@ -10,7 +10,7 @@ Install:
    I have used Minut2-5.34.14 from
 1. Install Minuit2 (CC=compiler CXX=compiler ./configure --prefix=/installation_directory; make; make install)
     Example config:
-    CC=/opt/local/bin/gcc-mp-5 CXX=/opt/local/bin/g++-mp-5 ./configure --preix=/Users/heikkimantysaari/code/minuit2/ --disable-openmp
+    CC=/opt/local/bin/gcc-mp-5 CXX=/opt/local/bin/g++-mp-5 ./configure --prefix=/Users/heikkimantysaari/code/minuit2/ --disable-openmp
 2. Modify Makefile so that C++ and Fortran compiler paths and Minuit paths are correct
 3. Compile fitter: make
 

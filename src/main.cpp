@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <gsl/gsl_errno.h>
 #include <vector>
+#include <algorithm>
+#include <cctype>
 
 #include "wave_function.hpp"
 #include "virtual_photon.hpp"
@@ -30,6 +32,60 @@ void ErrHandler(const char * reason,
                 int line,
                 int gsl_errno);
 
+namespace
+{
+    struct DatasetSpec
+    {
+        std::string filename;
+        DataType type;
+        double weight = 1.0;
+    };
+
+    std::string ToUpper(std::string s)
+    {
+        std::transform(s.begin(), s.end(), s.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+        return s;
+    }
+
+    bool TryParseDataType(const std::string& s, DataType& out)
+    {
+        const std::string t = ToUpper(s);
+        if (t == "TOTAL") { out = TOTAL; return true; }
+        if (t == "CHARM") { out = CHARM; return true; }
+        if (t == "UDS")   { out = UDS;   return true; }
+        return false;
+    }
+
+    bool IsKnownOption(const std::string& s)
+    {
+        return s == "--data" || s == "--help" || s == "-h" ||
+               s == "-minQ2" || s == "--minQ2" ||
+               s == "-maxQ2" || s == "--maxQ2";
+    }
+
+    void PrintHelp(const char* prog)
+    {
+        std::cout
+            << "Usage:\n"
+            << "  " << prog << " [options]\n\n"
+            << "Options:\n"
+            << "  -h, --help                      Show this help and exit\n"
+            << "  -minQ2, --minQ2 <value>         Minimum Q^2 (default: 1.49)\n"
+            << "  -maxQ2, --maxQ2 <value>         Maximum Q^2 (default: 50.1)\n"
+            << "  --data <file> <type> [weight]   Add dataset (repeatable)\n"
+            << "                                  type: TOTAL | CHARM | UDS\n"
+            << "                                  weight defaults to 1.0\n\n"
+            << "If no --data is given, defaults are loaded:\n"
+            << "  ./data/hera_combined_sigmar_eminusp.txt TOTAL 1\n"
+            << "  data/hera_combined_sigmar_cc.txt CHARM 1\n\n"
+            << "Examples:\n"
+            << "  " << prog << " --data ./data/hera_combined_sigmar_eminusp.txt TOTAL\n"
+            << "  " << prog << " --data data/hera_combined_sigmar_cc.txt CHARM 0.5\n"
+            << "  " << prog << " -minQ2 2.0 -maxQ2 100 --data mydata.txt UDS\n";
+    }
+}
+
 enum INITIAL_PARAMETERS
 {
     IPSAT_MAXQ2_50,
@@ -45,11 +101,18 @@ int main(int argc, char* argv[])
 
     double minQ2 = 1.49;
     double maxQ2 = 50.1;
+    std::vector<DatasetSpec> datasets;
 
     for (int i = 1; i < argc; ++i)
     {
         std::string arg = argv[i];
-        if (arg == "-minQ2" || arg == "-maxQ2")
+
+        if (arg == "-h" || arg == "--help")
+        {
+            PrintHelp(argv[0]);
+            return 0;
+        }
+        else if (arg == "-minQ2" || arg == "--minQ2" || arg == "-maxQ2" || arg == "--maxQ2")
         {
             if (i + 1 >= argc)
             {
@@ -68,8 +131,55 @@ int main(int argc, char* argv[])
                 return 1;
             }
 
-            if (arg == "-minQ2") minQ2 = value;
+            if (arg == "-minQ2" || arg == "--minQ2") minQ2 = value;
             else maxQ2 = value;
+        }
+        else if (arg == "--data")
+        {
+            if (i + 2 >= argc)
+            {
+                std::cerr << "Usage error: --data requires FILENAME TYPE [WEIGHT]" << std::endl;
+                return 1;
+            }
+
+            DatasetSpec spec;
+            spec.filename = argv[++i];
+            spec.weight = 1.0;
+
+            const std::string typeArg = argv[++i];
+            if (!TryParseDataType(typeArg, spec.type))
+            {
+                std::cerr << "Invalid dataset TYPE: " << typeArg
+                          << " (expected TOTAL, CHARM, or UDS)" << std::endl;
+                return 1;
+            }
+
+            if (i + 1 < argc)
+            {
+                std::string next = argv[i + 1];
+                if (!IsKnownOption(next))
+                {
+                    try
+                    {
+                        spec.weight = std::stod(next);
+                        ++i;
+                    }
+                    catch (const std::exception&)
+                    {
+                        std::cerr << "Invalid WEIGHT for --data " << spec.filename
+                                  << ": " << next << std::endl;
+                        return 1;
+                    }
+                }
+            }
+
+            datasets.push_back(spec);
+        }
+        else
+        {
+            std::cerr << "Unknown argument: " << arg << std::endl;
+            std::cerr << "Use --help to see available options." << std::endl;
+            return 1;
         }
     }
 
@@ -83,16 +193,19 @@ int main(int argc, char* argv[])
     data.SetMinQsqr(minQ2);
     data.SetMaxQsqr(maxQ2);
     
-    // Add datafiles, if 2nd parameter=CHARM, then this is only charmdata
-    data.LoadData("/Users/hejajama/data/holocgc/holodata/BB_249Full_4T_NM_NoPen_WideVals_converted", TOTAL);
-    //data.LoadData("./data/hera_combined_sigmar_eminusp.txt", TOTAL);
-    //data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0); // charm data
+    if (datasets.empty())
+    {
+        data.LoadData("data/hera_combined_sigmar.txt", TOTAL, 1.0);
+        data.LoadData("data/hera_combined_sigmar_cc.txt", CHARM, 1.0);
+    }
+    else
+    {
+        for (const auto& ds : datasets)
+        {
+            data.LoadData(ds.filename, ds.type, ds.weight);
+        }
+    }
 
-    //data.LoadData("data/light_quark_f2/hera_I_combined_eplus_lightq", UDS);
-    
-    
-    //data.LoadData("data/hera_II_combined_sigmar_b.txt", BOTTOM, 1.0);
-    
     INITIAL_PARAMETERS start_params = IPSAT_MAXQ2_50;
     
     MnUserParameters parameters;
