@@ -61,6 +61,9 @@ public:
     
     double  ReducedCrossSection(const double Qsqr, const double xbj, const double sqrts, const VirtualPhoton* wf, FitParameters fitparams) const;
     
+    // F2 from the quark flavour(s) given by the wave function
+    double  StructureFunctionF2(const double Qsqr, const double xbj, const VirtualPhoton* wf, FitParameters fitparams) const;
+    
     double F2(double Q2, double x, FitParameters fitparams) const;
     double FL(double Q2, double x, FitParameters fitparams) const;
     

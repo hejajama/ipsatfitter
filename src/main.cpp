@@ -39,6 +39,7 @@ namespace
         std::string filename;
         DataType type;
         double weight = 1.0;
+        bool f2csv = false;     // F2 values in csv format, see Data::LoadF2CSV
     };
 
     std::string ToUpper(std::string s)
@@ -59,7 +60,8 @@ namespace
 
     bool IsKnownOption(const std::string& s)
     {
-        return s == "--data" || s == "--help" || s == "-h" ||
+        return s == "--data" || s == "--f2data" || s == "--heraerrors" ||
+               s == "--help" || s == "-h" ||
                s == "-minQ2" || s == "--minQ2" ||
                s == "-maxQ2" || s == "--maxQ2";
     }
@@ -75,7 +77,13 @@ namespace
             << "  -maxQ2, --maxQ2 <value>         Maximum Q^2 (default: 50.1)\n"
             << "  --data <file> <type> [weight]   Add dataset (repeatable)\n"
             << "                                  type: TOTAL | CHARM | UDS\n"
-            << "                                  weight defaults to 1.0\n\n"
+            << "                                  weight defaults to 1.0\n"
+            << "  --f2data <file> <type> [weight] Add F2 dataset in csv format with columns\n"
+            << "                                  \"Q2\",\"x\",\"F2\" (repeatable). Theory computes F2,\n"
+            << "                                  uncertainty is the relative stat+uncorr. HERA\n"
+            << "                                  uncertainty at the same (Q2,x)\n"
+            << "  --heraerrors <file>             HERA data used for the --f2data uncertainties\n"
+            << "                                  (default: data/hera_II_combined_sigmar.txt)\n\n"
             << "If no --data is given, defaults are loaded:\n"
             << "  ./data/hera_combined_sigmar_eminusp.txt TOTAL 1\n"
             << "  data/hera_combined_sigmar_cc.txt CHARM 1\n\n"
@@ -102,6 +110,7 @@ int main(int argc, char* argv[])
     double minQ2 = 1.49;
     double maxQ2 = 50.1;
     std::vector<DatasetSpec> datasets;
+    std::string heraerrorfile = "data/hera_II_combined_sigmar.txt";
 
     for (int i = 1; i < argc; ++i)
     {
@@ -134,15 +143,25 @@ int main(int argc, char* argv[])
             if (arg == "-minQ2" || arg == "--minQ2") minQ2 = value;
             else maxQ2 = value;
         }
-        else if (arg == "--data")
+        else if (arg == "--heraerrors")
+        {
+            if (i + 1 >= argc)
+            {
+                std::cerr << "Missing value for " << arg << std::endl;
+                return 1;
+            }
+            heraerrorfile = argv[++i];
+        }
+        else if (arg == "--data" || arg == "--f2data")
         {
             if (i + 2 >= argc)
             {
-                std::cerr << "Usage error: --data requires FILENAME TYPE [WEIGHT]" << std::endl;
+                std::cerr << "Usage error: " << arg << " requires FILENAME TYPE [WEIGHT]" << std::endl;
                 return 1;
             }
 
             DatasetSpec spec;
+            spec.f2csv = (arg == "--f2data");
             spec.filename = argv[++i];
             spec.weight = 1.0;
 
@@ -202,7 +221,10 @@ int main(int argc, char* argv[])
     {
         for (const auto& ds : datasets)
         {
-            data.LoadData(ds.filename, ds.type, ds.weight);
+            int status = ds.f2csv ? data.LoadF2CSV(ds.filename, heraerrorfile, ds.type, ds.weight)
+                                  : data.LoadData(ds.filename, ds.type, ds.weight);
+            if (status != 0)
+                return 1;
         }
     }
 

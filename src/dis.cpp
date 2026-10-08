@@ -147,6 +147,7 @@ double DISFitter::operator()(const std::vector<double>& par) const
             double sigmar = datasets[dataset]->ReducedCrossSection(i);
             double sigmar_err = datasets[dataset]->ReducedCrossSectionError(i);
             DataType point_type =datasets[dataset]->DataPointType(i);
+            bool f2_point = datasets[dataset]->PointObservable(i) == STRUCTURE_F2;
             double sqrts = sqrt( Q2 / (x * y) );
             
             double charmx = x * (1.0 + 4.0*charm_mass*charm_mass / Q2);
@@ -162,18 +163,21 @@ double DISFitter::operator()(const std::vector<double>& par) const
             double theory_light=0, theory_bottom=0;
             if (point_type == CHARM or point_type == TOTAL)
             {
-                theory_charm = ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
+                theory_charm = f2_point ? StructureFunctionF2(Q2, charmx, &wf_charm, fitparams)
+                    : ReducedCrossSection(Q2, charmx, sqrts, &wf_charm, fitparams);
             }
             if (point_type == BOTTOM or point_type == TOTAL)
             {
                 // Include bottom conribution if kinematically allowed
                 double bottomx = x * (1.0 + 4.0*bottom_mass*bottom_mass/Q2);
                 if (bottomx < 0.1)
-                    theory_bottom = ReducedCrossSection(Q2, bottomx, sqrts, &wf_bottom, fitparams);
+                    theory_bottom = f2_point ? StructureFunctionF2(Q2, bottomx, &wf_bottom, fitparams)
+                        : ReducedCrossSection(Q2, bottomx, sqrts, &wf_bottom, fitparams);
             }
             if (point_type == TOTAL or point_type == UDS) // All quarks
             {
-                theory_light = ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
+                theory_light = f2_point ? StructureFunctionF2(Q2, x, &wf_lightquark, fitparams)
+                    : ReducedCrossSection(Q2, x, sqrts, &wf_lightquark, fitparams);
                 
             }
             double theory = theory_light + theory_charm + theory_bottom;
@@ -302,6 +306,16 @@ double Inthelperf_totxs(double lnr, void* p)
     return f2 - SQR(kin_y) / ( 1.0 + SQR(1.0-kin_y) ) * fl;  // reduced cross section
 }
 
+
+/*
+ * F2 contribution from the quark flavour(s) described by the given wave function
+ */
+double DISFitter::StructureFunctionF2(const double Qsqr, const double xbj, const VirtualPhoton *wf, FitParameters fitparams) const
+{
+    double xs_l = ProtonPhotonCrossSection(Qsqr, xbj, LONGITUDINAL, wf, fitparams);
+    double xs_t = ProtonPhotonCrossSection(Qsqr, xbj, TRANSVERSE, wf, fitparams);
+    return Qsqr/(4.0*SQR(M_PI)*ALPHA_e)*(xs_l+xs_t);
+}
 
 
 /*
