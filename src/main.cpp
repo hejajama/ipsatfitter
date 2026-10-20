@@ -81,9 +81,10 @@ namespace
             << "  --f2data <file> <type> [weight] Add F2 dataset in csv format with columns\n"
             << "                                  \"Q2\",\"x\",\"F2\" (repeatable). Theory computes F2,\n"
             << "                                  uncertainty is the relative stat+uncorr. HERA\n"
-            << "                                  uncertainty at the same (Q2,x)\n"
+            << "                                  uncertainty at the same (Q2,x) if --heraerrors\n"
+            << "                                  is given, otherwise 1% relative uncertainty\n"
             << "  --heraerrors <file>             HERA data used for the --f2data uncertainties\n"
-            << "                                  (default: data/hera_II_combined_sigmar.txt)\n\n"
+            << "                                  (e.g. data/hera_II_combined_sigmar.txt)\n\n"
             << "If no --data is given, defaults are loaded:\n"
             << "  ./data/hera_combined_sigmar_eminusp.txt TOTAL 1\n"
             << "  data/hera_combined_sigmar_cc.txt CHARM 1\n\n"
@@ -110,7 +111,7 @@ int main(int argc, char* argv[])
     double minQ2 = 1.49;
     double maxQ2 = 50.1;
     std::vector<DatasetSpec> datasets;
-    std::string heraerrorfile = "data/hera_II_combined_sigmar.txt";
+    std::string heraerrorfile = "";   // empty: 1% relative uncertainty for --f2data
 
     for (int i = 1; i < argc; ++i)
     {

@@ -88,14 +88,25 @@ int Data::LoadF2CSV(string filename, string herafile, DataType type, double weig
     // use the one with the highest sqrt(s)
     struct HeraPoint { double q2, x, y, relerr, sqrts; };
     vector<HeraPoint> hera;
-    ifstream hfile(herafile.c_str());
-    if (!hfile.is_open())
-    {
-        cerr << "ERROR! Coudn't read file " << herafile << endl;
-        return -1;
-    }
+    // If no HERA file is given, assume a fixed relative uncertainty
+    const bool use_hera_errors = !herafile.empty();
+    const double default_relerr = 0.01;
+    if (use_hera_errors)
+        cout << "# F2 data " << filename << ": using relative stat+uncorr. HERA uncertainties from " << herafile << endl;
+    else
+        cout << "# F2 data " << filename << ": no HERA error file given, using " << default_relerr*100 << "% relative uncertainty for each point" << endl;
     string line;
-    while (getline(hfile, line))
+    ifstream hfile;
+    if (use_hera_errors)
+    {
+        hfile.open(herafile.c_str());
+        if (!hfile.is_open())
+        {
+            cerr << "ERROR! Coudn't read file " << herafile << endl;
+            return -1;
+        }
+    }
+    while (use_hera_errors and getline(hfile, line))
     {
         if (line.empty() or line.substr(0, 1)=="#")
             continue;
@@ -151,6 +162,19 @@ int Data::LoadF2CSV(string filename, string herafile, DataType type, double weig
 
         if (x>maxx or x<minx or q2<minQ2 or q2>maxQ2) continue;
 
+        if (!use_hera_errors)
+        {
+            // y is not needed when computing F2
+            points++;
+            Qsqrvals.push_back(q2); xbjvals.push_back(x);
+            yvals.push_back(0);
+            sigmarvals.push_back(f2); errors.push_back(default_relerr * f2);
+            point_type.push_back(type);
+            observables.push_back(STRUCTURE_F2);
+            weights.push_back(weight);
+            continue;
+        }
+
         const HeraPoint* match = NULL;
         for (unsigned int i=0; i<hera.size(); i++)
         {
@@ -175,7 +199,8 @@ int Data::LoadF2CSV(string filename, string herafile, DataType type, double weig
         weights.push_back(weight);
     }
 
-    cout << "# Loaded " << points << " F2 datapoints from " << filename << " (relative uncertainties from " << herafile << ") with weight " << weight << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, now we have in total " << sigmarvals.size() << " points " << endl;
+    string errsource = use_hera_errors ? "relative uncertainties from " + herafile : "1% relative uncertainty";
+    cout << "# Loaded " << points << " F2 datapoints from " << filename << " (" << errsource << ") with weight " << weight << " in Q2 range " << minQ2 << " - " << maxQ2 << " GeV^2, now we have in total " << sigmarvals.size() << " points " << endl;
 
     return 0;
 }

@@ -38,7 +38,8 @@ public:
     int LoadData(string filename, DataType type, double weight = 1.0);
     // Load F2 values from a csv file (header "Q2","x","F2"), uncertainties are
     // taken as the relative uncorrelated (stat+uncor) uncertainty of the HERA
-    // reduced cross section measurement in herafile at the same (Q2,x)
+    // reduced cross section measurement in herafile at the same (Q2,x).
+    // If herafile is empty, a 1% relative uncertainty is assumed for each point
     int LoadF2CSV(string filename, string herafile, DataType type, double weight = 1.0);
     int NumOfPoints() const;
     double Qsqr(unsigned int n) const;
