@@ -10,6 +10,7 @@
  */
 
 #include <vector>
+#include <string>
 #include <Minuit2/FCNBase.h>
 #include <Minuit2/MnUserParameterState.h>
 #include "wave_function.hpp"
@@ -77,8 +78,12 @@ public:
     DGLAP_Solver GetDGLAPSolver() { return dglapsolver; }
     void SetDGLAPSolver(DGLAP_Solver s) { dglapsolver = s; dipole.SetDGLAPSolver(s); }
 
+    // If set, operator() writes the theory result for each datapoint to this file
+    void SetPointsFile(string f) { pointsfile = f; }
+
     double MAXR;
 private:
+    string pointsfile;
     IPsat dipole;
 
     MnUserParameters parameters;

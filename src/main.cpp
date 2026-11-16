@@ -63,7 +63,8 @@ namespace
         return s == "--data" || s == "--f2data" || s == "--heraerrors" ||
                s == "--help" || s == "-h" ||
                s == "-minQ2" || s == "--minQ2" ||
-               s == "-maxQ2" || s == "--maxQ2";
+               s == "-maxQ2" || s == "--maxQ2" ||
+               s == "--set" || s == "--nofit" || s == "--points";
     }
 
     void PrintHelp(const char* prog)
@@ -84,7 +85,13 @@ namespace
             << "                                  uncertainty at the same (Q2,x) if --heraerrors\n"
             << "                                  is given, otherwise 1% relative uncertainty\n"
             << "  --heraerrors <file>             HERA data used for the --f2data uncertainties\n"
-            << "                                  (e.g. data/hera_II_combined_sigmar.txt)\n\n"
+            << "                                  (e.g. data/hera_II_combined_sigmar.txt)\n"
+            << "  --set <name> <value>            Set initial value of parameter <name>, e.g.\n"
+            << "                                  --set C 2.5 (repeatable)\n"
+            << "  --nofit                         Do not fit, only compute chi^2 with the\n"
+            << "                                  initial parameters\n"
+            << "  --points <file>                 Write data and theory for each datapoint to <file>\n"
+            << "                                  (with --nofit)\n\n"
             << "If no --data is given, defaults are loaded:\n"
             << "  ./data/hera_combined_sigmar_eminusp.txt TOTAL 1\n"
             << "  data/hera_combined_sigmar_cc.txt CHARM 1\n\n"
@@ -112,6 +119,9 @@ int main(int argc, char* argv[])
     double maxQ2 = 50.1;
     std::vector<DatasetSpec> datasets;
     std::string heraerrorfile = "";   // empty: 1% relative uncertainty for --f2data
+    std::vector<std::pair<std::string, double> > setparams;
+    bool nofit = false;
+    std::string pointsfile = "";
 
     for (int i = 1; i < argc; ++i)
     {
@@ -143,6 +153,37 @@ int main(int argc, char* argv[])
 
             if (arg == "-minQ2" || arg == "--minQ2") minQ2 = value;
             else maxQ2 = value;
+        }
+        else if (arg == "--set")
+        {
+            if (i + 2 >= argc)
+            {
+                std::cerr << "Usage error: --set requires NAME VALUE" << std::endl;
+                return 1;
+            }
+            std::string name = argv[++i];
+            try
+            {
+                setparams.push_back(std::make_pair(name, std::stod(argv[++i])));
+            }
+            catch (const std::exception&)
+            {
+                std::cerr << "Invalid numeric value for --set " << name << ": " << argv[i] << std::endl;
+                return 1;
+            }
+        }
+        else if (arg == "--nofit")
+        {
+            nofit = true;
+        }
+        else if (arg == "--points")
+        {
+            if (i + 1 >= argc)
+            {
+                std::cerr << "Missing value for " << arg << std::endl;
+                return 1;
+            }
+            pointsfile = argv[++i];
         }
         else if (arg == "--heraerrors")
         {
@@ -301,6 +342,19 @@ int main(int argc, char* argv[])
     parameters.SetLowerLimit("mu_0", 0.5); // In priciple can go to anything >0 (right?)
     parameters.SetUpperLimit("mu_0", sqrt(2.7)); // Upper limit is min Q^2
     parameters.SetUpperLimit("charm_mass", 3);
+
+    for (const auto& sp : setparams)
+    {
+        bool found = false;
+        for (const auto& par : parameters.Parameters())
+            if (par.GetName() == sp.first) found = true;
+        if (!found)
+        {
+            std::cerr << "Unknown parameter in --set: " << sp.first << std::endl;
+            return 1;
+        }
+        parameters.SetValue(sp.first, sp.second);
+    }
     DISFitter fitter(parameters);
 	fitter.MAXR = 99;
     /*fitter.MAXR = StrToReal(argv[1])*5.068;
@@ -394,6 +448,15 @@ int main(int argc, char* argv[])
     cout << endl;
     cout << fitter.GetDipole() << endl<<endl;
     
+    if (nofit)
+    {
+        cout << "=== Computing chi^2 without fitting ===" << endl;
+        fitter.SetPointsFile(pointsfile);
+        double chisqr = fitter(parameters.Params());
+        cout << "chi^2 = " << chisqr << endl;
+        return 0;
+    }
+
     cout << "=== Starting fit ===" << endl;
     
     
@@ -410,8 +473,7 @@ int main(int argc, char* argv[])
     FunctionMinimum min = fit();
     // output
     std::cout<<"minimum: "<<min<<std::endl;
-    
-    
+
     return 0;
 }
 

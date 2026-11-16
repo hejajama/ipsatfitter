@@ -12,6 +12,7 @@
 #include <Minuit2/MnUserParameterState.h>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 
 #include "dglap_cpp/EvolutionLO_coupling.h"
 #include "dglap_cpp/EvolutionLO_nocoupling.h"
@@ -131,11 +132,16 @@ double DISFitter::operator()(const std::vector<double>& par) const
     for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
         totalpoints += datasets[dataset]->NumOfPoints();
     
+    // Per-point results for SetPointsFile output, indexed by [dataset][point]
+    vector<vector<string> > point_output(datasets.size());
+
     // These loops are trivially parallerizable
     // We only parallerize the inner loop where we have about
     // 250 points (total sigmar) and 50 points (charm)
     for (unsigned int dataset=0; dataset<datasets.size(); dataset++)
     {
+        if (!pointsfile.empty())
+            point_output[dataset].resize(datasets[dataset]->NumOfPoints());
 #ifdef PARALLEL_CHISQR
     #pragma omp parallel for schedule(dynamic) reduction(+:chisqr) reduction(+:points)
 #endif
@@ -194,6 +200,15 @@ double DISFitter::operator()(const std::vector<double>& par) const
             chisqr += datasets[dataset]->Weight(i)*SQR( (theory - sigmar) / sigmar_err );
             points = points + datasets[dataset]->Weight(i);
 
+            if (!pointsfile.empty())
+            {
+                stringstream ss;
+                ss << setprecision(8) << dataset << " " << Q2 << " " << x << " " << y << " " << sqrts << " "
+                    << sigmar << " " << sigmar_err << " " << theory << " "
+                    << theory_light << " " << theory_charm << " " << theory_bottom;
+                point_output[dataset][i] = ss.str();
+            }
+
             // Output for plotting
             
             //cout << setw(10) << x << " " << setw(10)  << Q2 << " " << setw(10) << y << " " << setw(10) << sigmar << " " <<  " " << setw(10)  << sigmar_err << " " << setw(10) << theory_light << " " << setw(10) << theory_charm << " " << setw(10) << theory_bottom << endl;
@@ -203,6 +218,17 @@ double DISFitter::operator()(const std::vector<double>& par) const
         }
     }
     
+    if (!pointsfile.empty())
+    {
+        ofstream out(pointsfile.c_str());
+        out << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
+        out << "# dataset Q2 x y sqrts data error theory theory_light theory_charm theory_bottom" << endl;
+        for (unsigned int dataset=0; dataset<point_output.size(); dataset++)
+            for (unsigned int i=0; i<point_output[dataset].size(); i++)
+                if (!point_output[dataset][i].empty())
+                    out << point_output[dataset][i] << endl;
+    }
+
     cout << "# Calculated chi^2/N = " << chisqr/points << " (N=" << points << "), parameters (" << PrintVector(par) << ")" << endl;
     
     if (dglapsolver == CPPPIA)
