@@ -5,6 +5,8 @@
 #include <vector>
 #include <algorithm>
 #include <cctype>
+#include <cmath>
+#include <random>
 
 #include "wave_function.hpp"
 #include "virtual_photon.hpp"
@@ -64,7 +66,8 @@ namespace
                s == "--help" || s == "-h" ||
                s == "-minQ2" || s == "--minQ2" ||
                s == "-maxQ2" || s == "--maxQ2" ||
-               s == "--set" || s == "--nofit" || s == "--points";
+               s == "--set" || s == "--nofit" || s == "--points" ||
+               s == "--maxretries" || s == "--seed";
     }
 
     void PrintHelp(const char* prog)
@@ -91,7 +94,13 @@ namespace
             << "  --nofit                         Do not fit, only compute chi^2 with the\n"
             << "                                  initial parameters\n"
             << "  --points <file>                 Write data and theory for each datapoint to <file>\n"
-            << "                                  (with --nofit)\n\n"
+            << "                                  (with --nofit)\n"
+            << "  --maxretries <n>                If the fit does not converge, retry up to <n>\n"
+            << "                                  times with the free parameters randomly perturbed\n"
+            << "                                  by up to 20% from their initial values, within\n"
+            << "                                  the limits (default: 5, 0 disables)\n"
+            << "  --seed <n>                      Random seed for the perturbations\n"
+            << "                                  (default: random)\n\n"
             << "If no --data is given, defaults are loaded:\n"
             << "  ./data/hera_combined_sigmar_eminusp.txt TOTAL 1\n"
             << "  data/hera_combined_sigmar_cc.txt CHARM 1\n\n"
@@ -122,6 +131,8 @@ int main(int argc, char* argv[])
     std::vector<std::pair<std::string, double> > setparams;
     bool nofit = false;
     std::string pointsfile = "";
+    int maxretries = 5;
+    unsigned int seed = std::random_device{}();
 
     for (int i = 1; i < argc; ++i)
     {
@@ -175,6 +186,26 @@ int main(int argc, char* argv[])
         else if (arg == "--nofit")
         {
             nofit = true;
+        }
+        else if (arg == "--maxretries" || arg == "--seed")
+        {
+            if (i + 1 >= argc)
+            {
+                std::cerr << "Missing value for " << arg << std::endl;
+                return 1;
+            }
+            try
+            {
+                long v = std::stol(argv[++i]);
+                if (v < 0) throw std::invalid_argument("negative");
+                if (arg == "--maxretries") maxretries = static_cast<int>(v);
+                else seed = static_cast<unsigned int>(v);
+            }
+            catch (const std::exception&)
+            {
+                std::cerr << "Invalid value for " << arg << ": " << argv[i] << std::endl;
+                return 1;
+            }
         }
         else if (arg == "--points")
         {
@@ -474,6 +505,36 @@ int main(int argc, char* argv[])
     // output
     std::cout<<"minimum: "<<min<<std::endl;
 
+    // If the fit did not converge, retry starting from randomly perturbed initial
+    // parameters. Free parameters are perturbed by up to 20% from their original
+    // initial values, constant and fixed parameters are kept unchanged.
+    std::mt19937 rng(seed);
+    for (int retry = 1; !min.IsValid() && retry <= maxretries; retry++)
+    {
+        MnUserParameters perturbed = parameters;
+        cout << "=== Fit did not converge, retry " << retry << "/" << maxretries
+             << " with perturbed initial parameters (seed " << seed << ") ===" << endl;
+        for (const auto& par : parameters.Parameters())
+        {
+            if (par.IsConst() or par.IsFixed())
+                continue;
+            double v = par.Value();
+            double lo = v - 0.2*std::abs(v);
+            double hi = v + 0.2*std::abs(v);
+            if (par.HasLowerLimit()) lo = std::max(lo, par.LowerLimit());
+            if (par.HasUpperLimit()) hi = std::min(hi, par.UpperLimit());
+            if (hi > lo)
+                v = std::uniform_real_distribution<double>(lo, hi)(rng);
+            perturbed.SetValue(par.GetName(), v);
+            cout << "# " << par.GetName() << " = " << v << endl;
+        }
+
+        MnMinimize retryfit(fitter, perturbed);
+        min = retryfit();
+        std::cout<<"minimum: "<<min<<std::endl;
+    }
+    
+    
     return 0;
 }
 
